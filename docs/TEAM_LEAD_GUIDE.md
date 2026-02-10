@@ -13,7 +13,7 @@ This guide walks you through setting up the entire project from scratch.
 2. Repository name: `bristol-food-network`
 3. Description: `Bristol Regional Food Network - Distributed Software System`
 4. Visibility: **Public** (required for submission)
-5. ✅ Initialize with README (uncheck - we'll add our own)
+5. Initialize with README (uncheck - we'll add our own)
 6. Click **"Create repository"**
 
 ### Step 2: Initial Repository Setup
@@ -39,9 +39,9 @@ git push origin main
 2. Click **"Add rule"**
 3. Branch name pattern: `main`
 4. Enable:
-   - ✅ Require a pull request before merging
-   - ✅ Require approvals (1)
-   - ✅ Dismiss stale pull request approvals
+   - Require a pull request before merging
+   - Require approvals (1)
+   - Dismiss stale pull request approvals
 5. Click **"Create"**
 
 ### Step 4: Create Develop Branch
@@ -379,13 +379,13 @@ Create spreadsheet:
 
 Being team lead is extra work:
 
-✅ **DO:**
+**DO:**
 - Delegate tasks fairly
 - Ask for help when stuck
 - Use GitHub tools (don't track manually)
 - Communicate issues early
 
-❌ **DON'T:**
+**DON'T:**
 - Do everyone's work yourself
 - Ignore non-contributing members
 - Skip documentation
@@ -428,6 +428,6 @@ docker-compose exec db mysql -u brfn_user -p brfn_db
 
 ---
 
-**Good luck! You've got this! 🚀**
+**Good luck!**
 
 Remember: The team's success depends on good communication and documentation. Keep everyone informed and track everything!

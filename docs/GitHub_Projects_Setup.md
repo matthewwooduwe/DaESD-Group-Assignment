@@ -2,7 +2,7 @@
 
 This guide helps the team lead set up GitHub Projects for sprint planning and task management.
 
-## 🎯 Purpose
+## Purpose
 Track tasks, assignments, and progress across all three sprints using GitHub's built-in project management.
 
 ---
@@ -22,25 +22,25 @@ Track tasks, assignments, and progress across all three sprints using GitHub's b
 
 **Default columns to create:**
 
-1. **📋 Backlog**
+1. **Backlog**
    - Description: "All identified tasks not yet in a sprint"
    
-2. **🎯 Sprint 1** (15%)
+2. **Sprint 1** (15%)
    - Description: "Core architecture - Database, Auth, Containerisation"
    
-3. **🎯 Sprint 2** (15%)
+3. **Sprint 2** (15%)
    - Description: "Extended features - Models, Views, APIs"
    
-4. **🎯 Sprint 3** (50%)
+4. **Sprint 3** (50%)
    - Description: "Complete system - Test cases, Security, External services"
    
-5. **🔄 In Progress**
+5. **In Progress**
    - Description: "Currently being worked on"
    
-6. **👀 Review**
+6. **Review**
    - Description: "PR created, awaiting code review"
    
-7. **✅ Done**
+7. **Done**
    - Description: "Merged to develop and tested"
 
 ---
@@ -50,27 +50,27 @@ Track tasks, assignments, and progress across all three sprints using GitHub's b
 Go to **Issues** → **Labels** → **New label**
 
 ### Service Labels (for tracking ownership)
-- `frontend` - 🎨 Green `#00FF00`
-- `customer-api` - 🔵 Blue `#0000FF`
-- `platform-api` - 🟣 Purple `#800080`
-- `producer-api` - 🟠 Orange `#FFA500`
-- `payment-gateway` - 🔴 Red `#FF0000`
+- `frontend` - Green `#00FF00`
+- `customer-api` - Blue `#0000FF`
+- `platform-api` - Purple `#800080`
+- `producer-api` - Orange `#FFA500`
+- `payment-gateway` - Red `#FF0000`
 
 ### Type Labels
-- `feature` - 🎁 Light blue `#ADD8E6`
-- `bug` - 🐛 Red `#FF0000`
-- `documentation` - 📚 Gray `#808080`
-- `testing` - 🧪 Yellow `#FFFF00`
+- `feature` - Light blue `#ADD8E6`
+- `bug` - Red `#FF0000`
+- `documentation` - Gray `#808080`
+- `testing` - Yellow `#FFFF00`
 
 ### Sprint Labels
-- `sprint-1` - 📅 Light green `#90EE90`
-- `sprint-2` - 📅 Light orange `#FFDAB9`
-- `sprint-3` - 📅 Light red `#FFB6C1`
+- `sprint-1` - Light green `#90EE90`
+- `sprint-2` - Light orange `#FFDAB9`
+- `sprint-3` - Light red `#FFB6C1`
 
 ### Priority Labels
-- `high-priority` - ⚠️ Bright red `#FF0000`
-- `medium-priority` - 📌 Orange `#FFA500`
-- `low-priority` - 💡 Gray `#808080`
+- `high-priority` - Bright red `#FF0000`
+- `medium-priority` - Orange `#FFA500`
+- `low-priority` - Gray `#808080`
 
 ---
 
@@ -231,7 +231,7 @@ When PR is merged, move issue to "Done"
 ## Best Practices
 
 ### Creating Issues:
-✅ **DO:**
+**DO:**
 - Write clear, specific titles
 - Include acceptance criteria
 - Link related issues
@@ -239,20 +239,20 @@ When PR is merged, move issue to "Done"
 - Assign to someone
 - Set realistic estimates
 
-❌ **DON'T:**
+**DON'T:**
 - Create vague issues like "Fix bugs"
 - Leave issues unassigned
 - Forget to add sprint labels
 - Create duplicate issues
 
 ### Managing Board:
-✅ **DO:**
+**DO:**
 - Update daily
 - Close completed issues promptly
 - Comment on blockers
 - Link PRs to issues
 
-❌ **DON'T:**
+**DON'T:**
 - Let issues pile up in "In Progress"
 - Forget to move cards
 - Work on unassigned tasks

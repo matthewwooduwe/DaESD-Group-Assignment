@@ -4,7 +4,7 @@ This guide helps resolve common issues across Windows, Mac, and Linux.
 
 ---
 
-## 🖥️ Platform-Specific Setup
+## Platform-Specific Setup
 
 ### Windows Users
 
@@ -69,7 +69,7 @@ sudo usermod -aG docker $USER
 
 ---
 
-## 🐳 Docker Issues
+## Docker Issues
 
 ### Docker Won't Start
 
@@ -157,7 +157,7 @@ docker-compose up
 
 ---
 
-## 📁 File Permission Issues
+## File Permission Issues
 
 ### Windows
 Usually not an issue. If you encounter problems:
@@ -220,7 +220,7 @@ chmod +x setup.sh
 
 ---
 
-## 🌐 Network Issues
+## Network Issues
 
 ### Cannot Access Localhost
 
@@ -257,7 +257,7 @@ networks:
 
 ---
 
-## 💾 Disk Space Issues
+## Disk Space Issues
 
 ### Docker Using Too Much Space
 
@@ -286,7 +286,7 @@ compact vdisk
 
 ---
 
-## 🔍 IDE-Specific Issues
+## IDE-Specific Issues
 
 ### PyCharm (All Platforms)
 
@@ -313,7 +313,7 @@ compact vdisk
 
 ---
 
-## 🚨 Common Error Messages
+## Common Error Messages
 
 ### "bind: address already in use"
 
@@ -368,7 +368,7 @@ docker-compose down
 
 ---
 
-## 🔄 Environment-Specific Workflows
+## Environment-Specific Workflows
 
 ### Windows-Specific
 
@@ -416,7 +416,7 @@ docker-compose up
 
 ---
 
-## 📝 Testing Your Setup
+## Testing Your Setup
 
 ### Verify Docker Installation
 
@@ -460,7 +460,7 @@ docker-compose up
 
 ---
 
-## 🆘 Getting Help
+## Getting Help
 
 ### Team Help
 1. Check this troubleshooting guide first
@@ -479,7 +479,7 @@ If stuck after trying everything:
 
 ---
 
-## ✅ Quick Reference: Platform Commands
+## Quick Reference: Platform Commands
 
 | Task | Windows (CMD) | Windows (PowerShell) | Mac/Linux |
 |------|---------------|---------------------|-----------|
@@ -494,7 +494,7 @@ If stuck after trying everything:
 
 ---
 
-## 🎯 Pro Tips for Cross-Platform Teams
+## Pro Tips for Cross-Platform Teams
 
 1. **Normalize Line Endings:** Already handled in `.gitattributes`
 2. **Use Relative Paths:** Docker Compose handles this automatically

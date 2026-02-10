@@ -1,9 +1,9 @@
 # Contributing Guidelines
 
-## 🤝 Team Collaboration Rules
+## Team Collaboration Rules
 
 ### 1. Communication
-- **Daily:** Check Slack/Discord for updates
+- **Daily:** Check teams for updates
 - **Weekly Standups:** Attend all 9 standups (best 6 count)
 - **Sprint Reviews:** Attend all sprint review sessions
 - **Response Time:** Respond to team messages within 24 hours
@@ -336,6 +336,6 @@ Create file: `docs/standups/week-X-yourname.md`
 
 ## Questions?
 
-Ask in the team Slack channel or contact the team lead.
+Ask in the team Teams channel or in the standup.
 
 Remember: **Communication is key!** When in doubt, ask the team.

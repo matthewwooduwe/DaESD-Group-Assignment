@@ -3,14 +3,14 @@
 **Status:** In Progress  
 **Goal:** Team formation, technical setup, and project preparation
 
-## 🎯 Sprint 0 Objectives
+## Sprint 0 Objectives
 This sprint is **non-assessed** but crucial for project success. Focus on:
 1. Forming the team (4-5 members)
 2. Setting up technical infrastructure
 3. Understanding requirements
 4. Planning Sprints 1-3
 
-## 👥 Team Formation
+## Team Formation
 
 | Role | Name | Service Ownership | GitHub Username |
 |------|------|-------------------|-----------------|
@@ -26,7 +26,7 @@ This sprint is **non-assessed** but crucial for project success. Focus on:
 - Lead sprint reviews
 - Final submission coordination
 
-## ✅ Sprint 0 Checklist
+## Sprint 0 Checklist
 
 ### Week 1: Team & Repository Setup
 - [ ] Team formed (4-5 members confirmed)
@@ -59,7 +59,7 @@ This sprint is **non-assessed** but crucial for project success. Focus on:
 - [ ] API endpoints planned
 - [ ] Sprint 0 retrospective completed
 
-## 📋 Sprint 0 Deliverables
+## Sprint 0 Deliverables
 
 ### 1. Working Docker Environment
 All team members should be able to run:
@@ -101,7 +101,7 @@ Document in `docs/sprints/sprint-1-plan.md`:
 - Assignments
 - Definition of Done
 
-## 🏗️ Technical Setup Tasks
+## Technical Setup Tasks
 
 ### Person 1: Frontend Service
 ```bash
@@ -148,7 +148,7 @@ cd payment-gateway-service
 docker-compose run --rm payment-gateway django-admin startproject gateway_api .
 ```
 
-## 📊 GitHub Projects Setup
+## GitHub Projects Setup
 
 ### Board Columns:
 1. **Backlog** - All planned tasks
@@ -173,7 +173,7 @@ docker-compose run --rm payment-gateway django-admin startproject gateway_api .
 - `sprint-3`
 - `high-priority`
 
-## 🎓 Understanding Requirements
+## Understanding Requirements
 
 ### Sprint 1 Focus (15% of Group Mark)
 **Marking Criteria:**
@@ -210,7 +210,7 @@ docker-compose run --rm payment-gateway django-admin startproject gateway_api .
 - Security implementation
 - Final presentation & Q&A
 
-## 📅 Weekly Meeting Schedule
+## Weekly Meeting Schedule
 
 **Team Meetings:**
 - Day: [Choose day]
@@ -223,7 +223,7 @@ docker-compose run --rm payment-gateway django-admin startproject gateway_api .
 - Best 6 scores count (20% of individual mark)
 - Each person: 2-5 minutes
 
-## 🚀 Sprint 0 Success Criteria
+## Sprint 0 Success Criteria
 
 By end of Sprint 0, the team should:
 1. ✅ Have all 6 Docker containers running
@@ -234,7 +234,7 @@ By end of Sprint 0, the team should:
 6. ✅ Communication channels working
 7. ✅ Everyone committed at least once to the repository
 
-## 📝 Notes
+## Notes
 - No marks for Sprint 0 - focus on preparation
 - Sprint 1 starts Week 4 (16th February 2026)
 - Groups cannot change after Sprint 1 starts
