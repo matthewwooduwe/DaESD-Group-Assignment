@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # Database
+  db:
+    image: mysql:8.0
+    container_name: brfn_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+    networks:
+      - brfn-network
+
+  # Frontend Service (Web UI)
+  frontend:
+    build: ./services/frontend-service
+    container_name: brfn_frontend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./services/frontend-service:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - CUSTOMER_API_URL=${CUSTOMER_API_URL}
+      - PLATFORM_API_URL=${PLATFORM_API_URL}
+      - PRODUCER_API_URL=${PRODUCER_API_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - brfn-network
+
+  # Customer Service API
+  customer-api:
+    build: ./services/customer-service
+    container_name: brfn_customer_api
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - ./services/customer-service:/code
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - PLATFORM_API_URL=${PLATFORM_API_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - brfn-network
+
+  # Platform Service API (Catalog, Orders, Payments, Notifications)
+  platform-api:
+    build: ./services/platform-service
+    container_name: brfn_platform_api
+    command: python manage.py runserver 0.0.0.0:8002
+    volumes:
+      - ./services/platform-service:/code
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - PRODUCER_API_URL=${PRODUCER_API_URL}
+      - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - brfn-network
+
+  # Producer Service API
+  producer-api:
+    build: ./services/producer-service
+    container_name: brfn_producer_api
+    command: python manage.py runserver 0.0.0.0:8003
+    volumes:
+      - ./services/producer-service:/code
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - PLATFORM_API_URL=${PLATFORM_API_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - brfn-network
+
+  # Payment Gateway Service (External Mock)
+  payment-gateway:
+    build: ./services/payment-gateway-service
+    container_name: brfn_payment_gateway
+    command: python manage.py runserver 0.0.0.0:8004
+    volumes:
+      - ./services/payment-gateway-service:/code
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - PAYMENT_GATEWAY_API_KEY=${PAYMENT_GATEWAY_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - brfn-network
+
+volumes:
+  mysql_data:
+
+networks:
+  brfn-network:
+    driver: bridge
