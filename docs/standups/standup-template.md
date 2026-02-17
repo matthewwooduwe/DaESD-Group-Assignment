@@ -3,31 +3,31 @@
 **Sprint:** [Sprint 0/1/2/3]  
 **Service:** [Your service name]
 
-## ✅ Completed This Week
+## Completed This Week
 <!-- What tasks/features did you complete? Be specific. -->
 - 
 - 
 - 
 
-## 🔄 In Progress
+## In Progress
 <!-- What are you currently working on? -->
 - 
 - 
 - 
 
-## 🚧 Blockers / Help Needed
+## Blockers / Help Needed
 <!-- Any issues preventing progress? Need help from team? -->
 - 
 - 
 - 
 
-## 📋 Planned for Next Week
+## Planned for Next Week
 <!-- What will you work on next? -->
 - 
 - 
 - 
 
-## 💡 Notes
+## Notes
 <!-- Any additional comments, learnings, or observations -->
 - 
 - 
@@ -55,6 +55,4 @@ Rate yourself honestly (tutor will provide official score):
 2. Name file: `week-X-yourname.md` (e.g., `week-1-john.md`)
 3. Fill out BEFORE standup meeting
 4. Keep it concise (2-5 minutes to present)
-5. Be honest about blockers - team is here to help!
-
-**Remember:** Best 6 out of 9 standups count for 20% of your individual mark!
+5. Be honest about blockers - other team members is here to help :-)
