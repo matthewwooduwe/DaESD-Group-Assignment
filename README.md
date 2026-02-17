@@ -2,7 +2,7 @@
 
 Distributed software system for connecting local food producers with customers.
 
-## 🏗️ Architecture
+## Architecture
 
 **Microservices:**
 - **Frontend Service** (Port 8000): Web UI and templates
@@ -12,17 +12,17 @@ Distributed software system for connecting local food producers with customers.
 - **Payment Gateway** (Port 8004): External payment processing (mock)
 - **MySQL Database** (Port 3306): Shared database
 
-## 👥 Team Members & Service Ownership
+## Team Members & Service Ownership
 
-| Team Member | Service Ownership | Primary Responsibilities |
-|-------------|-------------------|-------------------------|
+| Team Member | Service Ownership | Primary Responsibilities | Assigned To |
+|-------------|-------------------|-------------------------|-------------|
 | Person 1 | Frontend Service | Web UI, templates, user experience |
 | Person 2 | Customer API | Browse, search, basket, checkout |
 | Person 3 | Platform API | Catalog, orders, payments, notifications (4 apps) |
 | Person 4 | Producer API | Listings, fulfillment, surplus alerts |
 | Person 5 | Payment Gateway | External payment mock, settlements |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Docker Desktop installed
@@ -65,7 +65,7 @@ Distributed software system for connecting local food producers with customers.
    - Producer API: http://localhost:8003
    - Payment Gateway: http://localhost:8004
 
-## 🔄 Daily Development Workflow
+## Daily Development Workflow
 
 ### Starting Work
 ```bash
@@ -110,7 +110,7 @@ git push origin feature/your-service-name
 # 4. Create Pull Request on GitHub
 ```
 
-## 📦 Useful Commands
+## Useful Commands
 
 ### Docker Commands
 ```bash
@@ -139,7 +139,7 @@ docker-compose exec <service> python manage.py test
 docker-compose exec <service> python manage.py collectstatic
 ```
 
-## 🌿 Branch Strategy
+## Branch Strategy
 
 - `main` - Production-ready code (protected)
 - `develop` - Integration branch for each sprint
@@ -151,7 +151,7 @@ docker-compose exec <service> python manage.py collectstatic
 - `feature/platform-orders`
 - `fix/producer-api-auth`
 
-## 🏃 Sprint Workflow
+## Sprint Workflow
 
 ### Sprint 0 (Setup - Weeks 1-3)
 - Repository setup
@@ -177,17 +177,17 @@ docker-compose exec <service> python manage.py collectstatic
 - Security & external services
 - **Final Presentation & Demo**
 
-## 📊 Project Management
+## Project Management
 
-We use **GitHub Projects** for sprint planning:
+We use **GitHub Projects's Kanban Board** for sprint planning:
 - Sprint backlog
 - Task assignments
 - Progress tracking
 - Burndown charts
 
-See: https://github.com/your-org/bristol-food-network/projects
+See: https://github.com/users/matthewwooduwe/projects/1
 
-## ✅ Testing
+## Testing
 
 ```bash
 # Run all tests for a service
@@ -201,31 +201,31 @@ docker-compose exec <service> coverage run --source='.' manage.py test
 docker-compose exec <service> coverage report
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Read [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 2. Pick a task from GitHub Projects
 3. Create feature branch
 4. Develop and test locally
 5. Create Pull Request
-6. Get 1 team member review
+6. Get 1 team member to review PR
 7. Merge to develop
 
-## 📝 Weekly Standups
+## Weekly Standups
 
-Document your standup in `docs/standups/week-X-your-name.md`:
+Standups are documented in `docs/standups/week-X-your-name.md`:
 - What you completed
 - What you're working on
 - Any blockers
 
-## 📚 Documentation
+## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [API Documentation](docs/API.md)
 - [Sprint Plans](docs/sprints/)
 - [Standup Reports](docs/standups/)
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 **Port already in use:**
 ```bash
@@ -244,15 +244,15 @@ docker-compose up --build
 sudo chown -R $USER:$USER .
 ```
 
-## 🎓 Assessment Info
+## Assessment Info
 
 - **Group Mark:** Sprint 1 (15%) + Sprint 2 (15%) + Sprint 3 (50%)
 - **Individual Mark:** Group Mark × Contribution % + Standup Score (20%)
 - **Test Cases:** Must pass 70%+ for 1st class marks
 - **Submission:** GitHub link + Signed contributions matrix by 7th May 2026
 
-## 📞 Support
+## Support
 
 - Module Leaders: Dr. Khoa Phung, Dilshan Jayatilake
-- Team Lead: [Your Name]
-- Slack Channel: #bristol-food-network
+- Team Lead: Matt Wood
+- Teams Channel: bristol-food-network
