@@ -17,7 +17,7 @@ class Product(models.Model):
     category = models.CharField(max_length=50, choices=Category.choices, default=Category.OTHER)
     stock_quantity = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
-    allergen_info = models.TextField(blank=True, help_text="List any allergens present in the product")
+    allergen_info = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,5 +1,5 @@
 
-I have started working on the database and platform service, which acts as the central backend. It manages the core data entities: **Users** and **Products**, and connects to the shared MySQL database.
+I have started working on the database and platform service, which acts as the central backend. It manages the core data entities: Users and Products, and connects to the shared MySQL database.
 
 ### Database
 I have made two Django apps to handle our specific requirements. I have also customized the table names to be cleaner:
@@ -15,7 +15,7 @@ Extends the default Django User model to include:
 Products App (`services/platform-service/products`)
 
 Manages inventory and product details:
-- producer: Links every product to a specific Producer user.
+- producer: Links every product to a specific Producer user. (this should prob be replaced with being linked to a farms/companies table at some point)
 - category: Classifies items (Vegetables, Dairy, Bakery, etc.).
 - stock_quantity: Tracks available inventory.
 - image: Supports product image uploads.
@@ -27,16 +27,26 @@ Manages inventory and product details:
 - DB passwords and Secret Keys are injected via environment variables defined in `.env` and `docker-compose.yml`.
 - Image Processing: The `Pillow` library is installed to handle image uploads.
 
+### Usage
+
+Authentication
+- Register: `POST /api/auth/register/`
+- Login: `POST /api/auth/login/` (Returns JWT `access` and `refresh` tokens)
+
+Products
+- List All: `GET /api/products/`
+- Create: `POST /api/products/` (Requires `Authorization: Bearer <token>` and `role=PRODUCER`)
+
+Testing:
+
+Run the included test script to verify all endpoints:
+```bash
+docker-compose exec platform-api python test_api.py
+```
 ### Next Steps:
 
-Now that the database foundation is laid, here is how we proceed:
+1. Frontend Integration:
+    - Connect the frontend-service to these APIs to display products and allow user registration.
 
-API Development:
-    - Build REST API endpoints (using Django Rest Framework) to expose this data to the frontend.
-    - Create serializers for `User` and `Product` models.
-
-Frontend Integration:
-    - Connect the `frontend-service` to these APIs to display products and allow user registration.
-
-Data Population:
-    - Create seed data (fixtures) for initial testing.
+2. Data Population:
+    - Create test data.

@@ -14,24 +14,19 @@ class User(AbstractUser):
     class Meta:
         db_table = 'users'
 
-    # Override the groups and user_permissions fields to set custom db_table names
     groups = models.ManyToManyField(
         'auth.Group',
-        verbose_name='groups',
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
         related_name="user_set",
         related_query_name="user",
         db_table='users_groups',
+        blank=True,
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        verbose_name='user permissions',
-        blank=True,
-        help_text='Specific permissions for this user.',
         related_name="user_set",
         related_query_name="user",
         db_table='users_permissions',
+        blank=True,
     )
 
     def __str__(self):
