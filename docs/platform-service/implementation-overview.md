@@ -39,7 +39,9 @@ Products
 
 Testing:
 
-Run the included test script to verify all endpoints:
+the database will now migrate and seed automatically on startup.
+
+Run the included test script to test the API
 ```bash
 docker-compose exec platform-api python test_api.py
 ```
