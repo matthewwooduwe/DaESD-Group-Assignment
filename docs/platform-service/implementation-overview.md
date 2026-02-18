@@ -39,7 +39,7 @@ Products
 
 Testing:
 
-the database will now migrate and seed automatically on startup.
+the database should migrate automatically when using docker-compose up --build using the seed_db.py script.
 
 Run the included test script to test the API
 ```bash
