@@ -33,32 +33,42 @@ Distributed software system for connecting local food producers with customers.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-org/bristol-food-network.git
+   git clone https://github.com/matthewwooduwe/DaESD-Group-Assignment.git
    cd bristol-food-network
    ```
+2. **Create a virtual environment:**
+   ```
+   py -m venv <name of vm>
+   ```
 
-2. **Create your environment file:**
+3. **Activate the virtual environment:**
+   ```
+   <name of vm>\Scripts\Activate
+   ```
+   After this, make sure to cd into the repository's directory if you aren't already.
+
+4. **Create your environment file:**
    ```bash
    cp .env.example .env
    # Edit .env if needed (optional for development)
    ```
 
-3. **Build and start all services:**
+5. **Build and start all services:**
    ```bash
    docker-compose up --build
    ```
 
-4. **In a new terminal, run migrations:**
+6. **In a new terminal, run migrations:**
    ```bash
    docker-compose exec platform-api python manage.py migrate
    ```
 
-5. **Create a superuser (optional):**
+7. **Create a superuser (optional):**
    ```bash
    docker-compose exec platform-api python manage.py createsuperuser
    ```
 
-6. **Access the services:**
+8. **Access the services:**
    - Frontend: http://localhost:8000
    - Customer API: http://localhost:8001
    - Platform API: http://localhost:8002/admin
