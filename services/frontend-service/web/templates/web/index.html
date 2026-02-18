@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRFN - Prototype</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .product {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        #auth-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Bristol Regional Food Network</h1>
+
+    <!-- Auth Section -->
+    <div class="section">
+        <h2>Authentication</h2>
+        <div id="auth-status">Not logged in</div>
+
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div id="register-form" style="margin-top: 10px;">
+            <h3>Register (Producer)</h3>
+            <input type="text" id="reg-username" placeholder="Username">
+            <input type="password" id="reg-password" placeholder="Password">
+            <input type="email" id="reg-email" placeholder="Email">
+            <button onclick="register()">Register</button>
+        </div>
+
+        <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+    </div>
+
+    <!-- Product Creation Section (Protected) -->
+    <div class="section" id="create-product-section" style="display:none;">
+        <h2>Add Product</h2>
+        <input type="text" id="prod-name" placeholder="Product Name">
+        <input type="text" id="prod-desc" placeholder="Description">
+        <input type="number" id="prod-price" placeholder="Price" step="0.01">
+        <select id="prod-cat">
+            <option value="VEGETABLES">Vegetables</option>
+            <option value="DAIRY">Dairy</option>
+            <option value="BAKERY">Bakery</option>
+            <option value="OTHER">Other</option>
+        </select>
+        <button onclick="createProduct()">Add Product</button>
+        <div id="prod-msg"></div>
+    </div>
+
+    <!-- Product List Section (Public) -->
+    <div class="section">
+        <h2>Available Products</h2>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <div id="product-list">
+            {% for product in products %}
+            <div class="product">
+                <strong>{{ product.name }}</strong> (${{ product.price }})<br>
+                <small>Producer: {{ product.producer_username }}</small><br>
+                {{ product.description }}
+            </div>
+            {% empty %}
+            <p>No products available.</p>
+            {% endfor %}
+        </div>
+        <p><small><a href="/">Refresh List</a> (Server-side rendered)</small></p>
+    </div>
+
+    <script>
+        const API_URL = "{{ api_base_url }}";
+        let token = localStorage.getItem('access_token');
+
+        function updateAuthUI() {
+            if (token) {
+                document.getElementById('auth-status').innerText = "Logged In";
+                document.getElementById('auth-status').classList.add('success');
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('register-form').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'block';
+                document.getElementById('create-product-section').style.display = 'block';
+            } else {
+                document.getElementById('auth-status').innerText = "Not logged in";
+                document.getElementById('auth-status').classList.remove('success');
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('register-form').style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('create-product-section').style.display = 'none';
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    token = data.access;
+                    localStorage.setItem('access_token', token);
+                    updateAuthUI();
+                    alert("Logged in!");
+                } else {
+                    alert("Login failed: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const email = document.getElementById('reg-email').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/register/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email, role: 'PRODUCER' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Registered! Please login.");
+                } else {
+                    alert("Registration failed: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('access_token');
+            updateAuthUI();
+        }
+
+        async function createProduct() {
+            const name = document.getElementById('prod-name').value;
+            const description = document.getElementById('prod-desc').value;
+            const price = document.getElementById('prod-price').value;
+            const category = document.getElementById('prod-cat').value;
+
+            try {
+                const res = await fetch(`${API_URL}/products/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, description, price, category, stock_quantity: 10 })
+                });
+                if (res.ok) {
+                    alert("Product created! Refresh the page to see it.");
+                    document.getElementById('prod-name').value = '';
+                } else {
+                    const data = await res.json();
+                    alert("Failed to create: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        // Init
+        updateAuthUI();
+    </script>
+</body>
+
+</html>

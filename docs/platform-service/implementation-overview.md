@@ -43,6 +43,11 @@ Run the included test script to verify all endpoints:
 ```bash
 docker-compose exec platform-api python test_api.py
 ```
+
+I also made a very basic frontend to verify the API: [http://localhost:8000/](http://localhost:8000/)
+
+(admin credentials: admin/admin)
+
 ### Next Steps:
 
 1. Frontend Integration:
