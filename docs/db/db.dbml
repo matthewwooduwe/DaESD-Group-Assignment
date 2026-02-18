@@ -1,0 +1,86 @@
+Table users {
+  id int [pk, increment]
+  username varchar [unique, not null]
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  phone_number varchar [note: 'Required for producer/customer contact ']
+  role enum [note: 'ADMIN, PRODUCER, CUSTOMER ']
+  created_at timestamp [default: `now()`]
+}
+
+Table producer_profiles {
+  user_id int [pk, ref: - users.id]
+  business_name varchar [not null]
+  business_address text [not null]
+  postcode varchar [note: 'Used for Food Miles calculation ']
+  bio text
+}
+
+Table customer_profiles {
+  user_id int [pk, ref: - users.id]
+  full_name varchar [not null]
+  delivery_address text [not null]
+  postcode varchar [note: 'Used for Food Miles calculation ']
+}
+
+Table categories {
+  id int [pk, increment]
+  name varchar [unique, not null, note: 'Vegetables, Dairy, Bakery, etc. ']
+}
+
+Table products {
+  id int [pk, increment]
+  producer_id int [ref: > users.id]
+  category_id int [ref: > categories.id]
+  name varchar [not null]
+  description text
+  price decimal(10,2) [not null]
+  unit varchar [note: "e.g., 'dozen', 'kg' [cite: 2]"]
+  stock_quantity int [default: 0, note: 'Real-time inventory tracking ']
+  allergen_info text [note: 'Compliance with food safety regulations ']
+  is_organic boolean [default: false, note: 'Supports customer quality filters ']
+  is_available boolean [default: true]
+  harvest_date date
+  best_before_date date [note: 'Required for customer transparency [cite: 1]']
+  seasonal_start_month tinyint [note: 'Automation for seasonal visibility ']
+  seasonal_end_month tinyint
+  created_at timestamp [default: `now()`]
+}
+
+Table orders {
+  id int [pk, increment]
+  customer_id int [ref: > users.id]
+  total_amount decimal(10,2) [not null]
+  commission_total decimal(10,2) [note: 'Calculated 5% network commission ']
+  status enum [note: 'PENDING, CONFIRMED, READY, DELIVERED [cite: 2]']
+  delivery_date date [note: 'Must enforce 48-hour lead time ']
+  created_at timestamp [default: `now()`]
+}
+
+Table order_items {
+  id int [pk, increment]
+  order_id int [ref: > orders.id]
+  product_id int [ref: > products.id]
+  quantity int [not null]
+  price_at_sale decimal(10,2) [note: 'Snapshot for financial auditing [cite: 1]']
+  producer_payout decimal(10,2) [note: '95% of item value ']
+  network_commission decimal(10,2) [note: '5% of item value ']
+}
+
+Table surplus_deals {
+  id int [pk, increment]
+  product_id int [ref: > products.id]
+  discount_percentage decimal(5,2) [note: 'Target 10-50% for waste reduction [cite: 2]']
+  expiry_date datetime [not null]
+  deal_note varchar [note: "e.g., 'Must sell quickly to avoid waste' [cite: 2]"]
+}
+
+Table reviews {
+  id int [pk, increment]
+  customer_id int [ref: > users.id]
+  product_id int [ref: > products.id]
+  order_id int [ref: > orders.id]
+  rating tinyint [note: '1-5 Star scale [cite: 2]']
+  comment text
+  created_at timestamp [default: `now()`]
+}
