@@ -1,18 +1,18 @@
 
 I have started working on the database and platform service, which acts as the central backend. It manages the core data entities: Users and Products, and connects to the shared MySQL database.
+I have made two Django apps in the platform service for users and products, and the respective database tables.
 
-### Database
-I have made two Django apps to handle our specific requirements. I have also customized the table names to be cleaner:
+#### Database Tables
 - `users`: Main user table.
-- `users_groups` & `users_permissions`: Custom join tables for cleaner permissions.
+- `users_groups` & `users_permissions` (join tables).
 - `products`: Main product table.
 
-Users App (`services/platform-service/users`)
+#### Users App (`services/platform-service/users`)
 
 Extends the default Django User model to include:
 - role: Classifies users as ADMIN, PRODUCER, or CUSTOMER.
 
-Products App (`services/platform-service/products`)
+#### Products App (`services/platform-service/products`)
 
 Manages inventory and product details:
 - producer: Links every product to a specific Producer user. (this should prob be replaced with being linked to a farms/companies table at some point)
