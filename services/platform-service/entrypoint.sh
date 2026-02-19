@@ -13,4 +13,5 @@ fi
 
 python manage.py flush --no-input
 python manage.py migrate
+python manage.py seed_db
 exec "$@"
