@@ -12,6 +12,8 @@ class OrderListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if user.role == 'ADMIN':
+            return Order.objects.all()
         if user.role == 'PRODUCER':
             # Currently returns none to ensure data privacy until producer-specific 
             # filtering logic is finalized.
