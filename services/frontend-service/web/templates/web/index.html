@@ -98,12 +98,57 @@
         <div id="product-list">
             {% for product in products %}
             <div class="product">
-                <strong>{{ product.name }}</strong> (${{ product.price }})<br>
-                <small>Producer: {{ product.producer_username }}</small><br>
+                <strong>{{ product.name }}</strong> (£{{ product.price }})<br>
+                <small>Producer: {{ product.producer_username }} | Category: {{ product.category }}</small><br>
                 {{ product.description }}
             </div>
             {% empty %}
             <p>No products available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="section">
+        <h2>Recent Orders (Admin View)</h2>
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer_username }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>£{{ order.total_amount }}</td>
+                    <td>{{ order.created_at }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="section">
+        <h2>Recent Reviews</h2>
+        <div id="review-list">
+            {% for review in reviews %}
+            <div class="product">
+                <strong>{{ review.rating }}/5</strong> - {{ review.product_name }}<br>
+                <small>By: {{ review.customer_username }}</small><br>
+                <i>"{{ review.comment }}"</i>
+            </div>
+            {% empty %}
+            <p>No reviews available.</p>
             {% endfor %}
         </div>
         <p><small><a href="/">Refresh List</a> (Server-side rendered)</small></p>
