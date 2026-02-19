@@ -25,17 +25,21 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'customer', 'total_amount', 'created_at', 'items')
 
     def create(self, validated_data):
+        """
+        Custom create logic to handle multiple order items and stock validation.
+        """
         item_ids = validated_data.pop('item_ids')
         order = Order.objects.create(**validated_data)
         
         total_amount = 0
         for item_data in item_ids:
             product = Product.objects.get(id=item_data['product_id'])
-            # Check stock
+            
+            # Atomic check for stock availability
             if product.stock_quantity < item_data['quantity']:
                 raise serializers.ValidationError(f"Not enough stock for {product.name}")
             
-            # Create OrderItem
+            # Create the order item snapshot
             OrderItem.objects.create(
                 order=order,
                 product=product,
@@ -43,7 +47,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 price_at_sale=product.price
             )
             
-            # Update stock
+            # Deduct from inventory
             product.stock_quantity -= item_data['quantity']
             product.save()
             

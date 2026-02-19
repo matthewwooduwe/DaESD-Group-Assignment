@@ -3,6 +3,9 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 class Category(models.Model):
+    """
+    Grouping for products (e.g., Vegetables, Dairy).
+    """
     name = models.CharField(max_length=100, unique=True, help_text=_("Vegetables, Dairy, Bakery, etc."))
 
     class Meta:
@@ -13,6 +16,9 @@ class Category(models.Model):
         return self.name
 
 class Product(models.Model):
+    """
+    Represents a food item offered by a producer.
+    """
     # Removed internal Category enum, using ForeignKey to Category model
     
     producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="products")

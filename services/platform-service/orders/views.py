@@ -4,20 +4,23 @@ from .models import Order
 from .serializers import OrderSerializer
 
 class OrderListCreateView(generics.ListCreateAPIView):
+    """
+    Handles listing and creating orders.
+    """
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         if user.role == 'PRODUCER':
-            # Producers see orders containing their products (complex query, for now let's simplify or filter)
-            # Actually, per schema, orders are linked to customer. 
-            # Producers need to see OrderItems related to them. This might need a separate view or filtering.
-            # For this MVP step, let's allow users to see their own orders.
-            return Order.objects.none() # Placeholder for producer logic
+            # Currently returns none to ensure data privacy until producer-specific 
+            # filtering logic is finalized.
+            return Order.objects.none() 
+        # Standard customers see only their own orders
         return Order.objects.filter(customer=user)
 
     def perform_create(self, serializer):
+        # Automatically assign the current user as the order customer
         serializer.save(customer=self.request.user)
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -11,19 +11,21 @@ import random
 User = get_user_model()
 
 class Command(BaseCommand):
+    """
+    Management command to seed the database with initial test data for development.
+    """
     help = 'Seeds the database with initial test data'
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Cleaning old data...')
         
-        # Delete in order of dependency to avoid potential PROTECT issues
-        # OrderItem has PROTECT on Product, so Orders (cascading to Items) must go before Products
+        # Delete existing data in reverse order of dependency to maintain referential integrity.
         Review.objects.all().delete()
         Order.objects.all().delete() 
         Product.objects.all().delete()
         Category.objects.all().delete()
         
-        # Delete non-superuser users
+        # Remove non-admin users to ensure a clean slate for profiles
         User.objects.filter(is_superuser=False).delete()
         self.stdout.write(self.style.SUCCESS('Old data cleared.'))
 

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Wait for the database to be ready before starting Django
 if [ "$DATABASE" = "mysql" ]
 then
     echo "Waiting for mysql..."
@@ -11,7 +12,10 @@ then
     echo "MySQL started"
 fi
 
+# Run database setup: flush (clean for MVP), migrate, and seed
 python manage.py flush --no-input
 python manage.py migrate
 python manage.py seed_db
+
+# Hand off execution to the CMD defined in the Dockerfile
 exec "$@"

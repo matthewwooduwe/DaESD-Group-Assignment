@@ -131,7 +131,9 @@
                     <td>{{ order.created_at }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5">No orders found.</td></tr>
+                <tr>
+                    <td colspan="5">No orders found.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -158,6 +160,7 @@
         const API_URL = "{{ api_base_url }}";
         let token = localStorage.getItem('access_token');
 
+        // Toggle UI based on valid JWT token presence
         function updateAuthUI() {
             if (token) {
                 document.getElementById('auth-status').innerText = "Logged In";
@@ -176,6 +179,7 @@
             }
         }
 
+        // Authenticate with Platform API and store JWT
         async function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -200,6 +204,7 @@
             }
         }
 
+        // Register a new producer account
         async function register() {
             const username = document.getElementById('reg-username').value;
             const password = document.getElementById('reg-password').value;
@@ -228,6 +233,7 @@
             updateAuthUI();
         }
 
+        // Submit new product data with Bearer token authentication
         async function createProduct() {
             const name = document.getElementById('prod-name').value;
             const description = document.getElementById('prod-desc').value;

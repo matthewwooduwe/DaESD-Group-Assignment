@@ -25,6 +25,9 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
+        """
+        Custom create logic to automatically instantiate profiles based on the user's role.
+        """
         producer_data = validated_data.pop('producer_profile', None)
         customer_data = validated_data.pop('customer_profile', None)
         
@@ -36,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             phone_number=validated_data.get('phone_number', ''),
         )
         
+        # Attach appropriate profile based on chosen role
         if user.role == 'PRODUCER' and producer_data:
             ProducerProfile.objects.create(user=user, **producer_data)
         elif user.role == 'CUSTOMER' and customer_data:

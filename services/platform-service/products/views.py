@@ -5,7 +5,7 @@ from .serializers import ProductSerializer, CategorySerializer
 
 class IsProducerOrReadOnly(permissions.BasePermission):
     """
-    Allows only Producers to create content. Read-only for others.
+    Custom permission to only allow Producers to edit or create products.
     """
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
@@ -27,6 +27,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
     ordering_fields = ['price', 'created_at', 'stock_quantity']
 
     def perform_create(self, serializer):
+        # Automatically link the new product to the logged-in producer
         serializer.save(producer=self.request.user)
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):

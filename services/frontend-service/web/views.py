@@ -5,20 +5,25 @@ import os
 PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002/api')
 
 def index(request):
+    """
+    Main portal view. Orchestrates server-side fetching of products, reviews, 
+    and orders from the Platform API.
+    """
     products = []
     orders = []
     reviews = []
     error = None
     
-    # Mock Token for Demo (admin credentials from seed_db)
+    # Authenticate as admin to fetch protected order data for the status dashboard.
+    # NOTE: This is for demonstration purposes in the MVP.
     token = None
     try:
         auth_response = requests.post(f"{PLATFORM_API_URL.rstrip('/')}/api/auth/login/", 
                                       json={'username': 'admin', 'password': 'admin'})
         if auth_response.status_code == 200:
             token = auth_response.json()['access']
-    except:
-        pass # Fail silently for auth, will just show empty orders
+    except Exception:
+        pass # Silently fail if auth service is unavailable
 
     try:
         # 1. Fetch Products

@@ -5,10 +5,17 @@ from products.models import Product
 from decimal import Decimal
 
 class Order(models.Model):
+    """
+    Represents a customer order within the platform.
+    """
     class Status(models.TextChoices):
+        # Initial state when order is placed
         PENDING = 'PENDING', _('Pending')
+        # Confirmed by the producer
         CONFIRMED = 'CONFIRMED', _('Confirmed')
+        # Product is prepared and ready for delivery/pickup
         READY = 'READY', _('Ready')
+        # Order successfully delivered to the customer
         DELIVERED = 'DELIVERED', _('Delivered')
 
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
@@ -25,8 +32,11 @@ class Order(models.Model):
         return f"Order #{self.id} - {self.customer.username}"
 
 class OrderItem(models.Model):
+    """
+    Individual products included in an order.
+    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT) # Protect to keep history if product deleted? Or set null?
+    product = models.ForeignKey(Product, on_delete=models.PROTECT) 
     quantity = models.PositiveIntegerField()
     price_at_sale = models.DecimalField(max_digits=10, decimal_places=2, help_text=_("Snapshot for financial auditing"))
     producer_payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text=_("95% of item value"))
@@ -36,10 +46,11 @@ class OrderItem(models.Model):
         db_table = 'order_items'
 
     def save(self, *args, **kwargs):
+        # Capture current product price if not set
         if not self.price_at_sale:
             self.price_at_sale = self.product.price
         
-        # Calculate splits
+        # Calculate financial splits: 5% to network, 95% to producer
         total_val = self.price_at_sale * self.quantity
         self.network_commission = total_val * Decimal('0.05')
         self.producer_payout = total_val * Decimal('0.95')
@@ -47,6 +58,9 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
 
 class SurplusDeal(models.Model):
+    """
+    Promotional deals for surplus products to reduce food waste.
+    """
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='surplus_deals')
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text=_("Target 10-50% for waste reduction"))
     expiry_date = models.DateTimeField()
