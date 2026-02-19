@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.utils.translation import gettext_lazy as _
 
 class User(AbstractUser):
     class Role(models.TextChoices):
@@ -9,25 +9,38 @@ class User(AbstractUser):
         CUSTOMER = "CUSTOMER", "Customer"
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.CUSTOMER)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-
+    phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for producer/customer contact")
+    
+    # We can rely on default created_at from AbstractUser's date_joined but schema says created_at
+    # date_joined is already there, let's just stick to standard AbstractUser fields + role + phone
+    
     class Meta:
         db_table = 'users'
 
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name="user_set",
-        related_query_name="user",
-        db_table='users_groups',
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name="user_set",
-        related_query_name="user",
-        db_table='users_permissions',
-        blank=True,
-    )
-
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+class ProducerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='producer_profile')
+    business_name = models.CharField(max_length=255)
+    business_address = models.TextField()
+    postcode = models.CharField(max_length=20, help_text="Used for Food Miles calculation")
+    bio = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'producer_profiles'
+
+    def __str__(self):
+        return self.business_name
+
+class CustomerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
+    full_name = models.CharField(max_length=255)
+    delivery_address = models.TextField()
+    postcode = models.CharField(max_length=20, help_text="Used for Food Miles calculation")
+
+    class Meta:
+        db_table = 'customer_profiles'
+
+    def __str__(self):
+        return self.full_name

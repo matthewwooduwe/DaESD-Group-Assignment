@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     gcc \
     pkg-config \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /code

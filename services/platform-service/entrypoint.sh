@@ -1,11 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 
-# Wait for database to be ready (optional but good practice)
-# For now, we rely on depends_on in docker-compose
+if [ "$DATABASE" = "mysql" ]
+then
+    echo "Waiting for mysql..."
 
-echo "Applying database migrations..."
-python manage.py makemigrations
+    while ! nc -z $DB_HOST $DB_PORT; do
+      sleep 0.1
+    done
+
+    echo "MySQL started"
+fi
+
+python manage.py flush --no-input
 python manage.py migrate
-
-echo "Starting server..."
 exec "$@"
