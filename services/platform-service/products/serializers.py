@@ -1,26 +1,14 @@
 from rest_framework import serializers
-from .models import Product, Category
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
+from .models import Product
 
 class ProductSerializer(serializers.ModelSerializer):
     producer_username = serializers.ReadOnlyField(source='producer.username')
-    category = serializers.SlugRelatedField(
-        slug_field='name', 
-        queryset=Category.objects.all(),
-        help_text="Name of the category (e.g., 'Vegetables', 'Dairy')"
-    )
 
     class Meta:
         model = Product
         fields = (
-            'id', 'producer', 'producer_username', 'category', 'name', 'description', 
-            'price', 'unit', 'stock_quantity', 'allergen_info', 'is_organic', 
-            'is_available', 'harvest_date', 'best_before_date', 
-            'seasonal_start_month', 'seasonal_end_month', 'image',
+            'id', 'producer', 'producer_username', 'name', 'description', 
+            'price', 'category', 'stock_quantity', 'image', 'allergen_info', 
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'producer', 'created_at', 'updated_at')

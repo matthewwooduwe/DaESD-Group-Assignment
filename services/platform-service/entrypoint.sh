@@ -1,21 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-# Wait for the database to be ready before starting Django
-if [ "$DATABASE" = "mysql" ]
-then
-    echo "Waiting for mysql..."
+# Wait for database to be ready (optional but good practice)
+# For now, we rely on depends_on in docker-compose
 
-    while ! nc -z $DB_HOST $DB_PORT; do
-      sleep 0.1
-    done
-
-    echo "MySQL started"
-fi
-
-# Run database setup: flush (clean for MVP), migrate, and seed
-python manage.py flush --no-input
+echo "Applying database migrations..."
+python manage.py makemigrations
 python manage.py migrate
-python manage.py seed_db
 
-# Hand off execution to the CMD defined in the Dockerfile
+echo "Starting server..."
 exec "$@"

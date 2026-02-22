@@ -6,8 +6,6 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     gcc \
     pkg-config \
-    netcat-openbsd \
-    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /code
@@ -16,7 +14,6 @@ COPY requirements.txt /code/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . /code/
-COPY entrypoint.sh /usr/local/bin/
-RUN dos2unix /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /code/entrypoint.sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/code/entrypoint.sh"]
