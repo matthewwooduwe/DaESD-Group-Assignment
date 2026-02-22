@@ -3,38 +3,45 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>BRFN - Simple Prototype View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRFN - Prototype</title>
     <style>
         body {
             font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .section {
             margin-bottom: 30px;
-        }
-
-        th,
-        td {
             border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .product {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        input,
+        button {
             padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        h2 {
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
+            margin: 5px 0;
         }
 
         .error {
             color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        #auth-status {
             font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -42,93 +49,170 @@
 <body>
     <h1>Bristol Regional Food Network</h1>
 
-    {% if error %}
-    <p class="error">Error: {{ error }}</p>
-    {% endif %}
+    <!-- Auth Section -->
+    <div class="section">
+        <h2>Authentication</h2>
+        <div id="auth-status">Not logged in</div>
 
-    <h2>Available Products</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Producer</th>
-                <th>Category</th>
-            </tr>
-        </thead>
-        <tbody>
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div id="register-form" style="margin-top: 10px;">
+            <h3>Register (Producer)</h3>
+            <input type="text" id="reg-username" placeholder="Username">
+            <input type="password" id="reg-password" placeholder="Password">
+            <input type="email" id="reg-email" placeholder="Email">
+            <button onclick="register()">Register</button>
+        </div>
+
+        <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+    </div>
+
+    <!-- Product Creation Section (Protected) -->
+    <div class="section" id="create-product-section" style="display:none;">
+        <h2>Add Product</h2>
+        <input type="text" id="prod-name" placeholder="Product Name">
+        <input type="text" id="prod-desc" placeholder="Description">
+        <input type="number" id="prod-price" placeholder="Price" step="0.01">
+        <select id="prod-cat">
+            <option value="VEGETABLES">Vegetables</option>
+            <option value="DAIRY">Dairy</option>
+            <option value="BAKERY">Bakery</option>
+            <option value="OTHER">Other</option>
+        </select>
+        <button onclick="createProduct()">Add Product</button>
+        <div id="prod-msg"></div>
+    </div>
+
+    <!-- Product List Section (Public) -->
+    <div class="section">
+        <h2>Available Products</h2>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <div id="product-list">
             {% for product in products %}
-            <tr>
-                <td>{{ product.id }}</td>
-                <td>{{ product.name }}</td>
-                <td>£{{ product.price }}</td>
-                <td>{{ product.producer_username }}</td>
-                <td>{{ product.category }}</td>
-            </tr>
+            <div class="product">
+                <strong>{{ product.name }}</strong> (${{ product.price }})<br>
+                <small>Producer: {{ product.producer_username }}</small><br>
+                {{ product.description }}
+            </div>
             {% empty %}
-            <tr>
-                <td colspan="5">No products found.</td>
-            </tr>
+            <p>No products available.</p>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        <p><small><a href="/">Refresh List</a> (Server-side rendered)</small></p>
+    </div>
 
-    <h2>Recent Orders (Admin View)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.customer_username }}</td>
-                <td>{{ order.status }}</td>
-                <td>£{{ order.total_amount }}</td>
-                <td>{{ order.created_at }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5">No orders found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <script>
+        const API_URL = "{{ api_base_url }}";
+        let token = localStorage.getItem('access_token');
 
-    <h2>Recent Reviews</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Rating</th>
-                <th>Product</th>
-                <th>Comment</th>
-                <th>Customer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for review in reviews %}
-            <tr>
-                <td>{{ review.rating }}/5</td>
-                <td>{{ review.product_name }}</td>
-                <td>{{ review.comment }}</td>
-                <td>{{ review.customer_username }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">No reviews found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        function updateAuthUI() {
+            if (token) {
+                document.getElementById('auth-status').innerText = "Logged In";
+                document.getElementById('auth-status').classList.add('success');
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('register-form').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'block';
+                document.getElementById('create-product-section').style.display = 'block';
+            } else {
+                document.getElementById('auth-status').innerText = "Not logged in";
+                document.getElementById('auth-status').classList.remove('success');
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('register-form').style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('create-product-section').style.display = 'none';
+            }
+        }
 
-    <p><small><a href="/">Refresh Data</a></small></p>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    token = data.access;
+                    localStorage.setItem('access_token', token);
+                    updateAuthUI();
+                    alert("Logged in!");
+                } else {
+                    alert("Login failed: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const email = document.getElementById('reg-email').value;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/register/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email, role: 'PRODUCER' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Registered! Please login.");
+                } else {
+                    alert("Registration failed: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('access_token');
+            updateAuthUI();
+        }
+
+        async function createProduct() {
+            const name = document.getElementById('prod-name').value;
+            const description = document.getElementById('prod-desc').value;
+            const price = document.getElementById('prod-price').value;
+            const category = document.getElementById('prod-cat').value;
+
+            try {
+                const res = await fetch(`${API_URL}/products/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, description, price, category, stock_quantity: 10 })
+                });
+                if (res.ok) {
+                    alert("Product created! Refresh the page to see it.");
+                    document.getElementById('prod-name').value = '';
+                } else {
+                    const data = await res.json();
+                    alert("Failed to create: " + JSON.stringify(data));
+                }
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        // Init
+        updateAuthUI();
+    </script>
 </body>
 
 </html>
