@@ -76,9 +76,11 @@ Examples:
 # Always branch from develop
 git checkout develop
 git pull origin develop
-git checkout -b feature/your-service-component
+git checkout -b feature/<your-service-component>
 
 # Work on your feature...
+git add <path to changed file>
+git commit -m "commit message..."
 
 # Push to remote
 git push origin feature/your-service-component
