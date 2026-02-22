@@ -42,8 +42,8 @@ class Command(BaseCommand):
 
         # 1. Create Users
         admin_username = get_unique_username('admin')
-        if not User.objects.filter(username='admin').exists():
-            u = User.objects.create_superuser('admin', 'admin@example.com', 'admin')
+        if not User.objects.filter(username=admin_username).exists():
+            u = User.objects.create_superuser(admin_username, 'admin@example.com', 'admin')
             u.role = 'ADMIN'
             u.save()
             self.stdout.write(self.style.SUCCESS(f'Created superuser: {admin_username}'))

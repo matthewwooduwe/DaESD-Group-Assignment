@@ -11,6 +11,28 @@ class User(AbstractUser):
         PRODUCER = "PRODUCER", "Producer"
         CUSTOMER = "CUSTOMER", "Customer"
 
+    groups = models.ManyToManyField(
+        "auth.Group",
+        verbose_name=_("groups"),
+        blank=True,
+        help_text=_(
+            "The groups this user belongs to. A user will get all permissions "
+            "granted to each of their groups."
+        ),
+        related_name="user_set",
+        related_query_name="user",
+        db_table="users_groups",
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        verbose_name=_("user permissions"),
+        blank=True,
+        help_text=_("Specific permissions for this user."),
+        related_name="user_set",
+        related_query_name="user",
+        db_table="users_permissions",
+    )
+    
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.CUSTOMER)
     phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for producer/customer contact")
     
