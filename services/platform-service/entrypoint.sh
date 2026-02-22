@@ -13,9 +13,9 @@ then
 fi
 
 # Run database setup: flush (clean for MVP), migrate, and seed
-python manage.py flush --no-input
+# python manage.py flush --no-input
 python manage.py migrate
-python manage.py seed_db
+# python manage.py seed_db
 
 # Hand off execution to the CMD defined in the Dockerfile
 exec "$@"

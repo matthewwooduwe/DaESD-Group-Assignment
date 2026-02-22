@@ -34,25 +34,8 @@ def seed_data(apps, schema_editor):
 
 
     # 3. Create Products
-    if not Product.objects.filter(name='Potatoes').exists():
-        Product.objects.create(
-            producer=producer,
-            name='Potatoes',
-            description='potatoes :D.',
-            price=3.50,
-            category='VEGETABLES',
-            stock_quantity=100
-        )
-    
-    if not Product.objects.filter(name='Bread').exists():
-        Product.objects.create(
-            producer=producer,
-            name='Bread',
-            description='bread it is yum.',
-            price=4.00,
-            category='BAKERY',
-            stock_quantity=20
-        )
+    # Products are seeded correctly using seed_db.py, skipping creation here to avoid string-to-int Category issues.
+    pass
 
 class Migration(migrations.Migration):
 
