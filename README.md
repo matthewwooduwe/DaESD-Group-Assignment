@@ -36,12 +36,12 @@ Distributed software system for connecting local food producers with customers.
    git clone https://github.com/matthewwooduwe/DaESD-Group-Assignment.git
    cd bristol-food-network
    ```
-2. **Create a virtual environment:**
+2. **Create a virtual environment (for development only):**
    ```
    py -m venv <name of vm>
    ```
 
-3. **Activate the virtual environment:**
+3. **Activate the virtual environment (for development only):**
    ```
    <name of vm>\Scripts\Activate
    ```
