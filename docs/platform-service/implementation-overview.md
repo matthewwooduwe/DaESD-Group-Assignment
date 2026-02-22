@@ -1,59 +1,87 @@
 
-I have started working on the database and platform service, which acts as the central backend. It manages the core data entities: Users and Products, and connects to the shared MySQL database.
-I have made two Django apps in the platform service for users and products, and the respective database tables.
+I have expanded the platform service to integrate the full database schema, managing Users, Profiles, Products, Orders, and Reviews.
 
-#### Database Tables
-- `users`: Main user table.
-- `users_groups` & `users_permissions` (join tables).
-- `products`: Main product table.
+#### Database Tables and Models
+- `users`: Extended User model with roles (ADMIN, PRODUCER, CUSTOMER).
+- `producer_profiles`: Business details for producers (business name, address, bio).
+- `customer_profiles`: Personal details for customers (delivery address).
+- `categories`: Product categories (Vegetables, Dairy, etc.).
+- `products`: Detailed product inventory with stock, pricing, and seasonal info.
+- `orders`: Order management linked to customers.
+- `order_items`: Individual items in an order with snapshot pricing and commission calculation.
+- `reviews`: Customer reviews for products and orders.
+- `surplus_deals`: Management of surplus produce (model created, pending API logic).
 
 #### Users App (`services/platform-service/users`)
 
-Extends the default Django User model to include:
-- role: Classifies users as ADMIN, PRODUCER, or CUSTOMER.
+Extends the default Django User model and adds profiles:
+- **Roles**: Classifies users as ADMIN, PRODUCER, or CUSTOMER.
+- **Profiles**: Automatically created/updated alongside user registration.
+- **Endpoints**:
+    - Register: `POST /api/auth/register/` (Supports nested profile data)
+    - Login: `POST /api/auth/login/` (Returns JWT tokens)
+    - Me: `GET /api/auth/me/` (Retrieve own user and profile details)
 
 #### Products App (`services/platform-service/products`)
 
-Manages inventory and product details:
-- producer: Links every product to a specific Producer user. (this should prob be replaced with being linked to a farms/companies table at some point)
-- category: Classifies items (Vegetables, Dairy, Bakery, etc.).
-- stock_quantity: Tracks available inventory.
-- image: Supports product image uploads.
-- allergen_info: Text field for allergen warnings.
+Manages the product catalog:
+- **Categories**: Dynamic category management.
+- **Inventory**: Tracks `stock_quantity`, `unit`, `harvest_date`, `best_before_date`.
+- **Search & Filter**: Filter by category, producer, organic status, availability.
+- **Endpoints**:
+    - List/Create Products: `GET/POST /api/products/`
+    - Product Details: `GET/PUT/DELETE /api/products/<id>/`
+    - Categories: `GET/POST /api/products/categories/`
 
-### How It Works@
+#### Orders App (`services/platform-service/orders`)
 
-- The service runs in a Docker container (`platform-api`) and communicates with the MySQL container (`db`) over the internal Docker network.
-- DB passwords and Secret Keys are injected via environment variables defined in `.env` and `docker-compose.yml`.
-- Image Processing: The `Pillow` library is installed to handle image uploads.
+Handles order processing and commission:
+- **Order Creation**: Validates stock, calculates totals.
+- **Commission**: Automatically calculates 5% network commission and 95% producer payout per item.
+- **Endpoints**:
+    - List/Create Orders: `GET/POST /api/orders/`
+    - Order Details: `GET/PUT/DELETE /api/orders/<id>/`
+
+#### Reviews App (`services/platform-service/reviews`)
+
+Manages customer feedback:
+- **Reviews**: Links customers to products and optional orders.
+- **Endpoints**:
+    - List/Create Reviews: `GET/POST /api/reviews/`
+    - Review Details: `GET/PUT/DELETE /api/reviews/<id>/`
+
+### How It Works
+
+- The service runs in a Docker container (`platform-api`) and communicates with any MySQL container (`db`) over the internal Docker network.
+- **Authentication**: Uses JWT (JSON Web Tokens) for secure API access.
+- **Permissions**:
+    - Producers can manage their own products and see their orders (logic to be refined).
+    - Customers can place orders and write reviews.
+    - Read-only access for public product listings.
 
 ### Usage
 
-Authentication
-- Register: `POST /api/auth/register/`
-- Login: `POST /api/auth/login/` (Returns JWT `access` and `refresh` tokens)
+**Testing:**
 
-Products
-- List All: `GET /api/products/`
-- Create: `POST /api/products/` (Requires `Authorization: Bearer <token>` and `role=PRODUCER`)
-
-Testing:
-
-the database should migrate automatically when using docker-compose up --build using the seed_db.py script.
-
-Run the included test script to test the API
+Run the included test script to verify the full flow (Registration -> Product -> Order -> Review):
 ```bash
-docker-compose exec platform-api python test_api.py
+docker compose exec platform-api python test_api.py
 ```
 
-I also made a very basic frontend to verify the API: [http://localhost:8000/](http://localhost:8000/)
+To seed the db use:
+```bash
+docker compose exec platform-api python manage.py seed_db
+```
 
-(admin credentials: admin/admin)
+**API Verification:**
+You can also use tools like Postman or the basic frontend (if running) to interact with the endpoints.
 
 ### Next Steps:
 
-1. Frontend Integration:
-    - Connect the frontend-service to these APIs to display products and allow user registration.
+1. **Frontend Integration**:
+    - Connect the frontend-service to these new APIs.
+    - Build UI for Profile management, Order history, and Product catalog.
 
-2. Data Population:
-    - Create test data.
+2. **Refinement**:
+    - Implement `SurplusDeals` logic.
+    - Refine Producer order views (filtering order items by producer).
