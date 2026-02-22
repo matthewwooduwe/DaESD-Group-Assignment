@@ -1,5 +1,7 @@
 # GitHub Projects Best Practises Guide
 
+For how to use GitHub projects, check section 12 in this file: [Contributing Guidelines](.\CONTRIBUTING.md)
+
 ## Best Practices
 
 ### Creating Issues:

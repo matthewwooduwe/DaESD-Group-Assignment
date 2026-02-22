@@ -35,6 +35,8 @@ Fixes #issue-number
 - `test`: Adding tests
 - `chore`: Maintenance tasks
 
+Where applicable, add the component the commit addresses in brackets.
+
 **Examples:**
 ```
 feat(customer-api): add shopping basket functionality
@@ -113,7 +115,7 @@ Closes #issue-number
 ```
 
 **PR Review Rules:**
-- **Required:** 1 team member approval
+- **Required:** 1 team member's approval
 - **Merge:** Only to `develop` branch
 - **Delete:** Delete feature branch after merge
 
@@ -300,20 +302,6 @@ Create file: `docs/standups/week-X-yourname.md`
 2. What you're working on now
 3. Any blockers or help needed
 
-### 14. Contributions Matrix
-
-**Track From Sprint 1:**
-- Git commits (quantity and quality)
-- Features implemented
-- Code reviews performed
-- Documentation contributions
-- Sprint review participation
-
-**Final Submission:**
-- Complete by end of Sprint 3
-- Must be signed by ALL members
-- Reflects honest contribution percentages
-
 ### 15. Emergency Procedures
 
 **Broken Main Branch:**
@@ -322,7 +310,7 @@ Create file: `docs/standups/week-X-yourname.md`
 3. Fix in new branch
 4. Test thoroughly before merging
 
-**Merge Disasters:**
+**Merge Disasters (please try to avoid them altogether...):**
 1. Create backup branch immediately
 2. Use `git reflog` to find last good state
 3. Reset to last working commit
@@ -336,6 +324,4 @@ Create file: `docs/standups/week-X-yourname.md`
 
 ## Questions?
 
-Ask in the team Teams channel or in the standup.
-
-Remember: **Communication is key!** When in doubt, ask the team.
+Ask in the team Teams channel or during group meetings :)
