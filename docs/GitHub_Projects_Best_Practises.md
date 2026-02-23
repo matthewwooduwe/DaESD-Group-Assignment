@@ -1,28 +1,40 @@
 # GitHub Projects Best Practises Guide
 
+For how to use GitHub projects, check section 12 in this file: [Contributing Guidelines](.\CONTRIBUTING.md)
+
 ## Best Practices
 
 ### Creating Issues:
 **DO:**
 - Write clear, specific titles
-- Include acceptance criteria
+- Include FR/NFR number in title
+- Include Test Case number (TC-0xx) in description
 - Link related issues
-- Add appropriate labels
+- Add appropriate priority labels:
+    
+        P0 - Top Priority (Critical TCs & core functionality/upcoming task in current Sprint).
+
+        P1 - Medium Priority (High TCs)
+
+        P2 - Lowest Priorty (Medium & Low TCs)
+
 - Assign to someone
-- Set realistic estimates
+- Set realistic estimates (don't leave start time and target date fields blank)
 
 **DON'T:**
 - Create vague issues like "Fix bugs"
 - Leave issues unassigned
-- Forget to add sprint labels
+- Forget to add FR/NFR number
+- Leave priorty blank (could lead to incorrect prioritisation!)
 - Create duplicate issues
 
 ### Managing Board:
 **DO:**
-- Update daily
+- Update progress as it happens
 - Close completed issues promptly
 - Comment on blockers
 - Link PRs to issues
+- Add any bugs discovered to "Bugs" column and assign them
 
 **DON'T:**
 - Let issues pile up in "In Progress"
@@ -36,8 +48,6 @@
 - Explain any "In Progress" tasks
 - Discuss blockers and solutions
 
----
-
 ## Tracking Contributions
 
 GitHub Projects automatically tracks:
@@ -46,28 +56,13 @@ GitHub Projects automatically tracks:
 - Sprint velocity
 - Individual contributions
 
-**For Contributions Matrix:**
+**For Contributions Matrix (TBC at end of Sprint 3):**
+
+This should be done with all team members present.
 1. Go to **Insights** → **Contributors**
-2. Screenshot commit graphs
-3. Count issues completed per person
-4. Document in contributions matrix
-
----
-
-## Example Sprint Burndown
-
-**Sprint 1 Example:**
-- Total tasks: 15
-- Week 1: 15 remaining (just started)
-- Week 2: 8 remaining (good progress)
-- Week 3: 2 remaining (mostly done)
-- Sprint Review: Demo 13 completed features
-
-**Velocity:** 13 tasks completed in 3 weeks ≈ 4.3 tasks/week
-
-Use this to plan Sprint 2 workload.
-
----
+2. Count issues completed per person
+3. Document in contributions matrix
+4. Refine contributions % after agreeing with the rest of team
 
 ## Troubleshooting
 
@@ -84,9 +79,9 @@ Use this to plan Sprint 2 workload.
 - Finish before starting new tasks
 
 **Unbalanced workload?**
-- Reassign tasks during standups
+- Reassign tasks during group meetings
 - Break large tasks into smaller ones
-- Communicate with team
+- Communicate with the team
 
 ---
 

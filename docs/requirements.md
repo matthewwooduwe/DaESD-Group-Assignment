@@ -1,93 +1,119 @@
-## Bristol Regional Food Network Requirements
+# Bristol Regional Food Network Requirements
 
-### Functional Requirements
+## Functional Requirements
 
-#### Product & Inventory Management
+### Product & Inventory Management
 
-Producer Listings: Producers must be able to list products with names, detailed descriptions, pricing, and availability timeframes.
+**FR1 - Producer Registration:** Producers MUST be able to register on the platform by creating an account using username, email, password, business address, and phone number.
 
-Seasonal Management: The system must support frequent seasonal updates and display seasonal availability indicators to customers.
+**FR2 - Producer Listings:** Producers MUST be able to list products with names, detailed descriptions, pricing, and availability timeframes.
 
-Detailed Attributes: Product listings must clearly indicate:
+**FR3 - Seasonal Management:** The system MUST support frequent seasonal updates and display seasonal availability indicators to customers.
 
-Organic certification status.
+**FR4 - Detailed Attributes:** Product listings MUST clearly indicate:
 
-Allergen warnings.
+* Organic certification status.
+* Allergen warnings.
+* Harvest dates and best-before dates.
 
-Harvest dates and best-before dates.
+**FR5 - Inventory Tracking:** Producers MUST have access to basic inventory management tools within their service portal.
 
-Inventory Tracking: Producers must have access to basic inventory management tools within their service portal.
+**FR6 - Order Fulfillment:** Producers SHOULD be able to choose the order status through the order lifecycle to fulfillment.
 
-#### Customer Experience & Ordering
+**FR7 - Restocking:** Producers SHOULD receive notifications to restock a product on low stock to facilitate order fulfillment.
 
-Browsing & Search: Customers must be able to browse by category (vegetables, dairy, bakery, etc.) and search for specific items.
+### Customer Experience & Ordering
 
-Transparency: Every product must display its specific farm origin information.
+**FR8 - Customer Registration:** Producers MUST be able to register on the platform by creating an account using username, email, password, delivery address, and phone number.
 
-Multi-Vendor Basket: The checkout process must aggregate items from multiple vendors into a single transaction while maintaining transparency about individual supplier responsibilities.
+**FR9 - Browsing & Search:** Customers MUST be able to browse by category (vegetables, dairy, bakery, etc.) and search for specific items.
 
-Fulfillment Info: The platform must clearly communicate delivery arrangements and collection procedures to the customer.
+**FR10 - Transparency:** Every product MUST display its specific farm origin information.
 
-#### Order Fulfillment & Finance
+**FR11 - Multi-Vendor Basket:** The checkout process MUST handle both single-producer orders and multi-producer orders by aggregating items from multiple vendors into a single transaction while maintaining transparency about individual supplier responsibilities.
 
-Producer Dashboard: Producers require a dedicated view to manage incoming orders with a minimum 48-hour lead time for preparation.
+**FR12 - Order Info:** The platform SHOULD update customers through notifications on the change in status of their order.
 
-Automated Commission: The system must automatically deduct a five percent (5%) network commission from every transaction.
+**FR13 - Fulfillment Info:** The platform MUST clearly communicate delivery arrangements and collection procedures to the customer.
 
-Financial Settlements: The platform must manage weekly payment settlements to producers.
+**FR14 - Recurring Orders:** Customers (as an independent restaurant) COULD establish/specify recurring weekly orders for their business through platform functionality.
 
-Audit Trails: Maintain transparent records for all transactions to satisfy accounting and tax requirements.
+**FR15 - Order History:** Customers MUST be able to view their ordering history to reorder the same products and track purchases.
 
-#### Community & Environmental Features
+**FR16 - Products filtering:** Customers SHOULD be able to filter products organic certification to view only certified organic items.
 
-Food Miles Calculation: The system must calculate distances using postcode-to-postcode measurements to report on "food miles."
+**FR17 - Product Reviews:** Customers COULD access a rating system for reviewing previously purchased products and share their experience.
 
-Waste Reduction: Producers must be able to send "Surplus Produce Alerts" with last-minute discount capabilities.
+### Order Fulfillment & Finance
 
-Educational Content: The platform should host seasonal recipes, storage guidance, and "Farm Stories."
+**FR18 - Producer Dashboard:** Producers MUST be provided with a dedicated view to manage incoming orders with a minimum 48-hour lead time for preparation.
 
-Traceability & Safety: The system must maintain direct links between customers, products, and producers to facilitate rapid communication regarding food safety or quality issues.
+**FR19 - Automated Commission:** The platform MUST automatically deduct a five percent (5%) network commission from every transaction.
 
-### Non-Functional Requirements
+**FR20 - Financial Settlements:** The platform MUST manage & provide weekly payment settlements to producers.
 
-#### Technical Architecture
+**FR21 - Audit Trails:** The platform MUST maintain transparent records for all transactions to satisfy accounting and tax requirements.
 
-Microservices Structure: The application must be deployed as a suite of 6 Docker containers:
+### Community & Environmental Features
 
-frontend-service
+**FR22 - Food Miles Calculation:** The system COULD calculate distances using postcode-to-postcode measurements to evaluate "food miles."
 
-customer-service
+**FR23 - Waste Reduction:** Producers MUST be able to send "Surplus Produce Alerts" with last-minute discount capabilities.
 
-platform-service
+**FR24 - Educational Content:** The platform COULD allow producers to host seasonal recipes, storage guidance, and "Farm Stories."
 
-producer-service
+**FR25 - Traceability & Safety:** The system MUST maintain direct links between customers, products, and producers to facilitate rapid communication regarding food safety or quality issues.
 
-payment-gateway-service (Mock)
+## Non-Functional Requirements
 
-mysql-db (Shared Database)
+### Technical Architecture
 
-Containerization: Use Docker Compose for orchestration to ensure environment parity across development and production.
+**NFR1 - Microservices Structure:** The application MUST be deployed as a suite of 6 Docker containers:
 
-Inter-service Communication: Services must communicate via REST APIs using secure JSON Web Tokens (JWT) for authentication.
+    frontend-service
 
-#### Security & Compliance
+    customer-service
 
-Sandbox Payments: Under no circumstances should live payment data be used. Developers must use Stripe/PayPal sandboxes or the internal mock service.
+    platform-service
 
-Data Protection: System design must comply with current data protection (GDPR) and financial services regulations.
+    producer-service
 
-Auth Guarding: Every API operation must be guarded by robust authentication and authorization checks.
+    payment-gateway-service (Mock)
 
-#### Usability & Reliability
+    mysql-db (Shared Database)
 
-Producer Accessibility: The UI for producers must be designed for users with varying levels of technical proficiency.
+**NFR2 - Containerization:** Docker Compose MUST be used for orchestration to ensure environment parity across development and production.
 
-System Health: The database must implement health checks to ensure dependent services do not attempt to start before the DB is ready.
+**NFR3 - Inter-service Communication:** Services MUST communicate via REST APIs using secure JSON Web Tokens (JWT) for authentication.
 
-Responsiveness: The frontend must be fully responsive to accommodate customers using mobile devices and producers in field environments.
+### Security & Compliance
 
-#### Performance & Quality
+**NFR4 - Sandbox Payments:** Live payment data WON'T be used.
 
-Test Coverage: The project aims for a minimum of 70% test coverage across the microservices suite.
+**NFR5 - Payments Development:** Developers MUST use Stripe/PayPal sandboxes or a mock service.
 
-Lead Time Logic: The system must programmatically enforce a 48-hour buffer between order placement and fulfillment.
+**NFR6 - Data Protection:** The system's design MUST comply with current data protection (GDPR) and financial services regulations, adhering to LESP considerations.
+
+**NFR7 - Auth Guarding:** Every API operation MUST be guarded by robust authentication and authorization checks.
+
+**NFR8 - Secure Access Control:** The platform MUST ensure the protection of user accounts and data through the necessary authentication and authorisation mechanisms (e.g. minimum password length, logging in, session management).
+
+**NFR9 - Session Management:** The platform MUST handle user sessions correctly, where sessions only persist if users choose so.
+
+### Usability & Reliability
+
+**NFR10 - Producer Accessibility:** The UI for producers MUST be designed for users with varying levels of technical proficiency.
+
+**NFR11 - System Health:** The database MUST implement health checks to ensure dependent services do not attempt to start before the DB is ready.
+
+**NFR12 - Responsiveness:** The frontend MUST be fully responsive to accommodate customers using mobile devices and producers in field environments.
+
+**NFR13 - User Registration:** The platform WON'T allow users to reuse the same email address to create a second account if an existing one is already registered for it.
+
+**NFR14 - User-error handling:** The system MUST handle all user input errors gracefully, ensuring both success and failure paths are accounted for.
+
+### Performance & Quality
+
+**NFR15 - Test Coverage:** The project SHOULD cover a minimum of 70% test coverage across the microservices suite.
+
+**NFR16 - Lead Time Logic:** The system MUST programmatically enforce a 48-hour buffer between order placement and fulfillment.

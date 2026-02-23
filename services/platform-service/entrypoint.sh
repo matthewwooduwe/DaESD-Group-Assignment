@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Wait for the database to be ready before starting Django
 if [ "$DATABASE" = "mysql" ]
@@ -17,5 +17,5 @@ fi
 python manage.py migrate
 # python manage.py seed_db
 
-# Hand off execution to the CMD defined in the Dockerfile
+echo "Starting server..."
 exec "$@"
