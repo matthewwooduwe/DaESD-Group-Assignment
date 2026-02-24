@@ -1,12 +1,11 @@
 import os
 import requests
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 # Base URL of the platform API service — no trailing slash, no /api suffix
 PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002')
 
 # Used by the browser to load product images served by the platform service.
-# In development this is localhost:8002; in production point to a CDN or shared media host.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 
 
@@ -113,4 +112,148 @@ def product_detail(request, product_id):
         'reviews': reviews,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
+    })
+
+
+def login_view(request):
+    """
+    Login page. POSTs credentials to the platform API JWT endpoint,
+    stores the token and username in the Django session on success.
+    """
+    if request.session.get('token'):
+        return redirect('/')
+
+    error = None
+    username = ''
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/auth/login/",
+                json={'username': username, 'password': password},
+                timeout=5
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                request.session['token'] = data['access']
+                request.session['username'] = username
+                return redirect('/')
+            elif resp.status_code == 401:
+                error = "Incorrect username or password. Please try again."
+            else:
+                error = f"Login failed (status {resp.status_code}). Please try again."
+
+        except requests.exceptions.ConnectionError:
+            error = "Cannot reach the platform API. Is the platform-service running?"
+        except requests.exceptions.Timeout:
+            error = "The platform API took too long to respond."
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/login.html', {
+        'error': error,
+        'username': username,
+    })
+
+
+def logout_view(request):
+    """
+    Clears the session and redirects to the homepage.
+    """
+    request.session.flush()
+    return redirect('/')
+
+
+def register_view(request):
+    """
+    Registration page. Builds the correct payload for the platform API
+    based on the selected role (CUSTOMER or PRODUCER).
+    """
+    if request.session.get('token'):
+        return redirect('/')
+
+    error = None
+    success = None
+    form_data = {}
+
+    if request.method == 'POST':
+        role = request.POST.get('role', 'CUSTOMER')
+        form_data = {
+            'username': request.POST.get('username', '').strip(),
+            'email': request.POST.get('email', '').strip(),
+            'phone_number': request.POST.get('phone_number', '').strip(),
+            'role': role,
+        }
+
+        # Build the nested profile payload based on role
+        if role == 'CUSTOMER':
+            form_data['full_name'] = request.POST.get('full_name', '').strip()
+            form_data['delivery_address'] = request.POST.get('delivery_address', '').strip()
+            form_data['customer_postcode'] = request.POST.get('customer_postcode', '').strip()
+
+            payload = {
+                'username': form_data['username'],
+                'password': request.POST.get('password', ''),
+                'email': form_data['email'],
+                'phone_number': form_data['phone_number'],
+                'role': 'CUSTOMER',
+                'customer_profile': {
+                    'full_name': form_data['full_name'],
+                    'delivery_address': form_data['delivery_address'],
+                    'postcode': form_data['customer_postcode'],
+                }
+            }
+        else:
+            form_data['business_name'] = request.POST.get('business_name', '').strip()
+            form_data['business_address'] = request.POST.get('business_address', '').strip()
+            form_data['producer_postcode'] = request.POST.get('producer_postcode', '').strip()
+            form_data['bio'] = request.POST.get('bio', '').strip()
+
+            payload = {
+                'username': form_data['username'],
+                'password': request.POST.get('password', ''),
+                'email': form_data['email'],
+                'phone_number': form_data['phone_number'],
+                'role': 'PRODUCER',
+                'producer_profile': {
+                    'business_name': form_data['business_name'],
+                    'business_address': form_data['business_address'],
+                    'postcode': form_data['producer_postcode'],
+                    'bio': form_data['bio'],
+                }
+            }
+
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/auth/register/",
+                json=payload,
+                timeout=5
+            )
+            if resp.status_code == 201:
+                success = "Account created! You can now sign in."
+                form_data = {}
+            elif resp.status_code == 400:
+                # Surface validation errors from the API
+                errors = resp.json()
+                error = ". ".join(
+                    f"{field}: {', '.join(msgs) if isinstance(msgs, list) else msgs}"
+                    for field, msgs in errors.items()
+                )
+            else:
+                error = f"Registration failed (status {resp.status_code}). Please try again."
+
+        except requests.exceptions.ConnectionError:
+            error = "Cannot reach the platform API. Is the platform-service running?"
+        except requests.exceptions.Timeout:
+            error = "The platform API took too long to respond."
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/register.html', {
+        'error': error,
+        'success': success,
+        'form_data': form_data,
     })

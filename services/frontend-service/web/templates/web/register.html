@@ -1,0 +1,360 @@
+{% extends "web/base.html" %}
+
+{% block title %}Create Account — BRFN{% endblock %}
+
+{% block extra_styles %}
+.auth-section {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(160deg, #f8f4ef 60%, #e8f2eb 100%);
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 32px rgba(30,58,31,0.12);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--border);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+}
+
+.auth-header p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 1.1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.925rem;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.form-input:focus, .form-select:focus {
+    border-color: var(--green);
+    background: #fff;
+}
+
+.form-input::placeholder { color: #b0a898; }
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* Role toggle */
+.role-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.role-option {
+    position: relative;
+}
+
+.role-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+}
+
+.role-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--bg);
+    text-align: center;
+}
+
+.role-label:hover {
+    border-color: var(--green-light);
+    background: #f0f8f1;
+}
+
+.role-option input[type="radio"]:checked + .role-label {
+    border-color: var(--green);
+    background: #e8f2eb;
+    color: var(--green);
+}
+
+.role-icon { font-size: 1.5rem; }
+
+/* Dynamic profile sections */
+.profile-section {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+    margin-top: 0.25rem;
+}
+
+.profile-section.active { display: block; }
+
+.profile-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.btn-submit {
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0.85rem;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+    letter-spacing: 0.02em;
+}
+
+.btn-submit:hover { background: var(--green-light); }
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.auth-footer a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-footer a:hover { text-decoration: underline; }
+
+.error-message {
+    background: #fde8e0;
+    border: 1px solid #f5c8b8;
+    color: #a0422a;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+}
+
+.success-message {
+    background: #e8f2eb;
+    border: 1px solid #c3dcc8;
+    color: var(--green);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Join BRFN</h1>
+            <p>Create your account to start buying or selling local produce</p>
+        </div>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        {% if success %}
+        <div class="success-message">{{ success }}</div>
+        {% endif %}
+
+        <form method="POST" action="/register/" id="register-form">
+            {% csrf_token %}
+
+            <!-- Role selection -->
+            <div class="form-group">
+                <label class="form-label">I want to…</label>
+                <div class="role-toggle">
+                    <div class="role-option">
+                        <input type="radio" id="role-customer" name="role" value="CUSTOMER" checked>
+                        <label class="role-label" for="role-customer">
+                            <span class="role-icon">🛒</span>
+                            Buy produce
+                        </label>
+                    </div>
+                    <div class="role-option">
+                        <input type="radio" id="role-producer" name="role" value="PRODUCER">
+                        <label class="role-label" for="role-producer">
+                            <span class="role-icon">🌱</span>
+                            Sell produce
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core account fields -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input class="form-input" type="text" id="username" name="username"
+                        placeholder="username" value="{{ form_data.username|default:'' }}" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-input" type="email" id="email" name="email"
+                        placeholder="you@example.com" value="{{ form_data.email|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-input" type="password" id="password" name="password"
+                        placeholder="Min. 8 characters" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="phone_number">Phone</label>
+                    <input class="form-input" type="tel" id="phone_number" name="phone_number"
+                        placeholder="Optional" value="{{ form_data.phone_number|default:'' }}">
+                </div>
+            </div>
+
+            <!-- Customer profile fields -->
+            <div class="profile-section active" id="customer-fields">
+                <p class="profile-section-title">Delivery Details</p>
+                <div class="form-group">
+                    <label class="form-label" for="full_name">Full Name</label>
+                    <input class="form-input" type="text" id="full_name" name="full_name"
+                        placeholder="Your full name" value="{{ form_data.full_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="delivery_address">Delivery Address</label>
+                    <input class="form-input" type="text" id="delivery_address" name="delivery_address"
+                        placeholder="Street address" value="{{ form_data.delivery_address|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="customer_postcode">Postcode</label>
+                    <input class="form-input" type="text" id="customer_postcode" name="customer_postcode"
+                        placeholder="e.g. BS1 1AA" value="{{ form_data.customer_postcode|default:'' }}">
+                    <p class="hint">Used to calculate food miles from producers to you.</p>
+                </div>
+            </div>
+
+            <!-- Producer profile fields -->
+            <div class="profile-section" id="producer-fields">
+                <p class="profile-section-title">Business Details</p>
+                <div class="form-group">
+                    <label class="form-label" for="business_name">Business Name</label>
+                    <input class="form-input" type="text" id="business_name" name="business_name"
+                        placeholder="Your farm or business name" value="{{ form_data.business_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="business_address">Business Address</label>
+                    <input class="form-input" type="text" id="business_address" name="business_address"
+                        placeholder="Street address" value="{{ form_data.business_address|default:'' }}">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="producer_postcode">Postcode</label>
+                        <input class="form-input" type="text" id="producer_postcode" name="producer_postcode"
+                            placeholder="e.g. BS3 4EF" value="{{ form_data.producer_postcode|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Bio</label>
+                        <input class="form-input" type="text" id="bio" name="bio"
+                            placeholder="Short description (optional)" value="{{ form_data.bio|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-submit" type="submit">Create Account</button>
+        </form>
+
+        <hr class="divider">
+
+        <p class="auth-footer">
+            Already have an account? <a href="/login/">Sign in</a>
+        </p>
+    </div>
+</section>
+
+<script>
+    // Show/hide profile fields based on role selection
+    const radios = document.querySelectorAll('input[name="role"]');
+    const customerFields = document.getElementById('customer-fields');
+    const producerFields = document.getElementById('producer-fields');
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.value === 'CUSTOMER') {
+                customerFields.classList.add('active');
+                producerFields.classList.remove('active');
+            } else {
+                producerFields.classList.add('active');
+                customerFields.classList.remove('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

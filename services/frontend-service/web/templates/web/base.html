@@ -111,6 +111,12 @@
 
         .nav-links .nav-cta:hover { background: var(--terra-light); color: #fff; }
 
+        .nav-username {
+            color: var(--nav-accent);
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
         /* ── MAIN CONTENT ── */
         main { flex: 1; }
 
@@ -186,7 +192,6 @@
 
 <nav class="site-nav">
     <a href="/" class="nav-logo">
-        <!-- Leaf / plant SVG icon -->
         <svg class="nav-logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="18" cy="18" r="18" fill="#2c5f2e"/>
             <path d="M18 28 C18 28 10 22 10 15 C10 10 14 7 18 7 C22 7 26 10 26 15 C26 22 18 28 18 28Z" fill="#a8c77e"/>
@@ -202,7 +207,12 @@
 
     <ul class="nav-links">
         <li><a href="/">Browse</a></li>
-        <li><a href="#" class="nav-cta">Sign In</a></li>
+        {% if request.session.username %}
+        <li><span class="nav-username">👋 {{ request.session.username }}</span></li>
+        <li><a href="/logout/">Sign Out</a></li>
+        {% else %}
+        <li><a href="/login/" class="nav-cta">Sign In</a></li>
+        {% endif %}
     </ul>
 </nav>
 
