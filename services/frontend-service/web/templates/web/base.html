@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bristol Regional Food Network{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:          #f8f4ef;
+            --card-bg:     #ffffff;
+            --nav-bg:      #1e3a1f;
+            --nav-accent:  #a8c77e;
+            --green:       #2c5f2e;
+            --green-light: #4a7c59;
+            --terra:       #c45e2a;
+            --terra-light: #e07848;
+            --text:        #1c1c14;
+            --text-muted:  #6b6b5e;
+            --border:      #d8cfc4;
+            --badge-org:   #4a7c59;
+            --badge-org-bg:#e8f2eb;
+            --shadow:      0 2px 12px rgba(30,58,31,0.10);
+            --shadow-hover:0 6px 24px rgba(30,58,31,0.18);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAV ── */
+        .site-nav {
+            background: var(--nav-bg);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .nav-logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.01em;
+            line-height: 1.1;
+        }
+
+        .nav-logo-text span {
+            display: block;
+            font-size: 0.6rem;
+            font-family: 'Lato', sans-serif;
+            font-weight: 300;
+            color: var(--nav-accent);
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--nav-accent); }
+
+        .nav-links .nav-cta {
+            background: var(--terra);
+            color: #fff;
+            padding: 0.4rem 1.1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .nav-links .nav-cta:hover { background: var(--terra-light); color: #fff; }
+
+        /* ── MAIN CONTENT ── */
+        main { flex: 1; }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--nav-bg);
+            color: rgba(255,255,255,0.55);
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: auto;
+        }
+
+        footer strong { color: var(--nav-accent); }
+
+        /* ── UTILITIES ── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .badge-organic {
+            background: var(--badge-org-bg);
+            color: var(--badge-org);
+            border: 1px solid #c3dcc8;
+        }
+
+        .badge-category {
+            background: #ede8e0;
+            color: #7a6a58;
+            border: 1px solid var(--border);
+        }
+
+        .badge-unavailable {
+            background: #fde8e0;
+            color: #a0422a;
+            border: 1px solid #f5c8b8;
+        }
+
+        .badge-low-stock {
+            background: #fdf3dc;
+            color: #9a6b10;
+            border: 1px solid #f0dfa0;
+        }
+
+        .error-banner {
+            background: #fde8e0;
+            border: 1px solid #f5c8b8;
+            color: #a0422a;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+
+<nav class="site-nav">
+    <a href="/" class="nav-logo">
+        <!-- Leaf / plant SVG icon -->
+        <svg class="nav-logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="18" r="18" fill="#2c5f2e"/>
+            <path d="M18 28 C18 28 10 22 10 15 C10 10 14 7 18 7 C22 7 26 10 26 15 C26 22 18 28 18 28Z" fill="#a8c77e"/>
+            <line x1="18" y1="28" x2="18" y2="16" stroke="#2c5f2e" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M18 22 C16 20 13 19 12 17" stroke="#2c5f2e" stroke-width="1" stroke-linecap="round"/>
+            <path d="M18 19 C20 17 23 16 24 14" stroke="#2c5f2e" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <div class="nav-logo-text">
+            BRFN
+            <span>Bristol Regional Food Network</span>
+        </div>
+    </a>
+
+    <ul class="nav-links">
+        <li><a href="/">Browse</a></li>
+        <li><a href="#" class="nav-cta">Sign In</a></li>
+    </ul>
+</nav>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <p>© 2026 <strong>Bristol Regional Food Network</strong> — Connecting local producers with Bristol communities.</p>
+</footer>
+
+</body>
+</html>
