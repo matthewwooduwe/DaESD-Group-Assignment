@@ -1,0 +1,463 @@
+{% extends "web/base.html" %}
+
+{% block title %}{% if product %}{{ product.name }} — BRFN{% else %}Product — BRFN{% endif %}{% endblock %}
+
+{% block extra_styles %}
+/* ── BREADCRUMB ── */
+.breadcrumb {
+    padding: 1rem 0;
+    margin-top: 1.5rem;
+    background: none;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.breadcrumb a { color: var(--green-light); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb span { opacity: 0.5; }
+
+/* ── DETAIL LAYOUT ── */
+.detail-section { padding: 1.5rem 0 3rem; }
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .detail-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+/* ── IMAGE PANEL ── */
+.detail-image-wrap {
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ede8e0, #dfd8cc);
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+}
+
+.detail-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.detail-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #b0a898;
+    opacity: 0.5;
+}
+
+/* ── INFO PANEL ── */
+.detail-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.detail-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+}
+
+.detail-producer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+.detail-producer a { color: var(--green-light); text-decoration: none; font-weight: 700; }
+
+.detail-price-block {
+    background: linear-gradient(135deg, var(--green), var(--green-light));
+    border-radius: 12px;
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.detail-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.detail-price span {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: rgba(255,255,255,0.75);
+}
+
+.detail-stock {
+    text-align: right;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.detail-stock strong { font-size: 1.25rem; display: block; color: #fff; }
+
+/* ── META GRID ── */
+.detail-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.meta-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+}
+
+.meta-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.meta-value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* ── DESCRIPTION ── */
+.detail-description {
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+    margin-bottom: 1.1rem;
+}
+
+.detail-description h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.detail-description p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* ── ALLERGEN ── */
+.allergen-block {
+    background: #fdf3dc;
+    border: 1px solid #f0dfa0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: #7a5a0a;
+}
+
+.allergen-block strong { display: block; margin-bottom: 2px; }
+
+/* ── CTA ── */
+.detail-cta {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover { background: var(--terra-light); }
+
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 2px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-secondary:hover { background: var(--green); color: #fff; }
+
+/* ── REVIEWS ── */
+.reviews-section {
+    padding: 2.5rem 0 3rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+}
+
+.reviews-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.review-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+}
+
+.review-stars {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    letter-spacing: 1px;
+}
+
+.review-comment {
+    font-size: 0.875rem;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+    font-style: italic;
+}
+
+.review-author {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.no-reviews {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 1.5rem 0;
+}
+
+/* ── NOT FOUND ── */
+.not-found {
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--text-muted);
+}
+
+.not-found h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.not-found a { color: var(--green); font-weight: 700; }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if error and not product %}
+    <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
+    <div class="not-found">
+        <h2>Product not found</h2>
+        <p>This product may have been removed or doesn't exist.</p>
+        <a href="/">← Back to all products</a>
+    </div>
+
+    {% elif product %}
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb">
+        <a href="/">Browse</a>
+        <span>›</span>
+        {% if product.category %}
+        <a href="/?category={{ product.category }}">{{ product.category }}</a>
+        <span>›</span>
+        {% endif %}
+        {{ product.name }}
+    </nav>
+
+    <!-- PRODUCT DETAIL -->
+    <section class="detail-section">
+        <div class="detail-grid">
+
+            <!-- LEFT: Image -->
+            <div>
+                <div class="detail-image-wrap">
+                    {% if product.image %}
+                    <img
+                        src="{{ media_base_url }}/media/{{ product.image }}"
+                        alt="{{ product.name }}"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                    >
+                    <div class="detail-image-placeholder" style="display:none;">
+                        <svg width="72" height="72" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/></svg>
+                    </div>
+                    {% else %}
+                    <div class="detail-image-placeholder">
+                        <svg width="72" height="72" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/><line x1="24" y1="36" x2="24" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- RIGHT: Info -->
+            <div>
+                <div class="detail-badges">
+                    {% if product.category %}
+                    <span class="badge badge-category">{{ product.category }}</span>
+                    {% endif %}
+                    {% if product.is_organic %}
+                    <span class="badge badge-organic">🌿 Certified Organic</span>
+                    {% endif %}
+                    {% if not product.is_available %}
+                    <span class="badge badge-unavailable">Currently Unavailable</span>
+                    {% elif product.stock_quantity <= 5 %}
+                    <span class="badge badge-low-stock">Low Stock</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="detail-name">{{ product.name }}</h1>
+
+                <p class="detail-producer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Sold by <a href="/?search={{ product.producer_username }}">{{ product.producer_username }}</a>
+                </p>
+
+                <div class="detail-price-block">
+                    <div>
+                        <div class="detail-price">
+                            £{{ product.price }}
+                            <span>per {{ product.unit|default:"item" }}</span>
+                        </div>
+                    </div>
+                    <div class="detail-stock">
+                        <strong>{{ product.stock_quantity }}</strong>
+                        units in stock
+                    </div>
+                </div>
+
+                <!-- Meta grid -->
+                <div class="detail-meta">
+                    {% if product.harvest_date %}
+                    <div class="meta-item">
+                        <div class="meta-label">Harvest Date</div>
+                        <div class="meta-value">{{ product.harvest_date }}</div>
+                    </div>
+                    {% endif %}
+                    {% if product.best_before_date %}
+                    <div class="meta-item">
+                        <div class="meta-label">Best Before</div>
+                        <div class="meta-value">{{ product.best_before_date }}</div>
+                    </div>
+                    {% endif %}
+                    {% if product.seasonal_start_month and product.seasonal_end_month %}
+                    <div class="meta-item">
+                        <div class="meta-label">In Season</div>
+                        <div class="meta-value">Month {{ product.seasonal_start_month }}–{{ product.seasonal_end_month }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="meta-item">
+                        <div class="meta-label">Listed</div>
+                        <div class="meta-value">{{ product.created_at|slice:":10" }}</div>
+                    </div>
+                </div>
+
+                {% if product.description %}
+                <div class="detail-description">
+                    <h3>About this product</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                {% if product.allergen_info %}
+                <div class="allergen-block">
+                    <strong>⚠ Allergen Information</strong>
+                    {{ product.allergen_info }}
+                </div>
+                {% endif %}
+
+                <div class="detail-cta">
+                    <a href="#" class="btn-primary">Add to Basket</a>
+                    <a href="/" class="btn-secondary">← Keep Browsing</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- REVIEWS -->
+    {% if reviews %}
+    <section class="reviews-section">
+        <h2 class="reviews-heading">Customer Reviews ({{ reviews|length }})</h2>
+        <div class="reviews-grid">
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-stars">
+                    {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}⭐{% else %}☆{% endif %}
+                    {% endfor %}
+                    ({{ review.rating }}/5)
+                </div>
+                {% if review.comment %}
+                <p class="review-comment">"{{ review.comment }}"</p>
+                {% endif %}
+                <p class="review-author">— {{ review.customer_username|default:"Anonymous" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    <section class="reviews-section">
+        <h2 class="reviews-heading">Customer Reviews</h2>
+        <p class="no-reviews">No reviews yet for this product.</p>
+    </section>
+    {% endif %}
+
+    {% endif %}
+
+</div>
+{% endblock %}

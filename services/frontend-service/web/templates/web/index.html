@@ -1,218 +1,472 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "web/base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRFN - Prototype</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+{% block title %}Browse Local Produce — BRFN{% endblock %}
 
-        .section {
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 5px;
-        }
+{% block extra_styles %}
+/* ── HERO ── */
+.hero {
+    background: linear-gradient(135deg, #1e3a1f 0%, #2c5f2e 60%, #3d7a40 100%);
+    padding: 3.5rem 1.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+}
 
-        .product {
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
-        }
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 80% 50%, rgba(168,199,126,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(196,94,42,0.10) 0%, transparent 50%);
+    pointer-events: none;
+}
 
-        input,
-        button {
-            padding: 8px;
-            margin: 5px 0;
-        }
+.hero-inner {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-        .error {
-            color: red;
-        }
+.hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+}
 
-        .success {
-            color: green;
-        }
+.hero h1 em {
+    font-style: italic;
+    color: var(--nav-accent);
+}
 
-        #auth-status {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
+.hero p {
+    color: rgba(255,255,255,0.7);
+    font-size: 1rem;
+    font-weight: 300;
+    max-width: 480px;
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+}
 
-<body>
-    <h1>Bristol Regional Food Network</h1>
+/* ── FILTER BAR ── */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
 
-    <!-- Auth Section -->
-    <div class="section">
-        <h2>Authentication</h2>
-        <div id="auth-status">Not logged in</div>
+.filter-input, .filter-select {
+    padding: 0.55rem 1rem;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    backdrop-filter: blur(4px);
+}
 
-        <div id="login-form">
-            <h3>Login</h3>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-        </div>
+.filter-input::placeholder { color: rgba(255,255,255,0.5); }
 
-        <div id="register-form" style="margin-top: 10px;">
-            <h3>Register (Producer)</h3>
-            <input type="text" id="reg-username" placeholder="Username">
-            <input type="password" id="reg-password" placeholder="Password">
-            <input type="email" id="reg-email" placeholder="Email">
-            <button onclick="register()">Register</button>
-        </div>
+.filter-input:focus, .filter-select:focus {
+    border-color: var(--nav-accent);
+    background: rgba(255,255,255,0.2);
+}
 
-        <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+.filter-select option { background: #1e3a1f; color: #fff; }
+
+.filter-search { flex: 1; min-width: 220px; max-width: 340px; }
+
+.filter-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.875rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--nav-accent);
+    cursor: pointer;
+}
+
+.filter-btn {
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+}
+
+.filter-btn:hover { background: var(--terra-light); }
+
+.filter-clear {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.8rem;
+    text-decoration: none;
+    padding: 0.4rem 0.6rem;
+    transition: color 0.2s;
+}
+
+.filter-clear:hover { color: var(--nav-accent); }
+
+/* ── RESULTS BAR ── */
+.results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 0 0.75rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.results-count {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.results-count strong { color: var(--text); }
+
+.active-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f2eb;
+    color: var(--green);
+    border: 1px solid #c3dcc8;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* ── PRODUCT GRID ── */
+.products-section {
+    padding: 2rem 0 3rem;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ── PRODUCT CARD ── */
+.product-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(216,207,196,0.5);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.card-image {
+    position: relative;
+    height: 200px;
+    background: linear-gradient(135deg, #e8e0d4, #d8cfc4);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #b0a898;
+    gap: 6px;
+    background: linear-gradient(145deg, #ede8e0, #dfd8cc);
+}
+
+.card-image-placeholder svg { opacity: 0.4; }
+.card-image-placeholder span { font-size: 0.72rem; opacity: 0.6; letter-spacing: 0.06em; }
+
+.card-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.card-stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.card-body {
+    padding: 1.1rem 1.25rem 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 0.35rem;
+}
+
+.card-producer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: auto;
+    padding-bottom: 0.75rem;
+}
+
+.card-producer svg { flex-shrink: 0; }
+
+.card-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.75rem;
+}
+
+.card-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+}
+
+.card-price span {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    display: block;
+}
+
+.card-stock-info {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.card-stock-info strong { color: var(--text); font-size: 0.875rem; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state svg { margin-bottom: 1rem; opacity: 0.3; }
+
+.empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p { font-size: 0.9rem; }
+
+.empty-state a {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--green);
+    font-weight: 700;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO + FILTERS -->
+<section class="hero">
+    <div class="hero-inner">
+        <h1>Fresh from Bristol's<br><em>Finest Producers</em></h1>
+        <p>Browse seasonal, local produce grown and made right here in the Bristol region.</p>
+
+        <form class="filter-form" method="GET" action="/">
+            <input
+                class="filter-input filter-search"
+                type="text"
+                name="search"
+                placeholder="Search produce, producers…"
+                value="{{ search }}"
+            >
+
+            <select class="filter-select" name="category">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label class="filter-checkbox-label">
+                <input type="checkbox" name="organic" value="1" {% if is_organic %}checked{% endif %}>
+                Organic only
+            </label>
+
+            <button class="filter-btn" type="submit">Filter</button>
+
+            {% if search or selected_category or is_organic %}
+            <a class="filter-clear" href="/">Clear all</a>
+            {% endif %}
+        </form>
     </div>
+</section>
 
-    <!-- Product Creation Section (Protected) -->
-    <div class="section" id="create-product-section" style="display:none;">
-        <h2>Add Product</h2>
-        <input type="text" id="prod-name" placeholder="Product Name">
-        <input type="text" id="prod-desc" placeholder="Description">
-        <input type="number" id="prod-price" placeholder="Price" step="0.01">
-        <select id="prod-cat">
-            <option value="VEGETABLES">Vegetables</option>
-            <option value="DAIRY">Dairy</option>
-            <option value="BAKERY">Bakery</option>
-            <option value="OTHER">Other</option>
-        </select>
-        <button onclick="createProduct()">Add Product</button>
-        <div id="prod-msg"></div>
-    </div>
+<!-- PRODUCTS -->
+<section class="products-section">
+    <div class="container">
 
-    <!-- Product List Section (Public) -->
-    <div class="section">
-        <h2>Available Products</h2>
         {% if error %}
-        <p class="error">{{ error }}</p>
+        <div class="error-banner">⚠ {{ error }}</div>
         {% endif %}
 
-        <div id="product-list">
-            {% for product in products %}
-            <div class="product">
-                <strong>{{ product.name }}</strong> (${{ product.price }})<br>
-                <small>Producer: {{ product.producer_username }}</small><br>
-                {{ product.description }}
+        <div class="results-bar">
+            <p class="results-count">
+                <strong>{{ products|length }}</strong> product{{ products|length|pluralize }} found
+            </p>
+            <div class="active-filters">
+                {% if selected_category %}
+                <span class="active-filter-tag">📂 {{ selected_category }}</span>
+                {% endif %}
+                {% if is_organic %}
+                <span class="active-filter-tag">🌿 Organic</span>
+                {% endif %}
+                {% if search %}
+                <span class="active-filter-tag">🔍 "{{ search }}"</span>
+                {% endif %}
             </div>
+        </div>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <a class="product-card" href="/products/{{ product.id }}/">
+
+                <!-- Image -->
+                <div class="card-image">
+                    {% if product.image %}
+                    <img
+                        src="{{ media_base_url }}/media/{{ product.image }}"
+                        alt="{{ product.name }}"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                    >
+                    <div class="card-image-placeholder" style="display:none;">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/></svg>
+                        <span>{{ product.name }}</span>
+                    </div>
+                    {% else %}
+                    <div class="card-image-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/><line x1="24" y1="36" x2="24" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span>No image</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Badges overlay -->
+                    <div class="card-badges">
+                        {% if product.category %}
+                        <span class="badge badge-category">{{ product.category }}</span>
+                        {% endif %}
+                        {% if product.is_organic %}
+                        <span class="badge badge-organic">🌿 Organic</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Availability badge -->
+                    <div class="card-stock-badge">
+                        {% if not product.is_available %}
+                        <span class="badge badge-unavailable">Unavailable</span>
+                        {% elif product.stock_quantity <= 5 %}
+                        <span class="badge badge-low-stock">Low stock</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card body -->
+                <div class="card-body">
+                    <h2 class="card-name">{{ product.name }}</h2>
+                    <p class="card-producer">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        {{ product.producer_username }}
+                    </p>
+
+                    <div class="card-footer">
+                        <div class="card-price">
+                            £{{ product.price }}
+                            <span>per {{ product.unit|default:"item" }}</span>
+                        </div>
+                        <div class="card-stock-info">
+                            <strong>{{ product.stock_quantity }}</strong><br>in stock
+                        </div>
+                    </div>
+                </div>
+
+            </a>
             {% empty %}
-            <p>No products available.</p>
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor" opacity="0.5"/></svg>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search term.</p>
+                <a href="/">View all products</a>
+            </div>
             {% endfor %}
         </div>
-        <p><small><a href="/">Refresh List</a> (Server-side rendered)</small></p>
+
     </div>
+</section>
 
-    <script>
-        const API_URL = "{{ api_base_url }}";
-        let token = localStorage.getItem('access_token');
-
-        function updateAuthUI() {
-            if (token) {
-                document.getElementById('auth-status').innerText = "Logged In";
-                document.getElementById('auth-status').classList.add('success');
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('register-form').style.display = 'none';
-                document.getElementById('logout-btn').style.display = 'block';
-                document.getElementById('create-product-section').style.display = 'block';
-            } else {
-                document.getElementById('auth-status').innerText = "Not logged in";
-                document.getElementById('auth-status').classList.remove('success');
-                document.getElementById('login-form').style.display = 'block';
-                document.getElementById('register-form').style.display = 'block';
-                document.getElementById('logout-btn').style.display = 'none';
-                document.getElementById('create-product-section').style.display = 'none';
-            }
-        }
-
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            try {
-                const res = await fetch(`${API_URL}/auth/login/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    token = data.access;
-                    localStorage.setItem('access_token', token);
-                    updateAuthUI();
-                    alert("Logged in!");
-                } else {
-                    alert("Login failed: " + JSON.stringify(data));
-                }
-            } catch (e) {
-                alert("Error: " + e);
-            }
-        }
-
-        async function register() {
-            const username = document.getElementById('reg-username').value;
-            const password = document.getElementById('reg-password').value;
-            const email = document.getElementById('reg-email').value;
-
-            try {
-                const res = await fetch(`${API_URL}/auth/register/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, email, role: 'PRODUCER' })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert("Registered! Please login.");
-                } else {
-                    alert("Registration failed: " + JSON.stringify(data));
-                }
-            } catch (e) {
-                alert("Error: " + e);
-            }
-        }
-
-        function logout() {
-            token = null;
-            localStorage.removeItem('access_token');
-            updateAuthUI();
-        }
-
-        async function createProduct() {
-            const name = document.getElementById('prod-name').value;
-            const description = document.getElementById('prod-desc').value;
-            const price = document.getElementById('prod-price').value;
-            const category = document.getElementById('prod-cat').value;
-
-            try {
-                const res = await fetch(`${API_URL}/products/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name, description, price, category, stock_quantity: 10 })
-                });
-                if (res.ok) {
-                    alert("Product created! Refresh the page to see it.");
-                    document.getElementById('prod-name').value = '';
-                } else {
-                    const data = await res.json();
-                    alert("Failed to create: " + JSON.stringify(data));
-                }
-            } catch (e) {
-                alert("Error: " + e);
-            }
-        }
-
-        // Init
-        updateAuthUI();
-    </script>
-</body>
-
-</html>
+{% endblock %}
