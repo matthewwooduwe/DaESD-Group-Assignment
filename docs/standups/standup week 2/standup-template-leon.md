@@ -1,7 +1,7 @@
-# Week X Standup - [Your Name]
-**Date:** [Date]  
-**Sprint:** [Sprint 0/1/2/3]  
-**Service:** [Your service name]
+# Week X Standup - Leon Stansfield
+**Date:** 24/02/2026
+**Sprint:** 1
+**Service:** Platform Service
 
 ## Completed This Week
 <!-- What tasks/features did you complete? Be specific. -->
