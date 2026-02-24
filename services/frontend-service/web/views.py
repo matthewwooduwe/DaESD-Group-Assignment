@@ -2,7 +2,7 @@ from django.shortcuts import render
 import requests
 import os
 
-PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002/api')
+PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002')
 
 def index(request):
     """
