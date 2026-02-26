@@ -163,22 +163,33 @@ Closes #issue-number
 
 **Service Structure:**
 ```
+platform-service/
+├── Dockerfile
+├── requirements.txt
+├── manage.py
+└── platform_api/
+    ├── settings.py
+    ├── urls.py
+    ├── asgi.py
+    └── wsgi.py
+└── app-name/
+    ├── models.py
+    ├── views.py
+    ├── serializers.py
+    ├── urls.py
+    ├── tests.py
+    └── migrations/
+        └── ...
+└── app-name/
+    └── ...
 service-name/
 ├── Dockerfile
 ├── requirements.txt
-└── service_name/
-    ├── manage.py
-    ├── service_name/
-    │   ├── settings.py
-    │   ├── urls.py
-    │   └── wsgi.py
-    ├── app_name/
-    │   ├── models.py
-    │   ├── views.py
-    │   ├── serializers.py
-    │   ├── urls.py
-    │   └── tests.py
-    └── templates/
+├── manage.py
+└── service_api/
+    └── ...
+└── app-name/
+    └── ...
 ```
 
 **What NOT to Commit:**
