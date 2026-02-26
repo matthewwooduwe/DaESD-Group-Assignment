@@ -24,7 +24,7 @@ class ProductProxyView(APIView):
         # Separate data and files for multipart/form-data forwarding
         # request.data contains both form data and potentially files in DRF
         data = request.POST.dict()  # Use POST.dict() for form fields
-        files = {key: val.file for key, val in request.FILES.items()}
+        files = {key: (val.name, val.file, val.content_type) for key, val in request.FILES.items()}
 
         try:
             # We don't use 'json=data' when sending files, we use 'data=data, files=files'
@@ -72,7 +72,7 @@ class ProductDetailProxyView(APIView):
     def put(self, request, pk, *args, **kwargs):
         platform_url = f"{settings.PLATFORM_API_URL}/api/products/{pk}/"
         data = request.POST.dict() if request.POST else request.data
-        files = {key: val.file for key, val in request.FILES.items()} if request.FILES else None
+        files = {key: (val.name, val.file, val.content_type) for key, val in request.FILES.items()} if request.FILES else None
         
         try:
             if files:
@@ -94,7 +94,7 @@ class ProductDetailProxyView(APIView):
         if 'image' in data and not data['image']:
             data.pop('image', None)
             
-        files = {key: val.file for key, val in request.FILES.items()} if request.FILES else None
+        files = {key: (val.name, val.file, val.content_type) for key, val in request.FILES.items()} if request.FILES else None
         
         try:
             if files:

@@ -271,12 +271,15 @@ display: block;
             </div>
 
             <div class="form-group full-width">
-                <label class="form-label">Product Image</label>
+                <label class="form-label" style="color: var(--text-muted)">Product Image (Coming Soon)</label>
                 {% if product.image %}
-                <img src="{{ media_base_url }}/media/{{ product.image }}" alt="Current Image" class="current-image">
+                <img src="{{ media_base_url }}/media/{{ product.image }}" alt="Current Image" class="current-image"
+                    style="opacity: 0.7;">
                 {% endif %}
-                <input type="file" name="image" class="file-input" accept="image/*">
-                <span class="form-help">Leave empty to keep current image</span>
+                <input type="file" name="image" class="file-input" accept="image/*" disabled
+                    style="opacity: 0.5; cursor: not-allowed;">
+                <span class="form-help">Image uploading is temporarily disabled. Your current image (if any) is
+                    preserved.</span>
             </div>
 
             <button type="submit" class="submit-btn">Save Changes</button>

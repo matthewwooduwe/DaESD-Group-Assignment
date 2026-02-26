@@ -295,6 +295,9 @@ def producer_dashboard(request):
         )
         if resp.status_code == 200:
             products = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
         else:
             error = f"Could not load your products (status {resp.status_code})."
     except Exception as e:
@@ -357,6 +360,9 @@ def add_product_view(request):
             )
             if resp.status_code == 201:
                 return redirect('/dashboard/')
+            elif resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
             else:
                 error_msg = resp.text
                 try:
@@ -405,6 +411,9 @@ def edit_product_view(request, product_id):
             product = resp_prod.json()
         elif resp_prod.status_code == 404:
             return redirect('/dashboard/')
+        elif resp_prod.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
         else:
             error = f"Failed to load product details: {resp_prod.status_code}"
     except Exception as e:
@@ -441,6 +450,9 @@ def edit_product_view(request, product_id):
             )
             if resp.status_code == 200:
                 return redirect('/dashboard/')
+            elif resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
             else:
                 error_msg = resp.text
                 try:
