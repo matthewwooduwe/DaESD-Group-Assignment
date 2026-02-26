@@ -208,6 +208,9 @@
     <ul class="nav-links">
         <li><a href="/">Browse</a></li>
         {% if request.session.username %}
+            {% if request.session.role == 'PRODUCER' %}
+            <li><a href="/dashboard/" style="color: var(--nav-accent); font-weight: bold;">Dashboard</a></li>
+            {% endif %}
         <li><span class="nav-username">👋 {{ request.session.username }}</span></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% else %}
