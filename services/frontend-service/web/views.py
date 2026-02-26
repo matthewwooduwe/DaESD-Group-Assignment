@@ -373,3 +373,108 @@ def add_product_view(request):
         'error': error,
         'success': success
     })
+
+def edit_product_view(request, product_id):
+    """
+    Form view for editing an existing product.
+    Submits to the producer-service proxy using the user's token.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    PRODUCER_API_URL = os.environ.get('PRODUCER_API_URL', 'http://producer-api:8003')
+    categories = []
+    product = None
+    error = None
+
+    try:
+        resp_cat = requests.get(f"{PLATFORM_API_URL}/api/products/categories/", timeout=5)
+        if resp_cat.status_code == 200:
+            categories = resp_cat.json()
+    except Exception:
+        pass
+
+    # Fetch existing product details
+    try:
+        resp_prod = requests.get(
+            f"{PRODUCER_API_URL}/api/products/{product_id}/",
+            headers={'Authorization': f"Bearer {request.session.get('token')}"},
+            timeout=5
+        )
+        if resp_prod.status_code == 200:
+            product = resp_prod.json()
+        elif resp_prod.status_code == 404:
+            return redirect('/dashboard/')
+        else:
+            error = f"Failed to load product details: {resp_prod.status_code}"
+    except Exception as e:
+        error = f"Error communicating with API: {str(e)}"
+
+    if request.method == 'POST':
+        form_data = request.POST.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        
+        # Handle boolean fields properly
+        form_data['is_organic'] = 'is_organic' in request.POST
+        form_data['is_available'] = 'is_available' in request.POST
+        
+        # Remove empty optional fields
+        for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
+            if not form_data.get(key):
+                form_data.pop(key, None)
+
+        files = {}
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            files['image'] = (image_file.name, image_file.read(), image_file.content_type)
+        else:
+            # Prevent sending an empty string for the image if no file was uploaded
+            form_data.pop('image', None)
+
+        try:
+            resp = requests.patch(
+                f"{PRODUCER_API_URL}/api/products/{product_id}/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                data=form_data,
+                files=files if files else None,
+                timeout=10
+            )
+            if resp.status_code == 200:
+                return redirect('/dashboard/')
+            else:
+                error_msg = resp.text
+                try:
+                    error_data = resp.json()
+                    error_msg = str(error_data)
+                except ValueError:
+                    pass
+                error = f"Failed to update product. Reason: {error_msg}"
+        except Exception as e:
+            error = f"Error sending data to Producer API: {str(e)}"
+
+    return render(request, 'web/edit_product.html', {
+        'categories': categories,
+        'product': product,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+def delete_product_view(request, product_id):
+    """
+    Handles deleting a product. Only accepts POST requests.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    if request.method == 'POST':
+        PRODUCER_API_URL = os.environ.get('PRODUCER_API_URL', 'http://producer-api:8003')
+        try:
+            requests.delete(
+                f"{PRODUCER_API_URL}/api/products/{product_id}/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                timeout=5
+            )
+        except Exception:
+            pass # Silently fail
+            
+    return redirect('/dashboard/')
