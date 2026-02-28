@@ -317,7 +317,6 @@ def add_product_view(request):
     if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
         return redirect('/login/')
 
-    PRODUCER_API_URL = os.environ.get('PRODUCER_API_URL', 'http://producer-api:8003')
     categories = []
     error = None
     success = False
@@ -352,7 +351,7 @@ def add_product_view(request):
 
         try:
             resp = requests.post(
-                f"{PRODUCER_API_URL}/api/products/",
+                f"{PLATFORM_API_URL}/api/products/",
                 headers={'Authorization': f"Bearer {request.session.get('token')}"},
                 data=form_data,
                 files=files,
@@ -388,7 +387,6 @@ def edit_product_view(request, product_id):
     if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
         return redirect('/login/')
 
-    PRODUCER_API_URL = os.environ.get('PRODUCER_API_URL', 'http://producer-api:8003')
     categories = []
     product = None
     error = None
@@ -403,7 +401,7 @@ def edit_product_view(request, product_id):
     # Fetch existing product details
     try:
         resp_prod = requests.get(
-            f"{PRODUCER_API_URL}/api/products/{product_id}/",
+            f"{PLATFORM_API_URL}/api/products/{product_id}/",
             headers={'Authorization': f"Bearer {request.session.get('token')}"},
             timeout=5
         )
@@ -442,7 +440,7 @@ def edit_product_view(request, product_id):
 
         try:
             resp = requests.patch(
-                f"{PRODUCER_API_URL}/api/products/{product_id}/",
+                f"{PLATFORM_API_URL}/api/products/{product_id}/",
                 headers={'Authorization': f"Bearer {request.session.get('token')}"},
                 data=form_data,
                 files=files if files else None,
@@ -479,10 +477,9 @@ def delete_product_view(request, product_id):
         return redirect('/login/')
 
     if request.method == 'POST':
-        PRODUCER_API_URL = os.environ.get('PRODUCER_API_URL', 'http://producer-api:8003')
         try:
             requests.delete(
-                f"{PRODUCER_API_URL}/api/products/{product_id}/",
+                f"{PLATFORM_API_URL}/api/products/{product_id}/",
                 headers={'Authorization': f"Bearer {request.session.get('token')}"},
                 timeout=5
             )
