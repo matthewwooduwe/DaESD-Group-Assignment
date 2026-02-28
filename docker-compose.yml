@@ -15,7 +15,7 @@ services:
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 5s
       retries: 10
     networks:
@@ -33,22 +33,21 @@ services:
     environment:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
-      - CUSTOMER_API_URL=${CUSTOMER_API_URL}
       - PLATFORM_API_URL=${PLATFORM_API_URL}
-      - PRODUCER_API_URL=${PRODUCER_API_URL}
+      - NOTIFICATIONS_API_URL=${NOTIFICATIONS_API_URL}
     depends_on:
       db:
         condition: service_healthy
     networks:
       - brfn-network
 
-  # Customer Service API
-  customer-api:
-    build: ./services/customer-service
-    container_name: brfn_customer_api
+  # Notifications Service API
+  notifications-api:
+    build: ./services/notifications-service
+    container_name: brfn_notifications_api
     command: python manage.py runserver 0.0.0.0:8001
     volumes:
-      - ./services/customer-service:/code
+      - ./services/notifications-service:/code
     ports:
       - "8001:8001"
     environment:
@@ -66,7 +65,7 @@ services:
     networks:
       - brfn-network
 
-  # Platform Service API (Catalog, Orders, Payments, Notifications)
+  # Platform Service API (Catalog, Orders, Payments, Baskets, Reviews...)
   platform-api:
     build: ./services/platform-service
     container_name: brfn_platform_api
@@ -83,32 +82,8 @@ services:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - PRODUCER_API_URL=${PRODUCER_API_URL}
+      - NOTIFICATIONS_API_URL=${NOTIFICATIONS_API_URL}
       - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - brfn-network
-
-  # Producer Service API
-  producer-api:
-    build: ./services/producer-service
-    container_name: brfn_producer_api
-    command: python manage.py runserver 0.0.0.0:8003
-    volumes:
-      - ./services/producer-service:/code
-    ports:
-      - "8003:8003"
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DEBUG=${DEBUG}
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - PLATFORM_API_URL=${PLATFORM_API_URL}
     depends_on:
       db:
         condition: service_healthy
@@ -119,11 +94,11 @@ services:
   payment-gateway:
     build: ./services/payment-gateway-service
     container_name: brfn_payment_gateway
-    command: python manage.py runserver 0.0.0.0:8004
+    command: python manage.py runserver 0.0.0.0:8003
     volumes:
       - ./services/payment-gateway-service:/code
     ports:
-      - "8004:8004"
+      - "8003:8003"
     environment:
       - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
@@ -140,6 +115,7 @@ services:
 
 volumes:
   mysql_data:
+
 
 networks:
   brfn-network:

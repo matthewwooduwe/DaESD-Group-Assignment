@@ -37,6 +37,19 @@ def seed_data(apps, schema_editor):
     # Products are seeded correctly using seed_db.py, skipping creation here to avoid string-to-int Category issues.
     pass
 
+    # 4. Create Customer (if not exists)
+    customer, created = User.objects.get_or_create(
+        username='customer_jill',
+        defaults={
+            'email': 'jill@email.com',
+            'role': 'CUSTOMER',
+            'password': make_password('customer123')
+        }
+    )
+    if not created:
+         customer.password = make_password('customer123')
+         customer.save()
+
 class Migration(migrations.Migration):
 
     dependencies = [

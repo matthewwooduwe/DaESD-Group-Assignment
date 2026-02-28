@@ -6,21 +6,21 @@ Distributed software system for connecting local food producers with customers.
 
 **Microservices:**
 - **Frontend Service** (Port 8000): Web UI and templates
-- **Customer API** (Port 8001): Customer browsing, ordering, basket management
-- **Platform API** (Port 8002): Catalog, Orders, Payments, Notifications
-- **Producer API** (Port 8003): Product listing, order fulfillment, surplus management
-- **Payment Gateway** (Port 8004): External payment processing (mock)
+- **Notifications API** (Port 8001): Order status notifications and lifecycle
+- **Platform API** (Port 8002): Baskets, Catalog, Orders, Payments, Notifications, Product listing, Surplus management...
+- **Payment Gateway** (Port 8003): External payment processing (mock)
 - **MySQL Database** (Port 3306): Shared database
 
 ## Team Members & Service Ownership
 
 | Team Member | Service Ownership | Primary Responsibilities | Assigned To |
 |-------------|-------------------|-------------------------|-------------|
-| Person 1 | Frontend Service | Web UI, templates, user experience |
-| Person 2 | Customer API | Browse, search, basket, checkout |
-| Person 3 | Platform API | Catalog, orders, payments, notifications (4 apps) |
-| Person 4 | Producer API | Listings, fulfillment, surplus alerts |
-| Person 5 | Payment Gateway | External payment mock, settlements |
+| Person 1 | Frontend Service | Web UI, templates, user experience | Matt Wood
+| Person 2 | Notifications API | Catalog, notifications | Kaan Karadag
+| Person 3 | Customer (Platform API) | Baskets, checkout, multi-vendor orders, order history | Dina Metwalli
+| Person 4 | Producer (Platform API) | Browse, search, listings, order fulfillment, surplus alerts, users | Leon Stansfield
+| Person 5 | Payment Gateway | External payment mock, settlements, discounts | Amine Ziani
+| - | Platform API | Payments, Catalog | Matt & Kaan
 
 ## Quick Start
 
@@ -70,10 +70,9 @@ Distributed software system for connecting local food producers with customers.
 
 8. **Access the services:**
    - Frontend: http://localhost:8000
-   - Customer API: http://localhost:8001
+   - Notification API: http://localhost:8001
    - Platform API: http://localhost:8002/admin
-   - Producer API: http://localhost:8003
-   - Payment Gateway: http://localhost:8004
+   - Payment Gateway: http://localhost:8003
 
 ## Daily Development Workflow
 
