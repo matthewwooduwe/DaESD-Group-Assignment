@@ -185,10 +185,10 @@
 
 /* ── CTA ── */
 .detail-cta {
-    margin-top: 1.5rem;
     display: flex;
+    margin-top: 1.5rem;
     gap: 0.75rem;
-    flex-wrap: wrap;
+    flex-wrap: column;
 }
 
 .btn-primary {
@@ -209,6 +209,7 @@
 .btn-primary:hover { background: var(--terra-light); }
 
 .btn-secondary {
+    flex-grow: 3;
     background: transparent;
     color: var(--green);
     border: 2px solid var(--green);
@@ -224,6 +225,37 @@
 }
 
 .btn-secondary:hover { background: var(--green); color: #fff; }
+
+.card-detail {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1;
+}
+
+.quantity-field {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0, 128, 0, 0.15);
+    margin-right: 0.4rem;
+}
+
+.quantity-input {
+    border: none;
+    text-align: center;
+    padding: 0.7rem;
+}
+
+.quantity-suffix {
+    padding: 0 0.6rem;
+    font-size: 1rem;
+    color: #666;
+}
 
 /* ── REVIEWS ── */
 .reviews-section {
@@ -429,9 +461,14 @@
                 {% endif %}
 
                 <div class="detail-cta">
-                    <form method="POST" action="/basket/add/{{ product.id }}/" style="display: inline;">
+                    <form class="quantity-form" method="POST" action="/basket/add/{{ product.id }}/"
+                        style="display: flex; gap: 0.5rem; align-items: center;">
                         {% csrf_token %}
-                        <input type="hidden" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}">
+                        <div class="quantity-field">
+                            <input class="quantity-input" type="number" name="quantity" value="1"
+                            min="1" max="{{ product.stock_quantity }}" onKeyDown="return false">
+                            <span class="quantity-suffix">units</span>
+                        </div>
                         <button type="submit" class="btn-primary" {% if not product.is_available %}disabled{% endif %}>
                             Add to Basket
                         </button>

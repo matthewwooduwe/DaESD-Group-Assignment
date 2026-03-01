@@ -233,7 +233,7 @@
 }
 
 .submission-btn {
-    background: #0c3803;
+    background: var(--terra);
     color: #fff;
     border: none;
     padding: 0.55rem 1.4rem;
@@ -336,6 +336,7 @@
 
 .checkout-btn:hover {
     transform: translateY(-2px);
+    color: var(--terra-light);
     box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
@@ -452,7 +453,7 @@
 
                 <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                     {% csrf_token %}
-                    <button class="submission-btn" style="background:#cc7b39" type="submit" class="btn-secondary">Remove</button>
+                    <button class="submission-btn" style="background:#0c3803" type="submit" class="btn-secondary">Remove</button>
                 </form>
             </div>
         </div>
