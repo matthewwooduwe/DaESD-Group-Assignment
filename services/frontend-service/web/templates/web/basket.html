@@ -359,7 +359,7 @@
         My Basket
     </nav>
 
-    <h1 class="basket-name">{{basket.customer_username}}'s Basket</h1>
+    <h1 class="basket-name">{{request.session.username}}'s Basket</h1>
 
     <form method="POST" action="/basket/clear/">
         {% csrf_token %}
