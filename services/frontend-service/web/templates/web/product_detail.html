@@ -431,8 +431,7 @@
                 <div class="detail-cta">
                     <form method="POST" action="/basket/add/{{ product.id }}/" style="display: inline;">
                         {% csrf_token %}
-                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}"
-                            style="width: 60px; margin-right: 10px;">
+                        <input type="hidden" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}">
                         <button type="submit" class="btn-primary" {% if not product.is_available %}disabled{% endif %}>
                             Add to Basket
                         </button>
