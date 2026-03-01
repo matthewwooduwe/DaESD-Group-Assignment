@@ -232,7 +232,7 @@
     background: rgba(255,255,255,0.2);
 }
 
-.quantity-btn {
+.submission-btn {
     background: #0c3803;
     color: #fff;
     border: none;
@@ -246,7 +246,7 @@
     letter-spacing: 0.03em;
 }
 
-.quantity-btn:hover { background: var(--terra-light); }
+.submission-btn:hover { background: var(--terra-light); }
 
 /* -- RESULTS BAR -- */
 .results-bar {
@@ -361,6 +361,13 @@
 
     <h1 class="basket-name">{{basket.customer_username}}'s Basket</h1>
 
+    <form method="POST" action="/basket/clear/">
+        {% csrf_token %}
+        <button type="submit" class="submission-btn">
+            Clear Basket
+        </button>
+    </form>
+
     {% if basket %}
     {% if basket.items %}
     <div class="results-bar">
@@ -426,7 +433,7 @@
                     <button type="submit"
                             name="action"
                             value="decrease"
-                            class="quantity-btn"
+                            class="submission-btn"
                             style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
                         -
                     </button>
@@ -434,7 +441,7 @@
                     <button type="submit"
                             name="action"
                             value="increase"
-                            class="quantity-btn"
+                            class="submission-btn"
                             style="padding: 0.3rem 0.7rem; font-size: 0.9rem;">
                         +
                     </button>
@@ -446,7 +453,7 @@
 
                 <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                     {% csrf_token %}
-                    <button class="quantity-btn" style="background:#cc7b39" type="submit" class="btn-secondary">Remove</button>
+                    <button class="submission-btn" style="background:#cc7b39" type="submit" class="btn-secondary">Remove</button>
                 </form>
             </div>
         </div>

@@ -552,3 +552,72 @@ def remove_from_basket(request, item_id):
         })
     
     return redirect('/basket/')
+
+def clear_basket(request):
+    """
+    Remove an item from the basket.
+    """
+    success = None
+    error = None
+    basket = None
+
+    if not request.session.get('token'):
+        error = "Please log in to view your basket."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+
+    if request.method == 'POST':
+        try:
+            resp = requests.delete(
+                f"{PLATFORM_API_URL}/api/basket/clear/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+
+            resp_basket = requests.get(f"{PLATFORM_API_URL}/api/basket/", timeout=5)
+            if resp_basket.status_code == 200:
+                basket = resp_basket.json()
+            
+            if resp.status_code == 200:
+                success = "Successfully cleared all items from your basket!"
+                return render(request, 'web/basket.html', {
+                    'basket' : basket,
+                    'success': success,
+                    'media_base_url': MEDIA_BASE_URL,
+                })
+            
+            # Silently redirect back to basket page if user clicks clear on an empty basket
+            elif resp.status_code == 400:
+                redirect('/basket/')
+            else:
+                error = "Could not clear basket."
+
+        except requests.exceptions.ConnectionError:
+            error = "Cannot reach the platform API. Is the platform-service running?"
+        except requests.exceptions.Timeout:
+            error = "The platform API took too long to respond."
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
+
+    # Re-fetch basket and display page if there was an error
+    if error:
+        basket = None
+        try:
+            resp = requests.get(
+                f"{PLATFORM_API_URL}/api/basket/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+            if resp.status_code == 200:
+                basket = resp.json()
+        except:
+            pass
+        
+        return render(request, 'web/basket.html', {
+            'basket': basket,
+            'error': error,
+            'media_base_url': MEDIA_BASE_URL,
+        })
+    
+    return redirect('/basket/')
