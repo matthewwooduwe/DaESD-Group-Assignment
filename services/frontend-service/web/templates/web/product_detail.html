@@ -299,6 +299,14 @@
 {% block content %}
 <div class="container">
 
+    {% if error %}
+    <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="success-banner" style="margin-top: 2rem;"> {{ success }}</div>
+    {% endif %}
+
     {% if error and not product %}
     <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
     <div class="not-found">
@@ -421,7 +429,14 @@
                 {% endif %}
 
                 <div class="detail-cta">
-                    <a href="#" class="btn-primary">Add to Basket</a>
+                    <form method="POST" action="/basket/add/{{ product.id }}/" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}"
+                            style="width: 60px; margin-right: 10px;">
+                        <button type="submit" class="btn-primary" {% if not product.is_available %}disabled{% endif %}>
+                            Add to Basket
+                        </button>
+                    </form>
                     <a href="/" class="btn-secondary">← Keep Browsing</a>
                 </div>
             </div>
