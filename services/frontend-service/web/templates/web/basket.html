@@ -248,6 +248,18 @@
 
 .submission-btn:hover { background: var(--terra-light); }
 
+.disabled-btn {
+    background: #A9A9A9;
+    color: #fff;
+    border: 2px solid #808080;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
 /* -- RESULTS BAR -- */
 .results-bar {
     display: flex;
@@ -364,9 +376,11 @@
 
     <form method="POST" action="/basket/clear/">
         {% csrf_token %}
-        <button type="submit" class="submission-btn">
-            Clear Basket
-        </button>
+        {% if basket.items %}
+        <button type="submit" class="submission-btn"> Clear Basket </button>
+        {% else %}
+        <button type="submit" class="disabled-btn" disabled> Clear Basket </button>
+        {% endif %}
     </form>
 
     {% if basket.items %}

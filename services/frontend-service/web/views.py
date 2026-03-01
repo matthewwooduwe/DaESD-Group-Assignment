@@ -586,10 +586,6 @@ def clear_basket(request):
                     'success': success,
                     'media_base_url': MEDIA_BASE_URL,
                 })
-            
-            # Silently redirect back to basket page if user clicks clear on an empty basket
-            elif resp.status_code == 400:
-                redirect('/basket/')
             else:
                 error = "Could not clear basket."
 

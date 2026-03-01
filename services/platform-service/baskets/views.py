@@ -144,15 +144,7 @@ class ClearBasketView(APIView):
 
     def delete(self, request):
         basket = get_object_or_404(Basket, customer=request.user)
-        basket_items = basket.items.all()
-
-        if len(basket_items) == 0:
-            return Response(
-                {'error': f'Basket is already empty.'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        basket_items.delete()
+        basket.items.all().delete()
         
         serializer = BasketSerializer(basket)
         return Response(serializer.data, status=status.HTTP_200_OK)
