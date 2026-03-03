@@ -161,6 +161,24 @@ def login_view(request):
                 data = resp.json()
                 request.session['token'] = data['access']
                 request.session['username'] = username
+                
+                # Fetch user profile to get the role
+                role = 'CUSTOMER' # Default
+                try:
+                    profile_resp = requests.get(
+                        f"{PLATFORM_API_URL}/api/auth/me/",
+                        headers={'Authorization': f"Bearer {data['access']}"},
+                        timeout=5
+                    )
+                    if profile_resp.status_code == 200:
+                        role = profile_resp.json().get('role', 'CUSTOMER')
+                except:
+                    pass
+                
+                request.session['role'] = role
+                
+                if role == 'PRODUCER':
+                    return redirect('/dashboard/')
                 return redirect('/')
             elif resp.status_code == 401:
                 error = "Incorrect username or password. Please try again."
@@ -282,3 +300,215 @@ def register_view(request):
         'success': success,
         'form_data': form_data,
     })
+
+def producer_dashboard(request):
+    """
+    Dashboard for producers to manage their products.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    products = []
+    error = None
+    username = request.session.get('username')
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/products/",
+            params={'producer__username': username},
+            timeout=5
+        )
+        if resp.status_code == 200:
+            products = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Could not load your products (status {resp.status_code})."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/dashboard.html', {
+        'products': products,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+def add_product_view(request):
+    """
+    Form view for adding a new product.
+    Submits to the producer-service proxy using the user's token.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    categories = []
+    error = None
+    success = False
+
+    try:
+        resp_cat = requests.get(f"{PLATFORM_API_URL}/api/products/categories/", timeout=5)
+        if resp_cat.status_code == 200:
+            categories = resp_cat.json()
+    except Exception:
+        pass
+
+    if request.method == 'POST':
+        # Prepare the multipart form data using 'requests' library
+        # By separating 'data' and 'files'
+        form_data = request.POST.dict()
+        # Remove csrf token if present
+        form_data.pop('csrfmiddlewaretoken', None)
+        
+        # Handle boolean fields properly
+        form_data['is_organic'] = 'is_organic' in request.POST
+        form_data['is_available'] = 'is_available' in request.POST
+        
+        # Remove empty optional fields so API doesn't complain about empty strings for ints/dates
+        for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
+            if not form_data.get(key):
+                form_data.pop(key, None)
+
+        files = {}
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            files['image'] = (image_file.name, image_file.read(), image_file.content_type)
+
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/products/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                data=form_data,
+                files=files,
+                timeout=10
+            )
+            if resp.status_code == 201:
+                return redirect('/dashboard/')
+            elif resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
+            else:
+                error_msg = resp.text
+                try:
+                    error_data = resp.json()
+                    error_msg = str(error_data)
+                except ValueError:
+                    pass
+                error = f"Failed to create product. Reason: {error_msg}"
+        except Exception as e:
+            error = f"Error sending data to Producer API: {str(e)}"
+
+    return render(request, 'web/add_product.html', {
+        'categories': categories,
+        'error': error,
+        'success': success
+    })
+
+def edit_product_view(request, product_id):
+    """
+    Form view for editing an existing product.
+    Submits to the producer-service proxy using the user's token.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    categories = []
+    product = None
+    error = None
+
+    try:
+        resp_cat = requests.get(f"{PLATFORM_API_URL}/api/products/categories/", timeout=5)
+        if resp_cat.status_code == 200:
+            categories = resp_cat.json()
+    except Exception:
+        pass
+
+    # Fetch existing product details
+    try:
+        resp_prod = requests.get(
+            f"{PLATFORM_API_URL}/api/products/{product_id}/",
+            headers={'Authorization': f"Bearer {request.session.get('token')}"},
+            timeout=5
+        )
+        if resp_prod.status_code == 200:
+            product = resp_prod.json()
+        elif resp_prod.status_code == 404:
+            return redirect('/dashboard/')
+        elif resp_prod.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Failed to load product details: {resp_prod.status_code}"
+    except Exception as e:
+        error = f"Error communicating with API: {str(e)}"
+
+    if request.method == 'POST':
+        form_data = request.POST.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        
+        # Handle boolean fields properly
+        form_data['is_organic'] = 'is_organic' in request.POST
+        form_data['is_available'] = 'is_available' in request.POST
+        
+        # Remove empty optional fields
+        for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
+            if not form_data.get(key):
+                form_data.pop(key, None)
+
+        files = {}
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            files['image'] = (image_file.name, image_file.read(), image_file.content_type)
+        else:
+            # Prevent sending an empty string for the image if no file was uploaded
+            form_data.pop('image', None)
+
+        try:
+            resp = requests.patch(
+                f"{PLATFORM_API_URL}/api/products/{product_id}/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                data=form_data,
+                files=files if files else None,
+                timeout=10
+            )
+            if resp.status_code == 200:
+                return redirect('/dashboard/')
+            elif resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
+            else:
+                error_msg = resp.text
+                try:
+                    error_data = resp.json()
+                    error_msg = str(error_data)
+                except ValueError:
+                    pass
+                error = f"Failed to update product. Reason: {error_msg}"
+        except Exception as e:
+            error = f"Error sending data to Producer API: {str(e)}"
+
+    return render(request, 'web/edit_product.html', {
+        'categories': categories,
+        'product': product,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+def delete_product_view(request, product_id):
+    """
+    Handles deleting a product. Only accepts POST requests.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    if request.method == 'POST':
+        try:
+            requests.delete(
+                f"{PLATFORM_API_URL}/api/products/{product_id}/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                timeout=5
+            )
+        except Exception:
+            pass # Silently fail
+            
+    return redirect('/dashboard/')
