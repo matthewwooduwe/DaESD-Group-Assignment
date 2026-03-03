@@ -8,7 +8,7 @@ max-width: 800px;
 margin: 3rem auto;
 background: var(--card-bg);
 padding: 2.5rem;
-border-radius: 12px;
+border-radius: 8px;
 box-shadow: var(--shadow);
 border: 1px solid var(--border);
 }
@@ -20,7 +20,7 @@ border-bottom: 1px solid var(--border);
 }
 
 .form-header h1 {
-font-family: 'Playfair Display', serif;
+font-family: 'Cormorant Garamond', serif;
 font-size: 2rem;
 color: var(--text);
 margin-bottom: 0.5rem;
@@ -48,6 +48,7 @@ grid-column: 1 / -1;
 }
 
 .form-label {
+font-family: 'Source Sans 3', sans-serif;
 font-weight: 700;
 font-size: 0.85rem;
 color: var(--text);
@@ -63,9 +64,9 @@ color: var(--terra);
 padding: 0.75rem 1rem;
 border: 1px solid var(--border);
 border-radius: 8px;
-font-family: 'Lato', sans-serif;
+font-family: 'Source Sans 3', sans-serif;
 font-size: 0.95rem;
-background: #faf9f7;
+background: var(--bg);
 transition: all 0.2s;
 color: var(--text);
 }
@@ -97,6 +98,7 @@ cursor: pointer;
 }
 
 .checkbox-group label {
+font-family: 'Source Sans 3', sans-serif;
 font-weight: 600;
 font-size: 0.95rem;
 color: var(--text);
@@ -123,13 +125,14 @@ transition: border-color 0.2s;
 border-color: var(--green);
 }
 
-.submit-btn {
+.btn-primary {
 grid-column: 1 / -1;
-background: var(--green);
+background: var(--terra);
 color: #fff;
 border: none;
 padding: 1rem;
 border-radius: 8px;
+font-family: 'Source Sans 3', sans-serif;
 font-size: 1.05rem;
 font-weight: 700;
 cursor: pointer;
@@ -137,8 +140,8 @@ transition: background 0.2s, transform 0.2s;
 margin-top: 1rem;
 }
 
-.submit-btn:hover {
-background: var(--green-light);
+.btn-primary:hover {
+background: var(--terra-light);
 transform: translateY(-2px);
 }
 
@@ -148,6 +151,7 @@ align-items: center;
 gap: 6px;
 color: var(--text-muted);
 text-decoration: none;
+font-family: 'Source Sans 3', sans-serif;
 font-size: 0.9rem;
 margin-bottom: 1rem;
 font-weight: 600;
@@ -169,7 +173,7 @@ display: block;
 {% block content %}
 <div class="container">
     <div class="form-container">
-        <a href="{% url 'dashboard' %}" class="back-link">
+        <a href="/dashboard/" class="back-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -184,9 +188,7 @@ display: block;
         </div>
 
         {% if error %}
-        <div class="error-banner">
-            <strong>Error:</strong> {{ error }}
-        </div>
+        <div class="error-banner">{{ error }}</div>
         {% endif %}
 
         <form method="POST" enctype="multipart/form-data" class="form-grid">
@@ -282,8 +284,9 @@ display: block;
                     preserved.</span>
             </div>
 
-            <button type="submit" class="submit-btn">Save Changes</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
         </form>
     </div>
 </div>
+<br><br>
 {% endblock %}
