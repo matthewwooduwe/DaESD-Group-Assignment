@@ -15,7 +15,7 @@
     gap: 6px;
 }
 
-.breadcrumb a { color: var(--green-light); text-decoration: none; }
+.breadcrumb a { color: var(--green); text-decoration: none; }
 .breadcrumb a:hover { text-decoration: underline; }
 .breadcrumb span { opacity: 0.5; }
 
@@ -33,7 +33,7 @@
 /* -- PRODUCT CARD -- */
 .product-card {
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
@@ -41,12 +41,7 @@
     flex-direction: column;
     text-decoration: none;
     color: inherit;
-    border: 1px solid rgba(216,207,196,0.5);
-}
-
-.product-card > a {
-    position: relative;
-    display: block;
+    border: 1px solid var(--border);
 }
 
 .product-card:hover {
@@ -57,62 +52,67 @@
 .card-image {
     position: relative;
     height: 200px;
-    background: linear-gradient(135deg, #e8e0d4, #d8cfc4);
     overflow: hidden;
     flex-shrink: 0;
 }
 
 .card-image img {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.product-card:hover .card-image img { transform: scale(1.04); }
+
+.product-card > a {
+    position: relative;
     display: block;
 }
 
 .card-image-placeholder {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #b0a898;
-    gap: 6px;
-    background: linear-gradient(145deg, #ede8e0, #dfd8cc);
+    color: #a8b8a8;
+    gap: 8px;
+    background: linear-gradient(145deg, #eef4ee, #e0ece0);
 }
 
-.card-image-placeholder svg { opacity: 0.4; }
-.card-image-placeholder span { font-size: 0.72rem; opacity: 0.6; letter-spacing: 0.06em; }
+.card-image-placeholder span {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
 
 .card-badges {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    top: 10px; left: 10px;
+    display: flex; gap: 5px; flex-wrap: wrap;
 }
 
 .card-stock-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 10px; right: 10px;
 }
 
 .card-body {
-    padding: 1.1rem 1.25rem 1.25rem;
+    padding: 1.1rem 1.25rem 1.3rem;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
 .card-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--text);
-    line-height: 1.3;
-    margin-bottom: 0.35rem;
+    line-height: 1.25;
+    margin-bottom: 0.3rem;
 }
 
 .card-producer {
@@ -122,60 +122,57 @@
     color: var(--text-muted);
     font-size: 0.8rem;
     margin-bottom: auto;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.85rem;
 }
-
-.card-producer svg { flex-shrink: 0; }
 
 .card-footer {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding-top: 0.75rem;
+    padding-top: 0.85rem;
     border-top: 1px solid var(--border);
     margin-top: 0.75rem;
 }
 
 .card-price {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.35rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--green);
     line-height: 1;
 }
 
 .card-price span {
-    font-family: 'Lato', sans-serif;
-    font-size: 0.75rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.72rem;
     font-weight: 400;
     color: var(--text-muted);
     display: block;
-}
-
-.card-detail {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--black);
-    line-height: 1;
+    margin-top: 2px;
 }
 
 .card-stock-info {
     text-align: right;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     line-height: 1.3;
 }
 
-.card-stock-info strong { color: var(--text); font-size: 0.875rem; }
+.card-stock-info strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+}
 
 /* -- BASKET NAME -- */
 .basket-name {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Source Sans 3', serif;
     font-size: clamp(1.6rem, 3vw, 2.25rem);
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 0.5rem;
-    color: #0c3803;
+    color: var(--text);
 }
 
 /* -- EMPTY STATE -- */
@@ -204,7 +201,7 @@
     font-weight: 700;
 }
 
-/ * -- ITEM QUANTITY FORM -- */
+/* -- ITEM QUANTITY FORM -- */
 .quantity-form {
     display: flex;
     flex-wrap: wrap;
@@ -222,7 +219,7 @@
     font-size: 0.875rem;
     outline: none;
     transition: border-color 0.2s, background 0.2s;
-    backdrop-quantity: blur(4px);
+    backdrop-filter: blur(4px);
 }
 
 .quantity-input::placeholder { color: rgba(255,255,255,0.5); }
@@ -247,6 +244,42 @@
 }
 
 .submission-btn:hover { background: var(--terra-light); }
+
+* Primary action button */
+
+.btn-primary {
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover { background: var(--terra-light); }
+
+/* Secondary / outline button */
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--green);
+    color: #fff;
+}
 
 .disabled-btn {
     background: #A9A9A9;
@@ -377,7 +410,7 @@
     <form method="POST" action="/basket/clear/">
         {% csrf_token %}
         {% if basket.items %}
-        <button type="submit" class="submission-btn"> Clear Basket </button>
+        <button type="submit" class="btn-secondary"> Clear Basket </button>
         {% else %}
         <button type="submit" class="disabled-btn" disabled> Clear Basket </button>
         {% endif %}
@@ -447,7 +480,7 @@
                     <button type="submit"
                             name="action"
                             value="decrease"
-                            class="submission-btn"
+                            class="btn-secondary"
                             style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
                         -
                     </button>
@@ -455,7 +488,7 @@
                     <button type="submit"
                             name="action"
                             value="increase"
-                            class="submission-btn"
+                            class="btn-secondary"
                             style="padding: 0.3rem 0.7rem; font-size: 0.9rem;">
                         +
                     </button>
@@ -467,7 +500,7 @@
 
                 <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                     {% csrf_token %}
-                    <button class="submission-btn" style="background:#0c3803" type="submit" class="btn-secondary">Remove</button>
+                    <button class="btn-secondary" style="background:#0c3803" type="submit" class="btn-secondary">Remove</button>
                 </form>
             </div>
         </div>
@@ -495,7 +528,7 @@
             </div>
 
             <div class="order-summary-right">
-                <button class="checkout-btn">
+                <button class="btn-secondary">
                     Proceed to Checkout →
                 </button>
             </div>
