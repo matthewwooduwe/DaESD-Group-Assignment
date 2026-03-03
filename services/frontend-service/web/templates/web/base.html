@@ -271,11 +271,15 @@
 
     <ul class="nav-links">
         <li><a href="/">Browse</a></li>
-        {% if request.session.username %}
+        {% if request.session.role == 'CUSTOMER' %}
+        <li><a href="/basket/">Basket</a></li>
         <li><span class="nav-username">{{ request.session.username }}</span></li>
-        <li><a href="/logout/">Sign Out</a></li>
+        <li><a href="/logout/">Sign Out</a></li>    
+        {% elif request.session.role == 'PRODUCER' %}
+        <li><a href="/dashboard/" style="color: var(--nav-accent); font-weight: bold;">Dashboard</a></li>
+        <li><span class="nav-username">{{ request.session.username }}</span></li>
+        <li><a href="/logout/">Sign Out</a></li>    
         {% else %}
-        <li><a href="/register/">Join</a></li>
         <li><a href="/login/" class="nav-cta">Sign In</a></li>
         {% endif %}
     </ul>
