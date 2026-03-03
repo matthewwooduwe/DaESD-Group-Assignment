@@ -12,6 +12,12 @@ class IsProducerOrReadOnly(permissions.BasePermission):
             return True
         return request.user.is_authenticated and request.user.role == 'PRODUCER'
 
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # Only the producer who created the product can edit/delete it
+        return obj.producer == request.user
+
 class CategoryList(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
