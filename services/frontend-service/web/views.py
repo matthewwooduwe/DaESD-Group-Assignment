@@ -9,6 +9,23 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 
 
+def _api_error_message(status_code):
+    """
+    Returns a user-friendly error message for a given HTTP status code.
+    Never exposes the raw status code to the user.
+    """
+    if status_code == 403:
+        return "You do not have permission to access this. Please sign in and try again."
+    elif status_code == 404:
+        return "The requested resource could not be found."
+    elif status_code == 500:
+        return "The server encountered an error. Please try again shortly."
+    elif status_code == 503:
+        return "The service is temporarily unavailable. Please try again in a few moments."
+    else:
+        return "Something went wrong. Please try again shortly."
+
+
 def index(request):
     """
     Product browsing / listing page.
@@ -49,14 +66,16 @@ def index(request):
         if resp_prod.status_code == 200:
             products = resp_prod.json()
         else:
-            error = f"Could not load products (status {resp_prod.status_code})."
+            error = _api_error_message(resp_prod.status_code)
 
     except requests.exceptions.ConnectionError:
-        error = "Cannot reach the platform API. Is the platform-service running?"
+        error = "Cannot reach the platform API. Please check the service is running."
     except requests.exceptions.Timeout:
-        error = "The platform API took too long to respond."
-    except Exception as e:
-        error = f"Unexpected error: {str(e)}"
+        error = "The request took too long to respond. Please try again."
+    except requests.exceptions.RequestException:
+        error = "A network error occurred. Please try again."
+    except Exception:
+        error = "An unexpected error occurred. Please try again or contact support if the problem persists."
 
     return render(request, 'web/index.html', {
         'products': products,
@@ -88,7 +107,7 @@ def product_detail(request, product_id):
         elif resp.status_code == 404:
             error = "This product could not be found."
         else:
-            error = f"Could not load product (status {resp.status_code})."
+            error = _api_error_message(resp.status_code)
 
         # Fetch reviews for this product if we found it
         if product:
@@ -101,11 +120,13 @@ def product_detail(request, product_id):
                 reviews = resp_rev.json()
 
     except requests.exceptions.ConnectionError:
-        error = "Cannot reach the platform API. Is the platform-service running?"
+        error = "Cannot reach the platform API. Please check the service is running."
     except requests.exceptions.Timeout:
-        error = "The platform API took too long to respond."
-    except Exception as e:
-        error = f"Unexpected error: {str(e)}"
+        error = "The request took too long to respond. Please try again."
+    except requests.exceptions.RequestException:
+        error = "A network error occurred. Please try again."
+    except Exception:
+        error = "An unexpected error occurred. Please try again or contact support if the problem persists."
 
     return render(request, 'web/product_detail.html', {
         'product': product,
@@ -162,14 +183,16 @@ def login_view(request):
             elif resp.status_code == 401:
                 error = "Incorrect username or password. Please try again."
             else:
-                error = f"Login failed (status {resp.status_code}). Please try again."
+                error = _api_error_message(resp.status_code)
 
         except requests.exceptions.ConnectionError:
-            error = "Cannot reach the platform API. Is the platform-service running?"
+            error = "Cannot reach the platform API. Please check the service is running."
         except requests.exceptions.Timeout:
-            error = "The platform API took too long to respond."
-        except Exception as e:
-            error = f"Unexpected error: {str(e)}"
+            error = "The request took too long to respond. Please try again."
+        except requests.exceptions.RequestException:
+            error = "A network error occurred. Please try again."
+        except Exception:
+            error = "An unexpected error occurred. Please try again or contact support if the problem persists."
 
     return render(request, 'web/login.html', {
         'error': error,
@@ -261,14 +284,16 @@ def register_view(request):
                     for field, msgs in errors.items()
                 )
             else:
-                error = f"Registration failed (status {resp.status_code}). Please try again."
+                error = _api_error_message(resp.status_code)
 
         except requests.exceptions.ConnectionError:
-            error = "Cannot reach the platform API. Is the platform-service running?"
+            error = "Cannot reach the platform API. Please check the service is running."
         except requests.exceptions.Timeout:
-            error = "The platform API took too long to respond."
-        except Exception as e:
-            error = f"Unexpected error: {str(e)}"
+            error = "The request took too long to respond. Please try again."
+        except requests.exceptions.RequestException:
+            error = "A network error occurred. Please try again."
+        except Exception:
+            error = "An unexpected error occurred. Please try again or contact support if the problem persists."
 
     return render(request, 'web/register.html', {
         'error': error,

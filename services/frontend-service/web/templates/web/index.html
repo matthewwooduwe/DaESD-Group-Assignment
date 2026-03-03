@@ -1,87 +1,168 @@
 {% extends "web/base.html" %}
 
-{% block title %}Browse Local Produce — BRFN{% endblock %}
+{% block title %}Browse Local Produce — Bristol Regional Food Network{% endblock %}
 
 {% block extra_styles %}
+
 /* ── HERO ── */
 .hero {
-    background: linear-gradient(135deg, #1e3a1f 0%, #2c5f2e 60%, #3d7a40 100%);
-    padding: 3.5rem 1.5rem 3rem;
     position: relative;
     overflow: hidden;
+    background: #d4eaf8;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Daytime sky gradient */
 .hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(ellipse at 80% 50%, rgba(168,199,126,0.15) 0%, transparent 60%),
-        radial-gradient(ellipse at 20% 80%, rgba(196,94,42,0.10) 0%, transparent 50%);
+    background: linear-gradient(180deg,
+        #a8d4f0 0%,
+        #c8e6f8 35%,
+        #dff0f8 60%,
+        #eef8f2 85%,
+        #f4faf5 100%
+    );
     pointer-events: none;
 }
 
-.hero-inner {
+/* Soft cloud wisps */
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 300px 80px at 20% 25%, rgba(255,255,255,0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 200px 60px at 70% 18%, rgba(255,255,255,0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 250px 70px at 50% 30%, rgba(255,255,255,0.3) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.hero-bridge-wrap {
     position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bridge-scene {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 340px;
+}
+
+.bridge-svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Hero text */
+.hero-text {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+    width: 100%;
+    padding: 0 1rem;
+}
+
+.hero-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0.85;
+}
+
+.hero-eyebrow::before,
+.hero-eyebrow::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 1px;
+    background: var(--green);
+    opacity: 0.4;
+}
+
+.hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    font-weight: 600;
+    color: #1a2e1e;
+    line-height: 1.1;
+    margin-bottom: 0.9rem;
+    letter-spacing: -0.01em;
+    text-shadow: 0 1px 20px rgba(255,255,255,0.8);
+}
+
+.hero-title em {
+    font-style: italic;
+    color: var(--green);
+}
+
+.hero-subtitle {
+    color: #3a4a3e;
+    font-size: 1rem;
+    font-weight: 400;
+    max-width: 420px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.65;
+    text-shadow: 0 1px 12px rgba(255,255,255,0.9);
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+    background: var(--green);
+    padding: 0.9rem 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.15;
-    margin-bottom: 0.6rem;
-    letter-spacing: -0.01em;
-}
-
-.hero h1 em {
-    font-style: italic;
-    color: var(--nav-accent);
-}
-
-.hero p {
-    color: rgba(255,255,255,0.7);
-    font-size: 1rem;
-    font-weight: 300;
-    max-width: 480px;
-    margin-bottom: 1.75rem;
-    line-height: 1.6;
-}
-
-/* ── FILTER BAR ── */
-.filter-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-}
-
 .filter-input, .filter-select {
-    padding: 0.55rem 1rem;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
     background: rgba(255,255,255,0.12);
     color: #fff;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.875rem;
     outline: none;
     transition: border-color 0.2s, background 0.2s;
-    backdrop-filter: blur(4px);
 }
 
-.filter-input::placeholder { color: rgba(255,255,255,0.5); }
-
+.filter-input::placeholder { color: rgba(255,255,255,0.55); }
 .filter-input:focus, .filter-select:focus {
-    border-color: var(--nav-accent);
-    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.18);
 }
 
-.filter-select option { background: #1e3a1f; color: #fff; }
-
-.filter-search { flex: 1; min-width: 220px; max-width: 340px; }
+.filter-select option { background: var(--green); color: #fff; }
+.filter-search { flex: 1; min-width: 200px; max-width: 300px; }
 
 .filter-checkbox-label {
     display: flex;
@@ -94,46 +175,77 @@
 }
 
 .filter-checkbox-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--nav-accent);
+    width: 15px; height: 15px;
+    accent-color: #fff;
     cursor: pointer;
 }
 
 .filter-btn {
-    background: var(--terra);
-    color: #fff;
+    background: #fff;
+    color: var(--green);
     border: none;
-    padding: 0.55rem 1.4rem;
-    border-radius: 8px;
-    font-family: 'Lato', sans-serif;
-    font-size: 0.875rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.8rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
     cursor: pointer;
     transition: background 0.2s;
-    letter-spacing: 0.03em;
 }
 
-.filter-btn:hover { background: var(--terra-light); }
+.filter-btn:hover { background: var(--cream-dark); }
 
 .filter-clear {
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.5);
     font-size: 0.8rem;
     text-decoration: none;
-    padding: 0.4rem 0.6rem;
+    padding: 0.4rem 0.5rem;
     transition: color 0.2s;
 }
 
-.filter-clear:hover { color: var(--nav-accent); }
+.filter-clear:hover { color: rgba(255,255,255,0.9); }
 
-/* ── RESULTS BAR ── */
+/* ── TRUST STRIP ── */
+.trust-strip {
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+}
+
+.trust-strip-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.trust-item span { font-size: 1rem; }
+
+/* ── PRODUCTS SECTION ── */
+.products-section { padding: 2.5rem 0 4rem; }
+
 .results-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 0 0.75rem;
+    padding-bottom: 1.25rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 1.75rem;
+    margin-bottom: 2rem;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
@@ -145,40 +257,33 @@
 
 .results-count strong { color: var(--text); }
 
-.active-filters {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
+.active-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .active-filter-tag {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #e8f2eb;
+    background: var(--green-light);
     color: var(--green);
-    border: 1px solid #c3dcc8;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    border: 1px solid #b8dfc8;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 0.72rem;
     font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 /* ── PRODUCT GRID ── */
-.products-section {
-    padding: 2rem 0 3rem;
-}
-
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 
 /* ── PRODUCT CARD ── */
 .product-card {
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
@@ -186,7 +291,7 @@
     flex-direction: column;
     text-decoration: none;
     color: inherit;
-    border: 1px solid rgba(216,207,196,0.5);
+    border: 1px solid var(--border);
 }
 
 .product-card:hover {
@@ -197,62 +302,62 @@
 .card-image {
     position: relative;
     height: 200px;
-    background: linear-gradient(135deg, #e8e0d4, #d8cfc4);
     overflow: hidden;
     flex-shrink: 0;
 }
 
 .card-image img {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.4s ease;
 }
 
+.product-card:hover .card-image img { transform: scale(1.04); }
+
 .card-image-placeholder {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #b0a898;
-    gap: 6px;
-    background: linear-gradient(145deg, #ede8e0, #dfd8cc);
+    color: #a8b8a8;
+    gap: 8px;
+    background: linear-gradient(145deg, #eef4ee, #e0ece0);
 }
 
-.card-image-placeholder svg { opacity: 0.4; }
-.card-image-placeholder span { font-size: 0.72rem; opacity: 0.6; letter-spacing: 0.06em; }
+.card-image-placeholder span {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
 
 .card-badges {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    top: 10px; left: 10px;
+    display: flex; gap: 5px; flex-wrap: wrap;
 }
 
 .card-stock-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 10px; right: 10px;
 }
 
 .card-body {
-    padding: 1.1rem 1.25rem 1.25rem;
+    padding: 1.1rem 1.25rem 1.3rem;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
 .card-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--text);
-    line-height: 1.3;
-    margin-bottom: 0.35rem;
+    line-height: 1.25;
+    margin-bottom: 0.3rem;
 }
 
 .card-producer {
@@ -262,89 +367,251 @@
     color: var(--text-muted);
     font-size: 0.8rem;
     margin-bottom: auto;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.85rem;
 }
-
-.card-producer svg { flex-shrink: 0; }
 
 .card-footer {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding-top: 0.75rem;
+    padding-top: 0.85rem;
     border-top: 1px solid var(--border);
     margin-top: 0.75rem;
 }
 
 .card-price {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.35rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--green);
     line-height: 1;
 }
 
 .card-price span {
-    font-family: 'Lato', sans-serif;
-    font-size: 0.75rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.72rem;
     font-weight: 400;
     color: var(--text-muted);
     display: block;
+    margin-top: 2px;
 }
 
 .card-stock-info {
     text-align: right;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     line-height: 1.3;
 }
 
-.card-stock-info strong { color: var(--text); font-size: 0.875rem; }
+.card-stock-info strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+}
 
 /* ── EMPTY STATE ── */
 .empty-state {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 5rem 2rem;
     color: var(--text-muted);
 }
 
-.empty-state svg { margin-bottom: 1rem; opacity: 0.3; }
-
 .empty-state h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
     color: var(--text);
     margin-bottom: 0.5rem;
-}
-
-.empty-state p { font-size: 0.9rem; }
-
-.empty-state a {
-    display: inline-block;
     margin-top: 1rem;
-    color: var(--green);
-    font-weight: 700;
 }
+
+.empty-state p { font-size: 0.9rem; margin-bottom: 1rem; }
+.empty-state a { color: var(--green); font-weight: 600; }
+
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO + FILTERS -->
+<!-- ── HERO ── -->
 <section class="hero">
-    <div class="hero-inner">
-        <h1>Fresh from Bristol's<br><em>Finest Producers</em></h1>
-        <p>Browse seasonal, local produce grown and made right here in the Bristol region.</p>
+    <div class="hero-bridge-wrap">
 
+        <div class="hero-text">
+            <p class="hero-eyebrow">Bristol · Local · Seasonal</p>
+            <h1 class="hero-title">
+                Straight from the<br>
+                <em>Heart of Bristol</em>
+            </h1>
+            <p class="hero-subtitle">Fresh seasonal produce from local farms and makers, delivered across the Bristol region.</p>
+        </div>
+
+        <!-- Clifton Suspension Bridge — daytime scene -->
+        <div class="bridge-scene">
+            <svg class="bridge-svg" viewBox="0 0 1400 340" preserveAspectRatio="xMidYMax meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                <defs>
+                    <linearGradient id="gorgeL" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#7a9e6a"/>
+                        <stop offset="60%" stop-color="#4a6e3a"/>
+                        <stop offset="100%" stop-color="#2a4a1e"/>
+                    </linearGradient>
+                    <linearGradient id="gorgeR" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#7a9e6a"/>
+                        <stop offset="60%" stop-color="#4a6e3a"/>
+                        <stop offset="100%" stop-color="#2a4a1e"/>
+                    </linearGradient>
+                    <linearGradient id="towerG" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#d4c8a8"/>
+                        <stop offset="100%" stop-color="#a89878"/>
+                    </linearGradient>
+                    <linearGradient id="riverG" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#7ab8d8"/>
+                        <stop offset="100%" stop-color="#5898bc"/>
+                    </linearGradient>
+                    <linearGradient id="hillG" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#8ab87a"/>
+                        <stop offset="100%" stop-color="#5a8848"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- River Avon -->
+                <rect x="0" y="290" width="1400" height="50" fill="url(#riverG)" opacity="0.85"/>
+                <!-- River glints -->
+                <line x1="300" y1="305" x2="450" y2="305" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                <line x1="600" y1="312" x2="720" y2="312" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <line x1="900" y1="303" x2="1050" y2="303" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+
+                <!-- Rolling hills background -->
+                <path d="M0 290 Q150 240 300 260 Q450 278 550 248 Q650 218 750 242 Q850 265 1000 240 Q1150 215 1300 248 Q1360 262 1400 255 L1400 290 L0 290Z"
+                      fill="url(#hillG)" opacity="0.6"/>
+                <path d="M0 290 Q120 258 250 272 Q380 285 480 265 Q560 248 650 258 Q740 268 840 255 Q950 240 1080 258 Q1200 275 1400 262 L1400 290 L0 290Z"
+                      fill="#6aaa58" opacity="0.5"/>
+
+                <!-- Left gorge cliff -->
+                <path d="M0 340 L0 175 Q40 155 80 162 Q120 170 155 158 Q175 150 200 155 Q215 158 230 155 L230 290 L0 290Z"
+                      fill="url(#gorgeL)"/>
+                <!-- Left cliff rock texture -->
+                <path d="M0 200 Q50 188 100 196 Q140 202 165 194" stroke="rgba(255,255,255,0.12)" stroke-width="1" fill="none"/>
+                <path d="M0 230 Q70 220 130 228 Q165 233 195 224" stroke="rgba(255,255,255,0.08)" stroke-width="1" fill="none"/>
+                <!-- Gorge vegetation -->
+                <path d="M0 290 Q25 272 55 280 Q85 288 110 275 Q140 261 165 272 Q190 282 215 272 L230 290Z" fill="#4a8038"/>
+
+                <!-- Right gorge cliff -->
+                <path d="M1400 340 L1400 172 Q1360 152 1320 160 Q1275 170 1245 155 Q1222 145 1200 152 Q1182 157 1170 154 L1170 290 L1400 290Z"
+                      fill="url(#gorgeR)"/>
+                <path d="M1400 198 Q1345 185 1290 194 Q1255 200 1232 192" stroke="rgba(255,255,255,0.12)" stroke-width="1" fill="none"/>
+                <path d="M1170 290 Q1195 275 1225 282 Q1260 290 1290 275 Q1320 260 1355 272 Q1380 282 1400 275 L1400 290Z" fill="#4a8038"/>
+
+                <!-- Road deck shadow -->
+                <rect x="228" y="224" width="944" height="8" fill="rgba(0,0,0,0.12)" rx="1"/>
+                <!-- Road deck -->
+                <rect x="230" y="216" width="940" height="10" fill="#b8ae98"/>
+                <!-- Road surface top highlight -->
+                <rect x="230" y="216" width="940" height="2" fill="rgba(255,255,255,0.3)"/>
+                <!-- Lane markings -->
+                <line x1="400" y1="220" x2="450" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="10,10"/>
+                <line x1="580" y1="220" x2="630" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="10,10"/>
+                <line x1="760" y1="220" x2="810" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="10,10"/>
+                <line x1="940" y1="220" x2="990" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="10,10"/>
+
+                <!-- LEFT TOWER -->
+                <rect x="350" y="213" width="64" height="12" fill="#b8ae98" rx="1"/>
+                <!-- Tower body -->
+                <rect x="358" y="82" width="48" height="136" fill="url(#towerG)"/>
+                <!-- Tower arch -->
+                <rect x="370" y="138" width="24" height="60" fill="rgba(100,140,160,0.35)" rx="2"/>
+                <path d="M370 138 Q382 125 394 138" fill="rgba(100,140,160,0.35)"/>
+                <!-- Tower cap layers -->
+                <rect x="354" y="74" width="56" height="12" fill="#c8bea0" rx="1"/>
+                <rect x="360" y="65" width="44" height="12" fill="#b8ae90" rx="1"/>
+                <rect x="366" y="57" width="32" height="11" fill="#a8a080" rx="1"/>
+                <!-- Battlements -->
+                <rect x="362" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <rect x="375" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <rect x="388" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <!-- Stone course lines -->
+                <line x1="358" y1="115" x2="406" y2="115" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="358" y1="145" x2="406" y2="145" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="358" y1="175" x2="406" y2="175" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="358" y1="200" x2="406" y2="200" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <!-- Tower shadow side -->
+                <rect x="394" y="82" width="12" height="136" fill="rgba(0,0,0,0.12)"/>
+
+                <!-- RIGHT TOWER -->
+                <rect x="986" y="213" width="64" height="12" fill="#b8ae98" rx="1"/>
+                <rect x="994" y="82" width="48" height="136" fill="url(#towerG)"/>
+                <rect x="1006" y="138" width="24" height="60" fill="rgba(100,140,160,0.35)" rx="2"/>
+                <path d="M1006 138 Q1018 125 1030 138" fill="rgba(100,140,160,0.35)"/>
+                <rect x="990" y="74" width="56" height="12" fill="#c8bea0" rx="1"/>
+                <rect x="996" y="65" width="44" height="12" fill="#b8ae90" rx="1"/>
+                <rect x="1002" y="57" width="32" height="11" fill="#a8a080" rx="1"/>
+                <rect x="998" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <rect x="1011" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <rect x="1024" y="49" width="9" height="11" fill="#c8bea0" rx="1"/>
+                <line x1="994" y1="115" x2="1042" y2="115" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="994" y1="145" x2="1042" y2="145" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="994" y1="175" x2="1042" y2="175" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <line x1="994" y1="200" x2="1042" y2="200" stroke="rgba(0,0,0,0.1)" stroke-width="0.8"/>
+                <rect x="1030" y="82" width="12" height="136" fill="rgba(0,0,0,0.12)"/>
+
+                <!-- MAIN CABLES -->
+                <path d="M230 202 L382 52 Q700 178 1018 52 L1170 202"
+                      stroke="#888070" stroke-width="3.5" fill="none" opacity="0.9"/>
+                <!-- Cable highlight -->
+                <path d="M230 200 L382 50 Q700 176 1018 50 L1170 200"
+                      stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none" opacity="0.7"/>
+
+                <!-- HANGERS -->
+                <line x1="288" y1="190" x2="288" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+                <line x1="312" y1="180" x2="312" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+                <line x1="338" y1="170" x2="338" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+                <line x1="438" y1="138" x2="438" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="478" y1="128" x2="478" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="518" y1="120" x2="518" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="558" y1="115" x2="558" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="598" y1="112" x2="598" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="640" y1="110" x2="640" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="680" y1="112" x2="680" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="720" y1="115" x2="720" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="760" y1="120" x2="760" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="800" y1="128" x2="800" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="840" y1="136" x2="840" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="880" y1="145" x2="880" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="920" y1="155" x2="920" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="960" y1="165" x2="960" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.65"/>
+                <line x1="1062" y1="170" x2="1062" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+                <line x1="1088" y1="180" x2="1088" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+                <line x1="1112" y1="190" x2="1112" y2="218" stroke="#888070" stroke-width="1.2" opacity="0.7"/>
+
+                <!-- Cable anchors -->
+                <line x1="230" y1="202" x2="205" y2="212" stroke="#888070" stroke-width="2" opacity="0.6"/>
+                <line x1="1170" y1="202" x2="1195" y2="212" stroke="#888070" stroke-width="2" opacity="0.6"/>
+
+                <!-- River reflection of bridge -->
+                <path d="M382 295 Q700 280 1018 295" stroke="rgba(136,128,112,0.2)" stroke-width="2" fill="none"/>
+
+                <!-- Foreground foliage -->
+                <path d="M0 290 Q30 275 65 282 Q100 290 130 278 Q160 265 190 275 Q210 282 230 278 L230 300 L0 300Z"
+                      fill="#3a7028"/>
+                <path d="M1170 278 Q1190 270 1220 276 Q1255 283 1285 272 Q1320 260 1355 270 Q1380 278 1400 270 L1400 300 L1170 300Z"
+                      fill="#3a7028"/>
+
+            </svg>
+        </div>
+
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
         <form class="filter-form" method="GET" action="/">
             <input
                 class="filter-input filter-search"
                 type="text"
                 name="search"
-                placeholder="Search produce, producers…"
+                placeholder="Search produce or producers…"
                 value="{{ search }}"
             >
-
             <select class="filter-select" name="category">
                 <option value="">All Categories</option>
                 {% for cat in categories %}
@@ -353,22 +620,30 @@
                 </option>
                 {% endfor %}
             </select>
-
             <label class="filter-checkbox-label">
                 <input type="checkbox" name="organic" value="1" {% if is_organic %}checked{% endif %}>
                 Organic only
             </label>
-
-            <button class="filter-btn" type="submit">Filter</button>
-
+            <button class="filter-btn" type="submit">Search</button>
             {% if search or selected_category or is_organic %}
-            <a class="filter-clear" href="/">Clear all</a>
+            <a class="filter-clear" href="/">Clear</a>
             {% endif %}
         </form>
     </div>
+
 </section>
 
-<!-- PRODUCTS -->
+<!-- Trust strip -->
+<div class="trust-strip">
+    <div class="trust-strip-inner">
+        <div class="trust-item"><span>🌿</span> 100% Local Producers</div>
+        <div class="trust-item"><span>🌉</span> Bristol & Surrounds</div>
+        <div class="trust-item"><span>🤝</span> Direct from Farm</div>
+        <div class="trust-item"><span>♻️</span> Seasonal & Sustainable</div>
+    </div>
+</div>
+
+<!-- Products -->
 <section class="products-section">
     <div class="container">
 
@@ -378,7 +653,7 @@
 
         <div class="results-bar">
             <p class="results-count">
-                <strong>{{ products|length }}</strong> product{{ products|length|pluralize }} found
+                <strong>{{ products|length }}</strong> product{{ products|length|pluralize }} available
             </p>
             <div class="active-filters">
                 {% if selected_category %}
@@ -397,7 +672,6 @@
             {% for product in products %}
             <a class="product-card" href="/products/{{ product.id }}/">
 
-                <!-- Image -->
                 <div class="card-image">
                     {% if product.image %}
                     <img
@@ -406,17 +680,16 @@
                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
                     >
                     <div class="card-image-placeholder" style="display:none;">
-                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/></svg>
                         <span>{{ product.name }}</span>
                     </div>
                     {% else %}
                     <div class="card-image-placeholder">
-                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/><line x1="24" y1="36" x2="24" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/><line x1="24" y1="36" x2="24" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                         <span>No image</span>
                     </div>
                     {% endif %}
 
-                    <!-- Badges overlay -->
                     <div class="card-badges">
                         {% if product.category %}
                         <span class="badge badge-category">{{ product.category }}</span>
@@ -426,7 +699,6 @@
                         {% endif %}
                     </div>
 
-                    <!-- Availability badge -->
                     <div class="card-stock-badge">
                         {% if not product.is_available %}
                         <span class="badge badge-unavailable">Unavailable</span>
@@ -436,21 +708,20 @@
                     </div>
                 </div>
 
-                <!-- Card body -->
                 <div class="card-body">
                     <h2 class="card-name">{{ product.name }}</h2>
                     <p class="card-producer">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         {{ product.producer_username }}
                     </p>
-
                     <div class="card-footer">
                         <div class="card-price">
                             £{{ product.price }}
                             <span>per {{ product.unit|default:"item" }}</span>
                         </div>
                         <div class="card-stock-info">
-                            <strong>{{ product.stock_quantity }}</strong><br>in stock
+                            <strong>{{ product.stock_quantity }}</strong>
+                            in stock
                         </div>
                     </div>
                 </div>
@@ -458,10 +729,10 @@
             </a>
             {% empty %}
             <div class="empty-state">
-                <svg width="64" height="64" viewBox="0 0 48 48" fill="none"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor" opacity="0.5"/></svg>
+                <svg width="56" height="56" viewBox="0 0 48 48" fill="none" opacity="0.2"><path d="M24 36C24 36 10 28 10 18C10 12 16 8 24 8C32 8 38 12 38 18C38 28 24 36 24 36Z" fill="currentColor"/></svg>
                 <h3>No products found</h3>
                 <p>Try adjusting your filters or search term.</p>
-                <a href="/">View all products</a>
+                <a href="/">View all products →</a>
             </div>
             {% endfor %}
         </div>
