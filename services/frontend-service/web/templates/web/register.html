@@ -340,7 +340,7 @@
 </section>
 
 <script>
-    // Show/hide profile fields based on role selection
+    // ── ROLE TOGGLE ──────────────────────────────────────────────────────────
     const radios = document.querySelectorAll('input[name="role"]');
     const customerFields = document.getElementById('customer-fields');
     const producerFields = document.getElementById('producer-fields');
@@ -355,6 +355,131 @@
                 customerFields.classList.remove('active');
             }
         });
+    });
+
+    // ── VALIDATION ───────────────────────────────────────────────────────────
+
+    // Matches emoji and non-printable Unicode blocks
+    const EMOJI_RE = /[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|[\u{FE00}-\u{FEFF}]|[\u{1F300}-\u{1F9FF}]/u;
+
+    // Only letters, numbers, underscores, hyphens and dots — safe for usernames
+    const USERNAME_RE = /^[a-zA-Z0-9_.\-]+$/;
+
+    // Any non-ASCII character
+    const NON_ASCII_RE = /[^\x00-\x7F]/;
+
+    function showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        field.style.borderColor = '#c45e2a';
+        let hint = field.nextElementSibling;
+        if (!hint || !hint.classList.contains('field-error')) {
+            hint = document.createElement('p');
+            hint.className = 'hint field-error';
+            hint.style.color = '#a0422a';
+            field.parentNode.insertBefore(hint, field.nextSibling);
+        }
+        hint.textContent = message;
+    }
+
+    function clearFieldErrors() {
+        document.querySelectorAll('.field-error').forEach(el => el.remove());
+        document.querySelectorAll('.form-input').forEach(el => el.style.borderColor = '');
+    }
+
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        clearFieldErrors();
+        let valid = true;
+
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone_number').value.trim();
+
+        // Username — ASCII safe characters only, no emojis
+        if (!username) {
+            showFieldError('username', 'Username is required.');
+            valid = false;
+        } else if (!USERNAME_RE.test(username)) {
+            showFieldError('username', 'Username may only contain letters, numbers, underscores, hyphens and dots.');
+            valid = false;
+        } else if (EMOJI_RE.test(username)) {
+            showFieldError('username', 'Username cannot contain emojis or special characters.');
+            valid = false;
+        }
+
+        // Password — minimum length, no emojis
+        if (!password) {
+            showFieldError('password', 'Password is required.');
+            valid = false;
+        } else if (password.length < 8) {
+            showFieldError('password', 'Password must be at least 8 characters.');
+            valid = false;
+        } else if (EMOJI_RE.test(password)) {
+            showFieldError('password', 'Password cannot contain emojis.');
+            valid = false;
+        }
+
+        // Email — no emojis or non-ASCII
+        if (NON_ASCII_RE.test(email) || EMOJI_RE.test(email)) {
+            showFieldError('email', 'Email address cannot contain emojis or special characters.');
+            valid = false;
+        }
+
+        // Phone — digits, spaces and + - ( ) only
+        if (phone && !/^[\d\s\+\-\(\)]+$/.test(phone)) {
+            showFieldError('phone_number', 'Phone number may only contain digits, spaces, and + - ( ).');
+            valid = false;
+        }
+
+        // Customer profile fields
+        if (role === 'CUSTOMER') {
+            const fullName = document.getElementById('full_name').value.trim();
+            const address = document.getElementById('delivery_address').value.trim();
+            const postcode = document.getElementById('customer_postcode').value.trim();
+
+            if (EMOJI_RE.test(fullName)) {
+                showFieldError('full_name', 'Name cannot contain emojis.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(address)) {
+                showFieldError('delivery_address', 'Address cannot contain emojis.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(postcode) || NON_ASCII_RE.test(postcode)) {
+                showFieldError('customer_postcode', 'Postcode cannot contain emojis or special characters.');
+                valid = false;
+            }
+        }
+
+        // Producer profile fields
+        if (role === 'PRODUCER') {
+            const bizName = document.getElementById('business_name').value.trim();
+            const bizAddress = document.getElementById('business_address').value.trim();
+            const postcode = document.getElementById('producer_postcode').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+
+            if (EMOJI_RE.test(bizName)) {
+                showFieldError('business_name', 'Business name cannot contain emojis.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(bizAddress)) {
+                showFieldError('business_address', 'Address cannot contain emojis.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(postcode) || NON_ASCII_RE.test(postcode)) {
+                showFieldError('producer_postcode', 'Postcode cannot contain emojis or special characters.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(bio)) {
+                showFieldError('bio', 'Bio cannot contain emojis.');
+                valid = false;
+            }
+        }
+
+        if (!valid) {
+            e.preventDefault();
+        }
     });
 </script>
 {% endblock %}
