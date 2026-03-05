@@ -31,6 +31,21 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} - {self.customer.username}"
 
+class OrderStatusLog(models.Model):
+    """
+    Audit trail for order status changes. Tracks the producer who made the change
+    and any optional notes they added.
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_logs')
+    producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Order.Status.choices)
+    note = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'order_status_logs'
+        ordering = ['-created_at']
+
 class OrderItem(models.Model):
     """
     Individual products included in an order.

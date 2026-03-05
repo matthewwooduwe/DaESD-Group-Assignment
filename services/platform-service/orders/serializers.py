@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderStatusLog
+from products.models import Product
 from products.models import Product
 from django.utils import timezone
 import datetime
@@ -13,8 +14,17 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'product', 'product_name', 'quantity', 'price_at_sale')
         read_only_fields = ('id', 'price_at_sale')
 
+class OrderStatusLogSerializer(serializers.ModelSerializer):
+    producer_name = serializers.ReadOnlyField(source='producer.username')
+
+    class Meta:
+        model = OrderStatusLog
+        fields = ('id', 'producer', 'producer_name', 'status', 'note', 'created_at')
+        read_only_fields = ('id', 'producer', 'producer_name', 'created_at')
+
 class OrderSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
+    status_logs = OrderStatusLogSerializer(many=True, read_only=True)
     customer_username = serializers.ReadOnlyField(source='customer.username')
     
     # Customer Details for Producers
@@ -37,9 +47,9 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'customer', 'customer_username', 'customer_full_name', 'customer_phone', 
             'customer_email', 'delivery_address', 'total_amount', 'producer_total', 
-            'status', 'delivery_date', 'created_at', 'items', 'item_ids'
+            'status', 'status_logs', 'delivery_date', 'created_at', 'items', 'item_ids'
         )
-        read_only_fields = ('id', 'customer', 'total_amount', 'created_at', 'items', 'producer_total')
+        read_only_fields = ('id', 'customer', 'total_amount', 'created_at', 'items', 'producer_total', 'status_logs')
 
     def get_items(self, obj):
         request = self.context.get('request')

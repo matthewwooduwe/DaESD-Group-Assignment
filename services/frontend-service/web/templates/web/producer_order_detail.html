@@ -2,110 +2,166 @@
 
 {% block title %}Order #{{ order.id }} — BRFN{% endblock %}
 
-{% block extra_styles %}
-.dashboard-header {
-background: var(--nav-bg);
-padding: 3rem 0;
-color: #fff;
-margin-bottom: 2rem;
-}
-.dashboard-header-inner {
-display: flex;
-justify-content: space-between;
-align-items: center;
-flex-wrap: wrap;
-gap: 1.5rem;
-}
-.dashboard-title h1 {
-font-family: 'Cormorant Garamond', serif;
-font-size: 2.5rem;
-margin-bottom: 0.5rem;
-}
-.btn-secondary {
-background: transparent;
-color: var(--green);
-border: 1.5px solid var(--green);
-padding: 0.7rem 1.5rem;
-border-radius: var(--radius);
-font-family: 'Source Sans 3', sans-serif;
-font-weight: 600;
-font-size: 0.875rem;
-cursor: pointer;
-transition: background 0.2s, color 0.2s;
-text-decoration: none;
-display: inline-block;
-}
-.btn-secondary:hover {
-background: var(--green);
-color: #fff;
-}
-.order-details-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 2rem;
-margin-bottom: 2rem;
-}
-.detail-card {
-background: var(--card-bg);
-padding: 1.5rem;
-border-radius: var(--radius);
-box-shadow: var(--shadow);
-border: 1px solid var(--border);
-}
-.detail-card h3 {
-font-family: 'Cormorant Garamond', serif;
-font-size: 1.5rem;
-margin-bottom: 1rem;
-color: var(--text);
-border-bottom: 1px solid var(--border);
-padding-bottom: 0.5rem;
-}
-.detail-row {
-margin-bottom: 0.8rem;
-display: flex;
-align-items: baseline;
-}
-.detail-label {
-font-weight: 600;
-color: var(--text-muted);
-width: 150px;
-flex-shrink: 0;
-}
-.items-table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 1rem;
-}
-.items-table th, .items-table td {
-padding: 1rem;
-text-align: left;
-border-bottom: 1px solid var(--border);
-}
-.items-table th {
-background: var(--cream-dark);
-font-weight: 600;
-color: var(--text-muted);
-text-transform: uppercase;
-font-size: 0.85rem;
-}
-.order-total {
-text-align: right;
-font-size: 1.5rem;
-font-family: 'Cormorant Garamond', serif;
-font-weight: 700;
-color: var(--green);
-margin-top: 1rem;
-padding-top: 1rem;
-border-top: 1px solid var(--border);
-}
-@media (max-width: 768px) {
-.order-details-grid {
-grid-template-columns: 1fr;
-}
-}
-{% endblock %}
-
 {% block content %}
+<style>
+    .dashboard-header {
+        background: var(--nav-bg);
+        padding: 3rem 0;
+        color: #fff;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .dashboard-title h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-primary {
+        background: var(--terra);
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-family: 'Source Sans 3', sans-serif;
+        font-weight: 700;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary:hover {
+        background: var(--terra-light);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--green);
+        border: 1.5px solid var(--green);
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-family: 'Source Sans 3', sans-serif;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-secondary:hover {
+        background: var(--green);
+        color: #fff;
+    }
+
+    .btn-danger {
+        background: transparent;
+        color: #a0422a;
+        border: 1.5px solid #a0422a;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-family: 'Source Sans 3', sans-serif;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        width: 100%;
+    }
+
+    .btn-danger:hover {
+        background: #a0422a;
+        color: #fff;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-card {
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .detail-card h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+    }
+
+    .detail-row {
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: baseline;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: var(--text-muted);
+        width: 150px;
+        flex-shrink: 0;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .items-table th {
+        background: var(--cream-dark);
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .order-total {
+        text-align: right;
+        font-size: 1.5rem;
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 700;
+        color: var(--green);
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+        .order-details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 <section class="dashboard-header">
     <div class="container dashboard-header-inner">
         <div class="dashboard-title">
@@ -193,6 +249,61 @@ grid-template-columns: 1fr;
             Total (Your Share): £{{ order.producer_total|default:"0.00"|floatformat:2 }}
         </div>
     </div>
+
+    <!-- Update Status Form -->
+    <div class="detail-card" style="margin-top: 2rem;">
+        <h3>Update Order Status</h3>
+        <form method="POST" action="/dashboard/orders/{{ order.id }}/status/">
+            {% csrf_token %}
+            <div style="margin-bottom: 1rem;">
+                <label for="status" class="detail-label" style="display: block; margin-bottom: 0.5rem;">New
+                    Status:</label>
+                <select name="status" id="status" class="form-control"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius);">
+                    <option value="PENDING" {% if 'PENDING' in order.status %}selected{% endif %}>Pending</option>
+                    <option value="CONFIRMED" {% if 'CONFIRMED' in order.status %}selected{% endif %}>Confirmed</option>
+                    <option value="READY" {% if 'READY' in order.status %}selected{% endif %}>Ready</option>
+                    <option value="DELIVERED" {% if 'DELIVERED' in order.status %}selected{% endif %}>Delivered</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label for="note" class="detail-label" style="display: block; margin-bottom: 0.5rem;">Optional Note (Visible to Customer):</label>
+                <textarea name="note" id="note" rows="3" class="form-control"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius); resize: vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Update Status</button>
+        </form>
+    </div>
+
+    <!-- Audit Trail -->
+    <div class="detail-card" style="margin-top: 2rem;">
+        <h3>Order History / Audit Trail</h3>
+        {% if order.status_logs and order.status_logs|length > 0 %}
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Updated By</th>
+                    <th>Status</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in order.status_logs %}
+                <tr>
+                    <td>{{ log.created_at|slice:":10" }} {{ log.created_at|slice:"11:16" }}</td>
+                    <td>{{ log.producer_name|default:"System" }}</td>
+                    <td><span class="badge badge-category">{{ log.status }}</span></td>
+                    <td>{{ log.note|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--text-muted); margin-top: 1rem;">No status changes recorded yet.</p>
+        {% endif %}
+    </div>
+
     {% endif %}
 </div>
 <br><br>

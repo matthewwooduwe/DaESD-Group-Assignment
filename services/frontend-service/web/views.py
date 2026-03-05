@@ -895,7 +895,7 @@ def producer_order_detail_view(request, order_id):
         return redirect('/login/')
 
     order = None
-    error = None
+    error = request.GET.get('error')
 
     try:
         resp = requests.get(
@@ -919,3 +919,39 @@ def producer_order_detail_view(request, order_id):
         'order': order,
         'error': error,
     })
+
+def producer_update_order_status_view(request, order_id):
+    """
+    Handle POST request to update an order's status and add a note.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    if request.method == 'POST':
+        status_val = request.POST.get('status')
+        note = request.POST.get('note', '')
+
+        try:
+            resp = requests.patch(
+                f"{PLATFORM_API_URL}/api/orders/{order_id}/status/",
+                headers=get_auth_headers(request),
+                json={'status': status_val, 'note': note},
+                timeout=5
+            )
+            
+            if resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
+            elif resp.status_code != 200:
+                try:
+                    error_msg = resp.json().get('error', 'Update failed.')
+                except:
+                    error_msg = "Unknown error occurred."
+                from urllib.parse import quote_plus
+                return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(error_msg)}')
+
+        except Exception as e:
+            from urllib.parse import quote_plus
+            return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(str(e))}')
+
+    return redirect(f'/dashboard/orders/{order_id}/')
