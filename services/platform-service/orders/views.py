@@ -53,7 +53,7 @@ class OrderStatusUpdateView(APIView):
             return Response({'error': 'Only producers can update status'}, status=status.HTTP_403_FORBIDDEN)
             
         try:
-            order = Order.objects.get(pk=pk, items__product__producer=request.user)
+            order = Order.objects.filter(pk=pk, items__product__producer=request.user).distinct().get()
         except Order.DoesNotExist:
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
