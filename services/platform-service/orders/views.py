@@ -15,9 +15,8 @@ class OrderListCreateView(generics.ListCreateAPIView):
         if user.role == 'ADMIN':
             return Order.objects.all()
         if user.role == 'PRODUCER':
-            # Currently returns none to ensure data privacy until producer-specific 
-            # filtering logic is finalized.
-            return Order.objects.none() 
+            # Return orders that contain items from this producer's products
+            return Order.objects.filter(items__product__producer=user).distinct()
         # Standard customers see only their own orders
         return Order.objects.filter(customer=user)
 
@@ -33,4 +32,6 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         if user.role == 'ADMIN':
             return Order.objects.all()
+        if user.role == 'PRODUCER':
+            return Order.objects.filter(items__product__producer=user).distinct()
         return Order.objects.filter(customer=user)

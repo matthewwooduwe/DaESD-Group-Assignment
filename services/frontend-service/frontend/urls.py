@@ -18,4 +18,6 @@ urlpatterns = [
     path('basket/update/<int:item_id>/', views.update_basket_item, name='update-basket-item'),
     path('basket/remove/<int:item_id>/', views.remove_from_basket, name='remove-from-basket'),
     path('basket/clear/', views.clear_basket, name='clear-basket'),
+    path('dashboard/orders/', views.producer_orders_view, name='producer_orders'),
+    path('dashboard/orders/<int:order_id>/', views.producer_order_detail_view, name='producer_order_detail'),
 ]

@@ -1,0 +1,199 @@
+{% extends "web/base.html" %}
+
+{% block title %}Order #{{ order.id }} — BRFN{% endblock %}
+
+{% block extra_styles %}
+.dashboard-header {
+background: var(--nav-bg);
+padding: 3rem 0;
+color: #fff;
+margin-bottom: 2rem;
+}
+.dashboard-header-inner {
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 1.5rem;
+}
+.dashboard-title h1 {
+font-family: 'Cormorant Garamond', serif;
+font-size: 2.5rem;
+margin-bottom: 0.5rem;
+}
+.btn-secondary {
+background: transparent;
+color: var(--green);
+border: 1.5px solid var(--green);
+padding: 0.7rem 1.5rem;
+border-radius: var(--radius);
+font-family: 'Source Sans 3', sans-serif;
+font-weight: 600;
+font-size: 0.875rem;
+cursor: pointer;
+transition: background 0.2s, color 0.2s;
+text-decoration: none;
+display: inline-block;
+}
+.btn-secondary:hover {
+background: var(--green);
+color: #fff;
+}
+.order-details-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 2rem;
+margin-bottom: 2rem;
+}
+.detail-card {
+background: var(--card-bg);
+padding: 1.5rem;
+border-radius: var(--radius);
+box-shadow: var(--shadow);
+border: 1px solid var(--border);
+}
+.detail-card h3 {
+font-family: 'Cormorant Garamond', serif;
+font-size: 1.5rem;
+margin-bottom: 1rem;
+color: var(--text);
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.5rem;
+}
+.detail-row {
+margin-bottom: 0.8rem;
+display: flex;
+align-items: baseline;
+}
+.detail-label {
+font-weight: 600;
+color: var(--text-muted);
+width: 150px;
+flex-shrink: 0;
+}
+.items-table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 1rem;
+}
+.items-table th, .items-table td {
+padding: 1rem;
+text-align: left;
+border-bottom: 1px solid var(--border);
+}
+.items-table th {
+background: var(--cream-dark);
+font-weight: 600;
+color: var(--text-muted);
+text-transform: uppercase;
+font-size: 0.85rem;
+}
+.order-total {
+text-align: right;
+font-size: 1.5rem;
+font-family: 'Cormorant Garamond', serif;
+font-weight: 700;
+color: var(--green);
+margin-top: 1rem;
+padding-top: 1rem;
+border-top: 1px solid var(--border);
+}
+@media (max-width: 768px) {
+.order-details-grid {
+grid-template-columns: 1fr;
+}
+}
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div class="container dashboard-header-inner">
+        <div class="dashboard-title">
+            <h1>Order #{{ order.id }}</h1>
+            <p>Details for order placed on {{ order.created_at|slice:":10" }}</p>
+        </div>
+        <a href="/dashboard/orders/" class="btn-secondary" style="color: white; border-color: white;">Back to Orders</a>
+    </div>
+</section>
+
+<div class="container">
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+
+    {% if order %}
+    <div class="order-details-grid">
+        <!-- Order Meta Info -->
+        <div class="detail-card">
+            <h3>Order Information</h3>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span><span class="badge badge-category">{{ order.status }}</span></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Order Date:</span>
+                <span>{{ order.created_at|slice:":10" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Delivery Date:</span>
+                <span>{{ order.delivery_date|default:"Not specified" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Total Amount:</span>
+                <span>£{{ order.producer_total|default:"0.00"|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- Customer Contact Info -->
+        <div class="detail-card">
+            <h3>Customer Details</h3>
+            <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span>{{ order.customer_full_name|default:order.customer_username }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span>{{ order.customer_phone|default:"Not provided" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span>{{ order.customer_email|default:"Not provided" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Delivery Address:</span>
+                <span>{{ order.delivery_address|default:"Not provided" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="detail-card">
+        <h3>Items to Fulfill</h3>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price at Sale</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>£{{ item.price_at_sale|floatformat:2 }}</td>
+                    <td>£{% widthratio item.price_at_sale 1 item.quantity %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="order-total">
+            Total (Your Share): £{{ order.producer_total|default:"0.00"|floatformat:2 }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+<br><br>
+{% endblock %}
