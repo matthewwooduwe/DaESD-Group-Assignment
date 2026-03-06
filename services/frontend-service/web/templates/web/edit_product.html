@@ -1,0 +1,292 @@
+{% extends "web/base.html" %}
+
+{% block title %}Edit Product — BRFN{% endblock %}
+
+{% block extra_styles %}
+.form-container {
+max-width: 800px;
+margin: 3rem auto;
+background: var(--card-bg);
+padding: 2.5rem;
+border-radius: 8px;
+box-shadow: var(--shadow);
+border: 1px solid var(--border);
+}
+
+.form-header {
+margin-bottom: 2rem;
+padding-bottom: 1rem;
+border-bottom: 1px solid var(--border);
+}
+
+.form-header h1 {
+font-family: 'Cormorant Garamond', serif;
+font-size: 2rem;
+color: var(--text);
+margin-bottom: 0.5rem;
+}
+
+.form-header p {
+color: var(--text-muted);
+font-size: 0.95rem;
+}
+
+.form-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 1.5rem;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 0.4rem;
+}
+
+.form-group.full-width {
+grid-column: 1 / -1;
+}
+
+.form-label {
+font-family: 'Source Sans 3', sans-serif;
+font-weight: 700;
+font-size: 0.85rem;
+color: var(--text);
+text-transform: uppercase;
+letter-spacing: 0.03em;
+}
+
+.form-label .required {
+color: var(--terra);
+}
+
+.form-input, .form-select, .form-textarea {
+padding: 0.75rem 1rem;
+border: 1px solid var(--border);
+border-radius: 8px;
+font-family: 'Source Sans 3', sans-serif;
+font-size: 0.95rem;
+background: var(--bg);
+transition: all 0.2s;
+color: var(--text);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+outline: none;
+border-color: var(--green);
+background: #fff;
+box-shadow: 0 0 0 3px rgba(44, 95, 46, 0.1);
+}
+
+.form-textarea {
+resize: vertical;
+min-height: 100px;
+}
+
+.checkbox-group {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+margin-top: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+width: 18px;
+height: 18px;
+accent-color: var(--green);
+cursor: pointer;
+}
+
+.checkbox-group label {
+font-family: 'Source Sans 3', sans-serif;
+font-weight: 600;
+font-size: 0.95rem;
+color: var(--text);
+cursor: pointer;
+}
+
+.form-help {
+font-size: 0.8rem;
+color: var(--text-muted);
+margin-top: 0.2rem;
+}
+
+.file-input {
+background: #fff;
+border: 2px dashed var(--border);
+padding: 1.5rem;
+text-align: center;
+border-radius: 8px;
+cursor: pointer;
+transition: border-color 0.2s;
+}
+
+.file-input:hover {
+border-color: var(--green);
+}
+
+.btn-primary {
+grid-column: 1 / -1;
+background: var(--terra);
+color: #fff;
+border: none;
+padding: 1rem;
+border-radius: 8px;
+font-family: 'Source Sans 3', sans-serif;
+font-size: 1.05rem;
+font-weight: 700;
+cursor: pointer;
+transition: background 0.2s, transform 0.2s;
+margin-top: 1rem;
+}
+
+.btn-primary:hover {
+background: var(--terra-light);
+transform: translateY(-2px);
+}
+
+.back-link {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+color: var(--text-muted);
+text-decoration: none;
+font-family: 'Source Sans 3', sans-serif;
+font-size: 0.9rem;
+margin-bottom: 1rem;
+font-weight: 600;
+transition: color 0.2s;
+}
+
+.back-link:hover {
+color: var(--green);
+}
+
+.current-image {
+max-width: 150px;
+border-radius: 8px;
+margin-top: 0.5rem;
+display: block;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <a href="/dashboard/" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Dashboard
+        </a>
+
+        <div class="form-header">
+            <h1>Edit Product</h1>
+            <p>Update details, availability, and stock quantity for {{ product.name }}.</p>
+        </div>
+
+        {% if error %}
+        <div class="error-banner">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="form-grid">
+            {% csrf_token %}
+
+            <div class="form-group full-width">
+                <label class="form-label">Product Name <span class="required">*</span></label>
+                <input type="text" name="name" class="form-input" value="{{ product.name|default:'' }}" maxlength="255"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category <span class="required">*</span></label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select a category</option>
+                    {% for cat in categories %}
+                    {% if product.category == cat.name %}
+                    <option value="{{ cat.name }}" selected>{{ cat.name }}</option>
+                    {% else %}
+                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Price (£) <span class="required">*</span></label>
+                <input type="number" step="0.01" min="0" name="price" class="form-input"
+                    value="{{ product.price|default:'' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Unit</label>
+                <input type="text" name="unit" class="form-input" value="{{ product.unit|default:'' }}" maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Stock Quantity <span class="required">*</span></label>
+                <input type="number" name="stock_quantity" class="form-input"
+                    value="{{ product.stock_quantity|default:0 }}" min="0" required>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-textarea">{{ product.description|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">Allergen Information</label>
+                <input type="text" name="allergen_info" class="form-input"
+                    value="{{ product.allergen_info|default:'' }}">
+                <span class="form-help">Important for customer safety</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Harvest Date</label>
+                <input type="date" name="harvest_date" class="form-input" value="{{ product.harvest_date|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Best Before Date</label>
+                <input type="date" name="best_before_date" class="form-input"
+                    value="{{ product.best_before_date|default:'' }}">
+            </div>
+
+            <div class="form-group full-width checkbox-group">
+                {% if product.is_organic %}
+                <input type="checkbox" name="is_organic" id="is_organic" value="true" checked>
+                {% else %}
+                <input type="checkbox" name="is_organic" id="is_organic" value="true">
+                {% endif %}
+                <label for="is_organic">Certified Organic Product</label>
+            </div>
+
+            <div class="form-group full-width checkbox-group">
+                {% if product.is_available %}
+                <input type="checkbox" name="is_available" id="is_available" value="true" checked>
+                {% else %}
+                <input type="checkbox" name="is_available" id="is_available" value="true">
+                {% endif %}
+                <label for="is_available">In Season / Available for Purchase</label>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label" style="color: var(--text-muted)">Product Image (Coming Soon)</label>
+                {% if product.image %}
+                <img src="{{ media_base_url }}/media/{{ product.image }}" alt="Current Image" class="current-image"
+                    style="opacity: 0.7;">
+                {% endif %}
+                <input type="file" name="image" class="file-input" accept="image/*" disabled
+                    style="opacity: 0.5; cursor: not-allowed;">
+                <span class="form-help">Image uploading is temporarily disabled. Your current image (if any) is
+                    preserved.</span>
+            </div>
+
+            <button type="submit" class="btn-primary">Save Changes</button>
+        </form>
+    </div>
+</div>
+<br><br>
+{% endblock %}
