@@ -7,7 +7,7 @@ Distributed software system for connecting local food producers with customers.
 **Microservices:**
 - **Frontend Service** (Port 8000): Web UI and templates
 - **Notifications API** (Port 8001): Order status notifications and lifecycle
-- **Platform API** (Port 8002): Baskets, Catalog, Orders, Payments, Notifications, Product listing, Surplus management...
+- **Platform API** (Port 8002): Baskets, Catalog, Orders, Payments, Notifications, Product listing, Baskets, Surplus management...
 - **Payment Gateway** (Port 8003): External payment processing (mock)
 - **MySQL Database** (Port 3306): Shared database
 
@@ -16,11 +16,11 @@ Distributed software system for connecting local food producers with customers.
 | Team Member | Service Ownership | Primary Responsibilities | Assigned To |
 |-------------|-------------------|-------------------------|-------------|
 | Person 1 | Frontend Service | Web UI, templates, user experience | Matt Wood
-| Person 2 | Notifications API | Catalog, notifications | Kaan Karadag
+| Person 2 | Notifications API | Producer and customer notifications | Kaan Karadag
 | Person 3 | Customer (Platform API) | Baskets, checkout, multi-vendor orders, order history | Dina Metwalli
 | Person 4 | Producer (Platform API) | Browse, search, listings, order fulfillment, surplus alerts, users | Leon Stansfield
-| Person 5 | Payment Gateway | External payment mock, settlements, discounts | Amine Ziani
-| - | Platform API | Payments, Catalog | Matt & Kaan
+| Person 5 | Payment Gateway | External payment mock, settlements, invoices | Amine Ziani
+| - | Platform API | Payments, discounts, catalog | Matt & Kaan
 
 ## Quick Start
 
