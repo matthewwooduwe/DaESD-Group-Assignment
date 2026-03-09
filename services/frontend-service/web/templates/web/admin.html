@@ -1,0 +1,374 @@
+{% extends "web/base.html" %}
+
+{% block title %}Admin Dashboard — BRFN{% endblock %}
+
+{% block extra_styles %}
+.admin-header {
+    background: var(--nav-bg);
+    padding: 3rem 0;
+    color: #fff;
+    margin-bottom: 2rem;
+}
+.admin-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+.admin-header p { color: rgba(255,255,255,0.8); }
+
+/* Stats row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+}
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+.stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2rem;
+}
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 0.85rem 1.75rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+.tab-btn:hover { color: var(--green); }
+.tab-btn.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+.data-table th {
+    background: var(--green);
+    color: #fff;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.data-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--green-pale); }
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.role-customer { background: #e8f5ee; color: #00622e; }
+.role-producer { background: #fdf1ea; color: #c85a1e; }
+.role-admin    { background: #e8eaf6; color: #3949ab; }
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-pending   { background: #fdf3dc; color: #9a6b10; }
+.status-confirmed { background: #e8f5ee; color: #00622e; }
+.status-ready     { background: #e3f2fd; color: #1565c0; }
+.status-delivered { background: #f3e5f5; color: #6a1b9a; }
+
+.btn-sm-danger {
+    background: transparent;
+    color: #a0422a;
+    border: 1.5px solid #a0422a;
+    padding: 0.3rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-sm-danger:hover { background: #a0422a; color: #fff; }
+
+.empty-row td {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.search-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+.search-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-family: 'Source Sans 3', sans-serif;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--green); background: #fff; }
+{% endblock %}
+
+{% block content %}
+<section class="admin-header">
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p>Manage users, products, and orders across the entire platform.</p>
+    </div>
+</section>
+
+<div class="container">
+
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ users|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Customers</div>
+            <div class="stat-value">{{ customer_count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Producers</div>
+            <div class="stat-value">{{ producer_count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Products</div>
+            <div class="stat-value">{{ products|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Orders</div>
+            <div class="stat-value">{{ orders|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">£{{ total_revenue|floatformat:2 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Commission</div>
+            <div class="stat-value">£{{ total_commission|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
+        <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
+        <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="tab-users" class="tab-panel active">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search users by username, email or role…" oninput="filterTable('users-table', this.value)">
+        </div>
+        <table class="data-table" id="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Phone</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email|default:"—" }}</td>
+                    <td>
+                        <span class="role-badge role-{{ user.role|lower }}">{{ user.role }}</span>
+                    </td>
+                    <td>{{ user.phone_number|default:"—" }}</td>
+                    <td>
+                        {% if user.role != 'ADMIN' %}
+                        <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-sm-danger">Delete</button>
+                        </form>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size:0.8rem;">Protected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="6">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="tab-products" class="tab-panel">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search products by name or producer…" oninput="filterTable('products-table', this.value)">
+        </div>
+        <table class="data-table" id="products-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Producer</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Available</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.id }}</td>
+                    <td><strong>{{ product.name }}</strong></td>
+                    <td>{{ product.producer }}</td>
+                    <td>{{ product.category|default:"—" }}</td>
+                    <td>£{{ product.price }}</td>
+                    <td>{{ product.stock_quantity }}</td>
+                    <td>
+                        {% if product.is_available %}
+                        <span class="role-badge role-customer">Yes</span>
+                        {% else %}
+                        <span class="role-badge" style="background:#fde8e0;color:#a0422a;">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="/admin-dashboard/products/{{ product.id }}/delete/" onsubmit="return confirm('Delete product {{ product.name }}? This cannot be undone.');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-sm-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="8">No products found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Orders Tab -->
+    <div id="tab-orders" class="tab-panel">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search orders by ID or status…" oninput="filterTable('orders-table', this.value)">
+        </div>
+        <table class="data-table" id="orders-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Commission</th>
+                    <th>Status</th>
+                    <th>Delivery Date</th>
+                    <th>Placed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>#{{ order.id }}</strong></td>
+                    <td>{{ order.customer }}</td>
+                    <td>£{{ order.total_amount }}</td>
+                    <td>£{{ order.commission_total|default:"0.00" }}</td>
+                    <td>
+                        <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
+                    </td>
+                    <td>{{ order.delivery_date|default:"—" }}</td>
+                    <td>{{ order.created_at|slice:":10" }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="7">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<br><br>
+
+<script>
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+
+function filterTable(tableId, query) {
+    const q = query.toLowerCase();
+    const rows = document.querySelectorAll('#' + tableId + ' tbody tr:not(.empty-row)');
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

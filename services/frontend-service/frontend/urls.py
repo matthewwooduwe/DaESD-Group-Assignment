@@ -18,4 +18,8 @@ urlpatterns = [
     path('basket/update/<int:item_id>/', views.update_basket_item, name='update-basket-item'),
     path('basket/remove/<int:item_id>/', views.remove_from_basket, name='remove-from-basket'),
     path('basket/clear/', views.clear_basket, name='clear-basket'),
+    path('profile/', views.profile_view, name='profile'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    path('admin-dashboard/users/<int:user_id>/delete/', views.admin_delete_user, name='admin-delete-user'),
+    path('admin-dashboard/products/<int:product_id>/delete/', views.admin_delete_product, name='admin-delete-product'),
 ]
