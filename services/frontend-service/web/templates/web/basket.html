@@ -229,6 +229,12 @@
     background: rgba(255,255,255,0.2);
 }
 
+.quantity-form p {
+    min-width: 30px;
+    text-align: center;
+    font-weight: 800;
+}
+
 /* -- BUTTONS -- */
 
 /* Secondary / outline button */
@@ -390,6 +396,43 @@
     font-size: 0.875rem;
 }
 
+/* -- PRODUCER GROUPING -- */
+.producer-section {
+    margin-bottom: 3rem;
+}
+
+.producer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: var(--cream-dark);
+    border-left: 4px solid var(--green);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.producer-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.producer-subtotal {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--green);
+    padding: 0.4rem 1rem;
+    background: white;
+    border-radius: 20px;
+    border: 2px solid var(--green);
+}
+
 {% endblock %}
 
 {% block content %}
@@ -428,89 +471,102 @@
         </p>
     </div>
 
-    <div class="products-grid">
-        {% for item in basket.items %}
-        <div class="product-card">
-            <a href="/products/{{ item.product.id }}/" style="text-decoration:none">
-                
-                <!-- Image -->
-                <div class="card-image">
-                    {% if item.product.image %}
-                    <img src="{{ media_base_url }}/media/{{ item.product.image }}" alt="{{ item.product.name }}">
-                    {% else %}
-                    <div class="card-image-placeholder">
-                        <span>No image</span>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Badges overlay -->
-                <div class="card-badges">
-                    {% if item.product.category %}
-                    <span class="badge badge-category">{{ item.product.category }}</span>
-                    {% endif %}
-                    {% if item.product.is_organic %}
-                    <span class="badge badge-organic">🌿 Organic</span>
-                    {% endif %}
-                </div>
-
-                <!-- Availability badge -->
-                <div class="card-stock-badge">
-                    {% if not item.product.is_available %}
-                    <span class="badge badge-unavailable">Unavailable</span>
-                    {% elif item.product.stock_quantity <= 5 %}
-                    <span class="badge badge-low-stock">Low stock</span>
-                    {% endif %}
-                </div>
-
-                <!-- Card body -->
-                <div class="card-body">
-                    <h2 class="card-name">{{ item.product.name }}</h2>
-                    <p class="card-producer">{{ item.product.producer_username }}</p>
-                    <div class="card-price">
-                        £{{ item.product.price }} per {{ item.product.unit }}
-                    </div>
-                </div>
-            </a>
-
-            <div style="padding: 1rem; border-top: 1px solid #eee;">
-                
-                <form class="quantity-form" method="POST" action="/basket/update/{{ item.id }}/"
-                    style="display: flex; gap: 0.5rem; align-items: center;">
-                    {% csrf_token %}
-                    <div class="card-detail">
-                        <label>Units:</label>
-                    </div>
-                    <input type="hidden" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" style="width: 60px;">
-                    <button type="submit"
-                            name="action"
-                            value="decrease"
-                            class="btn-secondary"
-                            style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
-                        -
-                    </button>
-                    <p>{{ item.quantity }}</p>
-                    <button type="submit"
-                            name="action"
-                            value="increase"
-                            class="btn-secondary"
-                            style="padding: 0.3rem 0.7rem; font-size: 0.9rem;">
-                        +
-                    </button>
-                </form>
-
-                <div class="card-detail">
-                    <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal }}</p>
-                </div>
-
-                <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
-                    {% csrf_token %}
-                    <button class="btn-danger" type="submit" class="btn-secondary">Remove</button>
-                </form>
-            </div>
+    <!-- Group basket items by producer -->
+    {% for producer_group in items_by_producer %}
+    <div class="producer-section">
+        <div class="producer-header">
+            <h2 class="producer-name">
+                {{ producer_group.producer_name }}
+            </h2>
+            <span class="producer-subtotal">Subtotal: £{{ producer_group.subtotal }}</span>
         </div>
-        {% endfor %}
+
+        <!-- Products grid for this producer -->
+        <div class="products-grid">
+            {% for item in producer_group.items %}
+            <div class="product-card">
+                <a href="/products/{{ item.product.id }}/" style="text-decoration:none">
+                    
+                    <!-- Image -->
+                    <div class="card-image">
+                        {% if item.product.image %}
+                        <img src="{{ media_base_url }}/media/{{ item.product.image }}" alt="{{ item.product.name }}">
+                        {% else %}
+                        <div class="card-image-placeholder">
+                            <span>No image</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Badges overlay -->
+                    <div class="card-badges">
+                        {% if item.product.category %}
+                        <span class="badge badge-category">{{ item.product.category }}</span>
+                        {% endif %}
+                        {% if item.product.is_organic %}
+                        <span class="badge badge-organic">🌿 Organic</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Availability badge -->
+                    <div class="card-stock-badge">
+                        {% if not item.product.is_available %}
+                        <span class="badge badge-unavailable">Unavailable</span>
+                        {% elif item.product.stock_quantity <= 5 %}
+                        <span class="badge badge-low-stock">Low stock</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card body -->
+                    <div class="card-body">
+                        <h2 class="card-name">{{ item.product.name }}</h2>
+                        <p class="card-producer">{{ item.product.producer_username }}</p>
+                        <div class="card-price">
+                            £{{ item.product.price }} per {{ item.product.unit }}
+                        </div>
+                    </div>
+                </a>
+
+                <div style="padding: 1rem; border-top: 1px solid #eee;">
+                    
+                    <form class="quantity-form" method="POST" action="/basket/update/{{ item.id }}/"
+                        style="display: flex; gap: 0.5rem; align-items: center;">
+                        {% csrf_token %}
+                        <div class="card-detail">
+                            <label>Units:</label>
+                        </div>
+                        <input type="hidden" name="quantity" value="{{ item.quantity }}">
+                        <button type="submit"
+                                name="action"
+                                value="decrease"
+                                class="btn-secondary"
+                                style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
+                            -
+                        </button>
+                        <p>{{ item.quantity }}</p>
+                        <button type="submit"
+                                name="action"
+                                value="increase"
+                                class="btn-secondary"
+                                style="padding: 0.3rem 0.7rem; font-size: 0.9rem;">
+                            +
+                        </button>
+                    </form>
+
+                    <div class="card-detail">
+                        <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal }}</p>
+                    </div>
+
+                    <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
+                        {% csrf_token %}
+                        <button class="btn-danger" type="submit">Remove</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+    {% endfor %}
 
     <!-- ORDER SUMMARY -->
     <div class="order-summary-wrapper">
@@ -528,7 +584,7 @@
                         <span>Total Price</span>
                         <strong>£{{ basket.total_price }}</strong>
                     </div>
-                    <p style="margin-top: 1rem;">Note: All available discounts and bundle deals will be applied at checkout.</p>
+                    <p style="margin-top: 1rem;">Note: delivery type and dates will be selected at checkout.</p>
                 </div>
             </div>
 

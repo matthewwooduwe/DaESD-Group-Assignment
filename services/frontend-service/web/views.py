@@ -540,6 +540,7 @@ def basket_view(request):
         )
         if resp.status_code == 200:
             basket = resp.json()
+            items_by_producer = basket.get('items_by_producer')
         elif resp.status_code == 401:
             error = "Your session has expired. Please log in again."
             request.session.flush()
@@ -563,6 +564,7 @@ def basket_view(request):
 
     return render(request, 'web/basket.html', {
         'basket': basket,
+        'items_by_producer': items_by_producer,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
     })
@@ -726,12 +728,14 @@ def update_basket_item(request, item_id):
             )
             if resp.status_code == 200:
                 basket = resp.json()
+                items_by_producer = basket.get('items_by_producer', [])
         except:
             pass
         
         return render(request, 'web/basket.html', {
             'basket': basket,
             'error': error,
+            'items_by_producer': items_by_producer,
             'media_base_url': MEDIA_BASE_URL,
         })
     
