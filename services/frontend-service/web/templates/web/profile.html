@@ -173,9 +173,15 @@ textarea.form-input { resize: vertical; min-height: 80px; }
                 </div>
 
                 {% if user.role == 'CUSTOMER' %}
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input class="form-input" type="text" name="full_name" value="{{ user.customer_profile.full_name|default:'' }}">
+                <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div>
+                        <label class="form-label">First Name</label>
+                        <input class="form-input" type="text" name="first_name" value="{{ user.customer_profile.first_name|default:'' }}">
+                    </div>
+                    <div>
+                        <label class="form-label">Last Name</label>
+                        <input class="form-input" type="text" name="last_name" value="{{ user.customer_profile.last_name|default:'' }}">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Delivery Address</label>

@@ -237,7 +237,8 @@ def register_view(request):
 
         # Build the nested profile payload based on role
         if role == 'CUSTOMER':
-            form_data['full_name'] = request.POST.get('full_name', '').strip()
+            form_data['first_name'] = request.POST.get('first_name', '').strip()
+            form_data['last_name'] = request.POST.get('last_name', '').strip()
             form_data['delivery_address'] = request.POST.get('delivery_address', '').strip()
             form_data['customer_postcode'] = request.POST.get('customer_postcode', '').strip()
 
@@ -248,7 +249,8 @@ def register_view(request):
                 'phone_number': form_data['phone_number'],
                 'role': 'CUSTOMER',
                 'customer_profile': {
-                    'full_name': form_data['full_name'],
+                    'first_name': form_data['first_name'],
+                    'last_name': form_data['last_name'],
                     'delivery_address': form_data['delivery_address'],
                     'postcode': form_data['customer_postcode'],
                 }
@@ -341,7 +343,8 @@ def profile_view(request):
             role = request.session.get('role')
             if role == 'CUSTOMER':
                 payload['customer_profile'] = {
-                    'full_name': request.POST.get('full_name', '').strip(),
+                    'first_name': request.POST.get('first_name', '').strip(),
+                    'last_name': request.POST.get('last_name', '').strip(),
                     'delivery_address': request.POST.get('delivery_address', '').strip(),
                     'postcode': request.POST.get('postcode', '').strip(),
                 }
@@ -466,6 +469,44 @@ def admin_delete_user(request, user_id):
         try:
             requests.delete(
                 f"{PLATFORM_API_URL}/api/auth/users/{user_id}/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+        except Exception:
+            pass
+    return redirect('/admin-dashboard/')
+
+
+def admin_edit_user(request, user_id):
+    """Admin-only: edit a user's details, profile and role."""
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+    if request.method == 'POST':
+        role = request.POST.get('role', 'CUSTOMER')
+        payload = {
+            'username': request.POST.get('username', '').strip(),
+            'email': request.POST.get('email', '').strip(),
+            'phone_number': request.POST.get('phone_number', '').strip(),
+            'role': role,
+        }
+        if role == 'CUSTOMER':
+            payload['customer_profile'] = {
+                'first_name': request.POST.get('first_name', '').strip(),
+                'last_name': request.POST.get('last_name', '').strip(),
+                'delivery_address': request.POST.get('delivery_address', '').strip(),
+                'postcode': request.POST.get('postcode', '').strip(),
+            }
+        elif role == 'PRODUCER':
+            payload['producer_profile'] = {
+                'business_name': request.POST.get('business_name', '').strip(),
+                'business_address': request.POST.get('business_address', '').strip(),
+                'postcode': request.POST.get('postcode', '').strip(),
+                'bio': request.POST.get('bio', '').strip(),
+            }
+        try:
+            requests.patch(
+                f"{PLATFORM_API_URL}/api/auth/users/{user_id}/",
+                json=payload,
                 headers=get_auth_headers(request),
                 timeout=5
             )

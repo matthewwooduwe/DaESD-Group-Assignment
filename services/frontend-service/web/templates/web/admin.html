@@ -143,6 +143,241 @@
 }
 .btn-sm-danger:hover { background: #a0422a; color: #fff; }
 
+.btn-sm-edit {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.3rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    margin-right: 0.4rem;
+}
+.btn-sm-edit:hover { background: var(--green); color: #fff; }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    position: relative;
+}
+.modal h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+}
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+.modal .form-group { margin-bottom: 1rem; }
+.modal .form-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+.modal .form-input,
+.modal .form-select {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.modal .form-input:focus,
+.modal .form-select:focus { border-color: var(--green); background: #fff; }
+.modal-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    margin: 1rem 0 0.75rem;
+}
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+.btn-modal-save {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-modal-save:hover { background: var(--green-mid); }
+.btn-modal-cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    padding: 0.65rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-sm-edit {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.3rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    margin-right: 0.4rem;
+}
+.btn-sm-edit:hover { background: var(--green); color: #fff; }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    position: relative;
+}
+.modal h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+}
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+.modal .form-group { margin-bottom: 1rem; }
+.modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.modal .form-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+.modal .form-input,
+.modal .form-select {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.modal .form-input:focus,
+.modal .form-select:focus { border-color: var(--green); background: #fff; }
+.modal-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+    margin: 1rem 0 0.75rem;
+}
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+.btn-modal-save {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-modal-save:hover { background: var(--green-mid); }
+.btn-modal-cancel {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    padding: 0.65rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
 .empty-row td {
     text-align: center;
     padding: 3rem;
@@ -250,6 +485,21 @@
                     </td>
                     <td>{{ user.phone_number|default:"—" }}</td>
                     <td>
+                        <button class="btn-sm-edit" onclick="openEditModal(
+                            {{ user.id }},
+                            '{{ user.username }}',
+                            '{{ user.email|default:'' }}',
+                            '{{ user.phone_number|default:'' }}',
+                            '{{ user.role }}',
+                            '{{ user.customer_profile.first_name|default:'' }}',
+                            '{{ user.customer_profile.last_name|default:'' }}',
+                            '{{ user.customer_profile.delivery_address|default:'' }}',
+                            '{{ user.customer_profile.postcode|default:'' }}',
+                            '{{ user.producer_profile.business_name|default:'' }}',
+                            '{{ user.producer_profile.business_address|default:'' }}',
+                            '{{ user.producer_profile.postcode|default:'' }}',
+                            '{{ user.producer_profile.bio|default:'' }}'
+                        )">Edit</button>
                         {% if user.role != 'ADMIN' %}
                         <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
                             {% csrf_token %}
@@ -355,6 +605,87 @@
 </div>
 <br><br>
 
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeEditModal()">×</button>
+        <h2>Edit User</h2>
+        <form method="POST" id="edit-user-form">
+            {% csrf_token %}
+            <p class="modal-section-title" style="border-top:none;padding-top:0;margin-top:0;">Account</p>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="form-input" type="text" id="edit-username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" type="email" id="edit-email" name="email">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input class="form-input" type="text" id="edit-phone" name="phone_number">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-select" id="edit-role" name="role" onchange="toggleModalProfileFields(this.value)">
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="PRODUCER">Producer</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+
+            <!-- Customer profile fields -->
+            <div id="modal-customer-fields">
+                <p class="modal-section-title">Customer Profile</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input class="form-input" type="text" id="edit-first-name" name="first_name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input class="form-input" type="text" id="edit-last-name" name="last_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Delivery Address</label>
+                    <input class="form-input" type="text" id="edit-delivery-address" name="delivery_address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Postcode</label>
+                    <input class="form-input" type="text" id="edit-customer-postcode" name="postcode">
+                </div>
+            </div>
+
+            <!-- Producer profile fields -->
+            <div id="modal-producer-fields" style="display:none;">
+                <p class="modal-section-title">Producer Profile</p>
+                <div class="form-group">
+                    <label class="form-label">Business Name</label>
+                    <input class="form-input" type="text" id="edit-business-name" name="business_name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Business Address</label>
+                    <input class="form-input" type="text" id="edit-business-address" name="business_address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Postcode</label>
+                    <input class="form-input" type="text" id="edit-producer-postcode" name="postcode">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <input class="form-input" type="text" id="edit-bio" name="bio">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-modal-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -370,5 +701,36 @@ function filterTable(tableId, query) {
         row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
 }
+
+function toggleModalProfileFields(role) {
+    document.getElementById('modal-customer-fields').style.display = role === 'CUSTOMER' ? '' : 'none';
+    document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
+}
+
+function openEditModal(id, username, email, phone, role, firstName, lastName, deliveryAddress, customerPostcode, businessName, businessAddress, producerPostcode, bio) {
+    document.getElementById('edit-username').value = username;
+    document.getElementById('edit-email').value = email;
+    document.getElementById('edit-phone').value = phone;
+    document.getElementById('edit-role').value = role;
+    document.getElementById('edit-first-name').value = firstName;
+    document.getElementById('edit-last-name').value = lastName;
+    document.getElementById('edit-delivery-address').value = deliveryAddress;
+    document.getElementById('edit-customer-postcode').value = customerPostcode;
+    document.getElementById('edit-business-name').value = businessName;
+    document.getElementById('edit-business-address').value = businessAddress;
+    document.getElementById('edit-producer-postcode').value = producerPostcode;
+    document.getElementById('edit-bio').value = bio;
+    document.getElementById('edit-user-form').action = '/admin-dashboard/users/' + id + '/edit/';
+    toggleModalProfileFields(role);
+    document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('open');
+}
+
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+});
 </script>
 {% endblock %}
