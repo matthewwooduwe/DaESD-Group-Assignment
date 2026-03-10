@@ -855,3 +855,103 @@ def clear_basket(request):
         })
     
     return redirect('/basket/')
+
+def producer_orders_view(request):
+    """
+    Dashboard section for producers to view incoming orders.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    orders = []
+    error = None
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            orders = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Could not load your orders (status {resp.status_code})."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/producer_orders.html', {
+        'orders': orders,
+        'error': error,
+    })
+
+def producer_order_detail_view(request, order_id):
+    """
+    Dashboard section for producers to view details of a specific incoming order.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    order = None
+    error = request.GET.get('error')
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/{order_id}/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            order = resp.json()
+        elif resp.status_code == 404:
+            return redirect('/dashboard/orders/')
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Failed to load order details (status {resp.status_code})."
+    except Exception as e:
+        error = f"Error communicating with API: {str(e)}"
+
+    return render(request, 'web/producer_order_detail.html', {
+        'order': order,
+        'error': error,
+    })
+
+def producer_update_order_status_view(request, order_id):
+    """
+    Handle POST request to update an order's status and add a note.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    if request.method == 'POST':
+        status_val = request.POST.get('status')
+        note = request.POST.get('note', '')
+
+        try:
+            resp = requests.patch(
+                f"{PLATFORM_API_URL}/api/orders/{order_id}/status/",
+                headers=get_auth_headers(request),
+                json={'status': status_val, 'note': note},
+                timeout=5
+            )
+            
+            if resp.status_code == 401:
+                request.session.flush()
+                return redirect('/login/')
+            elif resp.status_code != 200:
+                try:
+                    error_msg = resp.json().get('error', 'Update failed.')
+                except:
+                    error_msg = "Unknown error occurred."
+                from urllib.parse import quote_plus
+                return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(error_msg)}')
+
+        except Exception as e:
+            from urllib.parse import quote_plus
+            return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(str(e))}')
+
+    return redirect(f'/dashboard/orders/{order_id}/')
