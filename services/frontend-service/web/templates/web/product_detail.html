@@ -477,7 +477,7 @@
                         {% csrf_token %}
                         <div class="quantity-field">
                             <input class="quantity-input" type="number" name="quantity" value="1"
-                            min="1" max="{{ product.stock_quantity }}" onKeyDown="return false">
+                            min="1" max="{{ product.stock_quantity }}">
                             <span class="quantity-suffix">units</span>
                         </div>
                         <button type="submit" class="btn-primary" {% if not product.is_available %}disabled{% endif %}>
