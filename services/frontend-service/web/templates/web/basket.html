@@ -167,8 +167,8 @@
 
 /* -- BASKET NAME -- */
 .basket-name {
-    font-family: 'Source Sans 3', serif;
-    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 0.5rem;
@@ -229,22 +229,7 @@
     background: rgba(255,255,255,0.2);
 }
 
-/* Primary action button */
-
-.btn-primary {
-    background: var(--terra);
-    color: #fff;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    font-family: 'Source Sans 3', sans-serif;
-    font-weight: 700;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-primary:hover { background: var(--terra-light); }
+/* -- BUTTONS -- */
 
 /* Secondary / outline button */
 .btn-secondary {
@@ -265,6 +250,7 @@
     color: #fff;
 }
 
+/* Inactive / disabled button */
 .disabled-btn {
     background: #A9A9A9;
     color: #fff;
@@ -274,8 +260,49 @@
     font-family: 'Source Sans 3', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+/* Remove button */
+.btn-danger {
+    background: transparent;
+    color: #a0422a;
+    border: 1.5px solid #a0422a;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+}
+
+.btn-danger:hover {
+    background: #a0422a;
+    color: #fff;
+}
+
+/* Checkout button */
+.btn-checkout {
+    background: #fff;
+    color: var(--green);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.4rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-checkout:hover {
+    transform: translateY(-2px);
+    color: var(--terra-light);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
 /* -- RESULTS BAR -- */
@@ -298,8 +325,16 @@
 .results-count strong { color: var(--text); }
 
 /* -- ORDER SUMMARY BLOCK -- */
+.order-summary-wrapper {
+    padding: 1.25rem 0 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1.75rem;
+    margin-bottom: 1.75rem;
+    gap: 0.5rem;
+}
+
 .order-summary-block {
-    background: linear-gradient(135deg, var(--green), var(--green-light));
+    background: linear-gradient(135deg, var(--green), #208922);
     border-radius: 14px;
     padding: 1.5rem 2rem;
     display: flex;
@@ -344,30 +379,15 @@
     align-items: center;
 }
 
-.order-summary-wrapper {
-    padding: 1.25rem 0 0.75rem;
-    border-top: 1px solid var(--border);
-    margin-top: 1.75rem;
-    margin-bottom: 1.75rem;
-    gap: 0.5rem;
-}
-
-.checkout-btn {
-    background: #fff;
-    color: var(--green);
-    border: none;
+/* -- RESULT BANNERS -- */
+.success-banner {
+    background: #85ce77;
+    border: 1px solid #529943;
+    color: #0c3803;
+    padding: 0.75rem 1.25rem;
     border-radius: 8px;
-    padding: 0.75rem 1.4rem;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.checkout-btn:hover {
-    transform: translateY(-2px);
-    color: var(--terra-light);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    margin: 1rem 0;
+    font-size: 0.875rem;
 }
 
 {% endblock %}
@@ -485,7 +505,7 @@
 
                 <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                     {% csrf_token %}
-                    <button class="btn-secondary" style="background:#0c3803" type="submit" class="btn-secondary">Remove</button>
+                    <button class="btn-danger" type="submit" class="btn-secondary">Remove</button>
                 </form>
             </div>
         </div>
@@ -513,7 +533,7 @@
             </div>
 
             <div class="order-summary-right">
-                <button class="btn-secondary">
+                <button class="btn-checkout">
                     Proceed to Checkout →
                 </button>
             </div>
