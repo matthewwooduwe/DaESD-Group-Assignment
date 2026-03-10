@@ -470,6 +470,7 @@
                 </div>
                 {% endif %}
 
+                {% if request.session.role == 'CUSTOMER' %}
                 <div class="detail-cta">
                     <form class="quantity-form" method="POST" action="/basket/add/{{ product.id }}/"
                         style="display: flex; gap: 0.5rem; align-items: center;">
@@ -485,6 +486,11 @@
                     </form>
                     <a href="/" class="btn-secondary">← Keep Browsing</a>
                 </div>
+                {% else %}
+                <div class="detail-cta">
+                    <a href="/" class="btn-secondary">← Keep Browsing</a>
+                </div>
+                {% endif %}
             </div>
 
         </div>
