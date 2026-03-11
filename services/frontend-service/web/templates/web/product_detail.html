@@ -68,6 +68,12 @@
     margin-bottom: 0.75rem;
 }
 
+.badge-surplus {
+    background: var(--terra);
+    color: #fff;
+    font-weight: 700;
+}
+
 .detail-name {
     font-family: 'Playfair Display', serif;
     font-size: clamp(1.6rem, 3vw, 2.25rem);
@@ -103,6 +109,15 @@
     font-size: 2rem;
     font-weight: 700;
     color: #fff;
+}
+
+.detail-original-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: line-through;
+    margin-right: 0.5rem;
+    font-weight: 400;
 }
 
 .detail-price span {
@@ -182,6 +197,25 @@
 }
 
 .allergen-block strong { display: block; margin-bottom: 2px; }
+
+/* ── SURPLUS INFO ── */
+.surplus-block {
+    background: #fdf0ed;
+    border: 1px solid #f5d0c9;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: #90301a;
+    margin-bottom: 1.25rem;
+}
+
+.surplus-block strong { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    margin-bottom: 4px; 
+    font-family: 'Lato', sans-serif;
+}
 
 /* ── CTA ── */
 .detail-cta {
@@ -397,6 +431,9 @@
             <!-- RIGHT: Info -->
             <div>
                 <div class="detail-badges">
+                    {% if product.is_surplus %}
+                    <span class="badge badge-surplus">🔥 SURPLUS DEAL</span>
+                    {% endif %}
                     {% if product.category %}
                     <span class="badge badge-category">{{ product.category }}</span>
                     {% endif %}
@@ -420,7 +457,12 @@
                 <div class="detail-price-block">
                     <div>
                         <div class="detail-price">
+                            {% if product.is_surplus %}
+                            <span class="detail-original-price">£{{ product.price }}</span>
+                            £{{ product.current_price }}
+                            {% else %}
                             £{{ product.price }}
+                            {% endif %}
                             <span>per {{ product.unit|default:"item" }}</span>
                         </div>
                     </div>
@@ -460,6 +502,20 @@
                 <div class="detail-description">
                     <h3>About this product</h3>
                     <p>{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                {% if product.is_surplus %}
+                <div class="surplus-block">
+                    <strong>🔥 Limited Time Surplus Discount ({{ product.surplus_deal.discount_percentage|floatformat:0 }}% Off)</strong>
+                    {% if product.surplus_deal.deal_note %}
+                    <p style="margin: 0; line-height: 1.5;">{{ product.surplus_deal.deal_note }}</p>
+                    {% else %}
+                    <p style="margin: 0; line-height: 1.5;">Help us reduce food waste by grabbing this surplus stock at a reduced price.</p>
+                    {% endif %}
+                    {% if product.surplus_deal.expiry_date %}
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.85;">Deal expires: {{ product.surplus_deal.expiry_date|slice:":10" }}</p>
+                    {% endif %}
                 </div>
                 {% endif %}
 

@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from decimal import Decimal
+from django.utils.translation import gettext_lazy as _
 
 class Category(models.Model):
     """
@@ -48,6 +51,27 @@ class Product(models.Model):
 
     class Meta:
         db_table = 'products'
+
+    @property
+    def surplus_deal(self):
+        """Returns the active surplus deal if one exists."""
+        now = timezone.now()
+        # Find a deal that hasn't expired yet
+        return self.surplus_deals.filter(expiry_date__gt=now).order_by('-discount_percentage').first()
+
+    @property
+    def is_surplus(self):
+        """Returns True if there is an active surplus deal."""
+        return self.surplus_deal is not None
+
+    @property
+    def current_price(self):
+        """Calculates the current price, applying any active surplus discount."""
+        deal = self.surplus_deal
+        if deal:
+            discount_multiplier = Decimal('1') - (deal.discount_percentage / Decimal('100'))
+            return (self.price * discount_multiplier).quantize(Decimal('0.01'))
+        return self.price
 
     def __str__(self):
         return f"{self.name} - {self.producer.username}"
