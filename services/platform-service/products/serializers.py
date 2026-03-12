@@ -39,6 +39,19 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         surplus_deal_data = validated_data.pop('surplus_deal', None)
+        
+        request = self.context.get('request')
+        if not surplus_deal_data and request and hasattr(request, 'data'):
+            has_surplus = str(request.data.get('is_surplus', '')).lower() == 'true'
+            if has_surplus:
+                surplus_deal_data = {}
+                if request.data.get('surplus_deal.discount_percentage'):
+                    surplus_deal_data['discount_percentage'] = request.data.get('surplus_deal.discount_percentage')
+                if request.data.get('surplus_deal.expiry_date'):
+                    surplus_deal_data['expiry_date'] = request.data.get('surplus_deal.expiry_date')
+                if request.data.get('surplus_deal.deal_note'):
+                    surplus_deal_data['deal_note'] = request.data.get('surplus_deal.deal_note')
+
         product = super().create(validated_data)
         
         if surplus_deal_data:
@@ -48,23 +61,40 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         surplus_deal_data = validated_data.pop('surplus_deal', None)
+        
+        request = self.context.get('request')
+        if not surplus_deal_data and request and hasattr(request, 'data'):
+            has_surplus = str(request.data.get('is_surplus', '')).lower() == 'true'
+            if has_surplus:
+                surplus_deal_data = {}
+                if request.data.get('surplus_deal.discount_percentage'):
+                    surplus_deal_data['discount_percentage'] = request.data.get('surplus_deal.discount_percentage')
+                if request.data.get('surplus_deal.expiry_date'):
+                    surplus_deal_data['expiry_date'] = request.data.get('surplus_deal.expiry_date')
+                if request.data.get('surplus_deal.deal_note'):
+                    surplus_deal_data['deal_note'] = request.data.get('surplus_deal.deal_note')
+
         product = super().update(instance, validated_data)
         
         # Determine if we need to update/create/delete the surplus deal
         # The frontend might send an explicit null to clear it, or send data to update it
-        request = self.context.get('request')
         if request and 'is_surplus' in request.data:
             is_surplus_str = str(request.data.get('is_surplus')).lower()
             wants_surplus = is_surplus_str == 'true'
             
             if wants_surplus and surplus_deal_data:
-                # Update or create
-                SurplusDeal.objects.update_or_create(
-                    product=product,
-                    defaults=surplus_deal_data
-                )
+                # Update currently active deal or create new
+                active_deal = product.surplus_deal
+                if active_deal:
+                    for attr, value in surplus_deal_data.items():
+                        setattr(active_deal, attr, value)
+                    active_deal.save()
+                else:
+                    SurplusDeal.objects.create(product=product, **surplus_deal_data)
             elif not wants_surplus:
-                # Delete existing if any
-                SurplusDeal.objects.filter(product=product).delete()
+                # Delete existing active deal if any
+                active_deal = product.surplus_deal
+                if active_deal:
+                    active_deal.delete()
 
         return product

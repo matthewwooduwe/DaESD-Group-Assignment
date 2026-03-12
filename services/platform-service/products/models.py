@@ -57,7 +57,12 @@ class Product(models.Model):
         """Returns the active surplus deal if one exists."""
         now = timezone.now()
         # Find a deal that hasn't expired yet
-        return self.surplus_deals.filter(expiry_date__gt=now).order_by('-discount_percentage').first()
+        # Evaluate in memory so prefetch_related works efficiently
+        deals = [d for d in self.surplus_deals.all() if d.expiry_date > now]
+        if deals:
+            # return the deal with the highest discount
+            return max(deals, key=lambda d: d.discount_percentage)
+        return None
 
     @property
     def is_surplus(self):
