@@ -370,10 +370,30 @@ def add_product_view(request):
         form_data['is_organic'] = 'is_organic' in request.POST
         form_data['is_available'] = 'is_available' in request.POST
         
-        # Remove empty optional fields so API doesn't complain about empty strings for ints/dates
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
                 form_data.pop(key, None)
+
+        # Handle surplus fields
+        is_surplus = 'is_surplus' in request.POST
+        form_data['is_surplus'] = str(is_surplus).lower()
+        if is_surplus:
+            surplus_deal = {}
+            if form_data.get('discount_percentage'):
+                surplus_deal['discount_percentage'] = form_data.pop('discount_percentage')
+            if form_data.get('surplus_expiry'):
+                surplus_deal['expiry_date'] = form_data.pop('surplus_expiry')
+            if form_data.get('surplus_note'):
+                surplus_deal['deal_note'] = form_data.pop('surplus_note')
+            
+            if surplus_deal:
+                for k, v in surplus_deal.items():
+                    form_data[f'surplus_deal.{k}'] = v
+        else:
+             # Remove them from form_data so they don't get sent accidentally
+             form_data.pop('discount_percentage', None)
+             form_data.pop('surplus_expiry', None)
+             form_data.pop('surplus_note', None)
 
         files = {}
         if 'image' in request.FILES:
@@ -456,10 +476,30 @@ def edit_product_view(request, product_id):
         form_data['is_organic'] = 'is_organic' in request.POST
         form_data['is_available'] = 'is_available' in request.POST
         
-        # Remove empty optional fields
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
                 form_data.pop(key, None)
+
+        # Handle surplus fields
+        is_surplus = 'is_surplus' in request.POST
+        form_data['is_surplus'] = str(is_surplus).lower()
+        if is_surplus:
+            surplus_deal = {}
+            if form_data.get('discount_percentage'):
+                surplus_deal['discount_percentage'] = form_data.pop('discount_percentage')
+            if form_data.get('surplus_expiry'):
+                surplus_deal['expiry_date'] = form_data.pop('surplus_expiry')
+            if form_data.get('surplus_note'):
+                surplus_deal['deal_note'] = form_data.pop('surplus_note')
+            
+            if surplus_deal:
+                for k, v in surplus_deal.items():
+                    form_data[f'surplus_deal.{k}'] = v
+        else:
+             # Remove them from form_data so they don't get sent accidentally
+             form_data.pop('discount_percentage', None)
+             form_data.pop('surplus_expiry', None)
+             form_data.pop('surplus_note', None)
 
         files = {}
         if 'image' in request.FILES:

@@ -20,7 +20,7 @@ class Basket(models.Model):
     
     @property
     def total_price(self):
-        return sum(item.product.price * item.quantity for item in self.items.all())
+        return sum(item.product.current_price * item.quantity for item in self.items.all())
 
     def __str__(self):
         return f"Basket of customer {self.customer_id}"
@@ -38,7 +38,7 @@ class BasketItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.product.price * self.quantity
+        return self.product.current_price * self.quantity
 
     def __str__(self):
         return f"Item {self.product_id} x {self.quantity} in basket {self.basket.id}"
