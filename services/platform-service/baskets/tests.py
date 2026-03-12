@@ -38,6 +38,6 @@ class BasketSurplusDealTests(TestCase):
         # Product is now half price
         self.assertEqual(self.product.current_price, Decimal('5.00'))
         
-        # Basket total should automatically update to using the discounted price
+        # Basket total automatically updates to using the discounted price
         # since it goes through BasketItem.subtotal -> product.current_price
         self.assertEqual(self.basket.total_price, Decimal('10.00'))

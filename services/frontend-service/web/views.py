@@ -386,12 +386,6 @@ def add_product_view(request):
             if form_data.get('surplus_note'):
                 surplus_deal['deal_note'] = form_data.pop('surplus_note')
             
-            # Since requests library doesn't easily nest dicts in form-data for django REST framework,
-            # we need to pass them in a way DRF understands nested objects in multipart/form-data, 
-            # Or pass them as explicit flat fields if we modify the backend.
-            # Easiest way for DRF multipart with nested is using dot notation or array notation if supported,
-            # but simplest is json.dumps if the backend allowed JSON with files.
-            # Since we send multipart/form-data because of image, we map them as 'surplus_deal.discount_percentage' etc.
             if surplus_deal:
                 for k, v in surplus_deal.items():
                     form_data[f'surplus_deal.{k}'] = v
