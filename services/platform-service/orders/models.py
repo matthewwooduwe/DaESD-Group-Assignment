@@ -63,7 +63,7 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         # Capture current product price if not set
         if not self.price_at_sale:
-            self.price_at_sale = self.product.price
+            self.price_at_sale = self.product.current_price
         
         # Calculate financial splits: 5% to network, 95% to producer
         total_val = self.price_at_sale * self.quantity
