@@ -283,10 +283,17 @@
             <!-- Customer profile fields -->
             <div class="profile-section active" id="customer-fields">
                 <p class="profile-section-title">Delivery Details</p>
-                <div class="form-group">
-                    <label class="form-label" for="full_name">Full Name</label>
-                    <input class="form-input" type="text" id="full_name" name="full_name"
-                        placeholder="Your full name" value="{{ form_data.full_name|default:'' }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">First Name</label>
+                        <input class="form-input" type="text" id="first_name" name="first_name"
+                            placeholder="First name" value="{{ form_data.first_name|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <input class="form-input" type="text" id="last_name" name="last_name"
+                            placeholder="Last name" value="{{ form_data.last_name|default:'' }}">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="delivery_address">Delivery Address</label>
@@ -434,12 +441,17 @@
 
         // Customer profile fields
         if (role === 'CUSTOMER') {
-            const fullName = document.getElementById('full_name').value.trim();
+            const firstName = document.getElementById('first_name').value.trim();
+            const lastName = document.getElementById('last_name').value.trim();
             const address = document.getElementById('delivery_address').value.trim();
             const postcode = document.getElementById('customer_postcode').value.trim();
 
-            if (EMOJI_RE.test(fullName)) {
-                showFieldError('full_name', 'Name cannot contain emojis.');
+            if (EMOJI_RE.test(firstName)) {
+                showFieldError('first_name', 'First name cannot contain emojis.');
+                valid = false;
+            }
+            if (EMOJI_RE.test(lastName)) {
+                showFieldError('last_name', 'Last name cannot contain emojis.');
                 valid = false;
             }
             if (EMOJI_RE.test(address)) {

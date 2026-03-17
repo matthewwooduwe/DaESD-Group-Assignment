@@ -270,15 +270,19 @@
     </a>
 
     <ul class="nav-links">
-        <li><a href="/">Browse</a></li>
+        <li><a href="/" style="{% if request.path == '/' %}font-weight: bold; color: #fff;{% endif %}">Browse</a></li>
         {% if request.session.role == 'CUSTOMER' %}
-        <li><a href="/basket/">Basket</a></li>
-        <li><span class="nav-username">{{ request.session.username }}</span></li>
-        <li><a href="/logout/">Sign Out</a></li>    
+        <li><a href="/basket/" style="{% if request.path == '/basket/' %}font-weight: bold; color: #fff;{% endif %}">Basket</a></li>
+        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/logout/">Sign Out</a></li>
         {% elif request.session.role == 'PRODUCER' %}
-        <li><a href="/dashboard/" style="color: var(--nav-accent); font-weight: bold;">Dashboard</a></li>
-        <li><span class="nav-username">{{ request.session.username }}</span></li>
-        <li><a href="/logout/">Sign Out</a></li>    
+        <li><a href="/dashboard/" style="{% if request.path == '/dashboard/' %}font-weight: bold; color: var(--nav-accent);{% endif %}">Dashboard</a></li>
+        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/logout/">Sign Out</a></li>
+        {% elif request.session.role == 'ADMIN' %}
+        <li><a href="/admin-dashboard/" style="{% if request.path == '/admin-dashboard/' %}font-weight: bold; color: var(--nav-accent);{% endif %}">Admin</a></li>
+        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/logout/">Sign Out</a></li>
         {% else %}
         <li><a href="/login/" class="nav-cta">Sign In</a></li>
         {% endif %}

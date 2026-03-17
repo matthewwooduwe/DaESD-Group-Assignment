@@ -5,6 +5,10 @@ from .serializers import UserSerializer
 
 User = get_user_model()
 
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'ADMIN'
+
 class UserRegistrationView(generics.CreateAPIView):
     """
     Handles public user registration.
@@ -23,3 +27,23 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         # Always return the current authenticated user
         return self.request.user
+
+class UserListView(generics.ListAPIView):
+    """
+    Admin-only endpoint to list all users.
+    """
+    serializer_class = UserSerializer
+    permission_classes = (IsAdmin,)
+
+    def get_queryset(self):
+        return User.objects.all().order_by('-date_joined')
+
+class UserAdminDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Admin-only endpoint to manage any user.
+    """
+    serializer_class = UserSerializer
+    permission_classes = (IsAdmin,)
+
+    def get_queryset(self):
+        return User.objects.all()
