@@ -83,7 +83,8 @@ class Command(BaseCommand):
             customer.save()
             CustomerProfile.objects.create(
                 user=customer,
-                full_name="Alice Smith",
+                first_name="Alice",
+                last_name="Smith",
                 delivery_address="456 City Road",
                 postcode="BS2 2BB"
             )
