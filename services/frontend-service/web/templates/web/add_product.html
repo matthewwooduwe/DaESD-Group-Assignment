@@ -249,6 +249,53 @@ color: var(--green);
                 <label for="is_available">In Season / Available for Purchase</label>
             </div>
 
+            <!-- Surplus Deals Section -->
+            <div class="form-group full-width" style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1rem;">
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_surplus" id="is_surplus" value="true" onchange="toggleSurplusFields()">
+                    <label for="is_surplus" style="color: var(--terra); font-weight: 700;">Mark as Surplus / Last Minute Deal</label>
+                </div>
+                <p class="form-help" style="margin-left: 1.8rem;">Help reduce food waste by offering a discount on surplus stock.</p>
+                
+                <div id="surplus_fields" style="display: none; margin-top: 1rem; border-left: 3px solid var(--green); padding-left: 1rem;">
+                    <div class="form-grid" style="margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Discount Percentage (%) <span class="required">*</span></label>
+                            <input type="number" name="discount_percentage" id="discount_percentage" class="form-input" placeholder="e.g. 30" min="1" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Deal Expiry <span class="required">*</span></label>
+                            <input type="datetime-local" name="surplus_expiry" id="surplus_expiry" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Surplus Note (Optional)</label>
+                        <input type="text" name="surplus_note" class="form-input" placeholder="e.g. Perfect condition, must sell quickly to avoid waste">
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                function toggleSurplusFields() {
+                    const isSurplus = document.getElementById('is_surplus').checked;
+                    const surplusFields = document.getElementById('surplus_fields');
+                    const discountInput = document.getElementById('discount_percentage');
+                    const expiryInput = document.getElementById('surplus_expiry');
+                    
+                    if (isSurplus) {
+                        surplusFields.style.display = 'block';
+                        discountInput.required = true;
+                        expiryInput.required = true;
+                    } else {
+                        surplusFields.style.display = 'none';
+                        discountInput.required = false;
+                        expiryInput.required = false;
+                        discountInput.value = '';
+                        expiryInput.value = '';
+                    }
+                }
+            </script>
+
             <div class="form-group full-width">
                 <label class="form-label" style="color: var(--text-muted)">Product Image (Coming Soon)</label>
                 <input type="file" name="image" class="file-input" accept="image/*" disabled
