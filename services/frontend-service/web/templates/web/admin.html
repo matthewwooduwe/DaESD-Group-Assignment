@@ -485,21 +485,21 @@
                     </td>
                     <td>{{ user.phone_number|default:"—" }}</td>
                     <td>
-                        <button class="btn-sm-edit" onclick="openEditModal(
-                            {{ user.id }},
-                            '{{ user.username }}',
-                            '{{ user.email|default:'' }}',
-                            '{{ user.phone_number|default:'' }}',
-                            '{{ user.role }}',
-                            '{{ user.customer_profile.first_name|default:'' }}',
-                            '{{ user.customer_profile.last_name|default:'' }}',
-                            '{{ user.customer_profile.delivery_address|default:'' }}',
-                            '{{ user.customer_profile.postcode|default:'' }}',
-                            '{{ user.producer_profile.business_name|default:'' }}',
-                            '{{ user.producer_profile.business_address|default:'' }}',
-                            '{{ user.producer_profile.postcode|default:'' }}',
-                            '{{ user.producer_profile.bio|default:'' }}'
-                        )">Edit</button>
+                        <button class="btn-sm-edit"
+                            data-id="{{ user.id }}"
+                            data-username="{{ user.username|escapejs }}"
+                            data-email="{{ user.email|default:''|escapejs }}"
+                            data-phone="{{ user.phone_number|default:''|escapejs }}"
+                            data-role="{{ user.role }}"
+                            data-first-name="{{ user.customer_profile.first_name|default:''|escapejs }}"
+                            data-last-name="{{ user.customer_profile.last_name|default:''|escapejs }}"
+                            data-delivery-address="{{ user.customer_profile.delivery_address|default:''|escapejs }}"
+                            data-customer-postcode="{{ user.customer_profile.postcode|default:''|escapejs }}"
+                            data-business-name="{{ user.producer_profile.business_name|default:''|escapejs }}"
+                            data-business-address="{{ user.producer_profile.business_address|default:''|escapejs }}"
+                            data-producer-postcode="{{ user.producer_profile.postcode|default:''|escapejs }}"
+                            data-bio="{{ user.producer_profile.bio|default:''|escapejs }}"
+                            onclick="openEditModalFromBtn(this)">Edit</button>
                         {% if user.role != 'ADMIN' %}
                         <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
                             {% csrf_token %}
@@ -705,6 +705,15 @@ function filterTable(tableId, query) {
 function toggleModalProfileFields(role) {
     document.getElementById('modal-customer-fields').style.display = role === 'CUSTOMER' ? '' : 'none';
     document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
+}
+
+function openEditModalFromBtn(btn) {
+    const d = btn.dataset;
+    openEditModal(
+        d.id, d.username, d.email, d.phone, d.role,
+        d.firstName, d.lastName, d.deliveryAddress, d.customerPostcode,
+        d.businessName, d.businessAddress, d.producerPostcode, d.bio
+    );
 }
 
 function openEditModal(id, username, email, phone, role, firstName, lastName, deliveryAddress, customerPostcode, businessName, businessAddress, producerPostcode, bio) {
