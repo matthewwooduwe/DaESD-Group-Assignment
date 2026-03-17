@@ -525,6 +525,7 @@ def basket_view(request):
     """
     basket = None
     error = None
+    items_by_producer = None
 
     if not request.session.get('token'):
         error = "Please log in to view your basket."
@@ -859,6 +860,52 @@ def clear_basket(request):
         })
     
     return redirect('/basket/')
+
+def checkout_view(request):
+    """
+    Display the customer's basket with all items.
+    """
+    basket = None
+    error = None
+    items_by_producer = None
+
+    if not request.session.get('token'):
+        error = "Please log in to checkout."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/basket/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            basket = resp.json()
+            items_by_producer = basket.get('items_by_producer')
+        elif resp.status_code == 401:
+            error = "Your session has expired. Please log in again."
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': error,
+            })
+        else:
+            error = f"Unexpected error: could not load checkout page (status {resp.status_code})."
+
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API. Is the platform-service running?"
+    except requests.exceptions.Timeout:
+        error = "The platform API took too long to respond."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/checkout.html', {
+        'basket': basket,
+        'items_by_producer': items_by_producer,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
 
 def producer_orders_view(request):
     """

@@ -1,9 +1,10 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Basket, BasketItem
-from .serializers import BasketSerializer, BasketItemSerializer
+from .serializers import BasketSerializer
 from products.models import Product
 
 
@@ -14,6 +15,17 @@ class IsCustomer(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'CUSTOMER'
     
+class CheckoutView(generics.RetrieveAPIView):
+    """
+    Get the authenticated customer's basket.
+    """
+    serializer_class = BasketSerializer
+    permission_classes = [IsCustomer]
+
+    def get_object(self):
+        basket= Basket.objects.get(customer=self.request.user)
+        return basket
+
 class BasketView(generics.RetrieveAPIView):
     """
     Get the authenticated customer's basket.

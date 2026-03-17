@@ -1,6 +1,6 @@
 {% extends "web/base.html" %}
 
-{% block title %}Browse Local Produce — BRFN{% endblock %}
+{% block title %}My Basket — BRFN{% endblock %}
 
 {% block extra_styles %}
 /* -- BREADCRUMB -- */
@@ -303,6 +303,7 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .btn-checkout:hover {
@@ -467,7 +468,7 @@
     {% if basket.items %}
     <div class="results-bar">
         <p class="results-count">
-            <strong>{{ basket.total_items }}</strong> item(s) • Total: <strong> £{{basket.total_price }}</strong>
+            <strong>{{ basket.total_items }}</strong> item(s) • Total: <strong> £{{basket.total_price|floatformat:2 }}</strong>
         </p>
     </div>
 
@@ -476,9 +477,9 @@
     <div class="producer-section">
         <div class="producer-header">
             <h2 class="producer-name">
-                {{ producer_group.producer_name }}
+                {{ producer_group.producer_profile.business_name }}
             </h2>
-            <span class="producer-subtotal">Subtotal: £{{ producer_group.subtotal }}</span>
+            <span class="producer-subtotal">Subtotal: £{{ producer_group.subtotal|floatformat:2 }}</span>
         </div>
 
         <!-- Products grid for this producer -->
@@ -522,7 +523,7 @@
                         <h2 class="card-name">{{ item.product.name }}</h2>
                         <p class="card-producer">{{ item.product.producer_username }}</p>
                         <div class="card-price">
-                            £{{ item.product.price }} per {{ item.product.unit }}
+                            £{{ item.product.price|floatformat:2 }} per {{ item.product.unit }}
                         </div>
                     </div>
                 </a>
@@ -554,7 +555,7 @@
                     </form>
 
                     <div class="card-detail">
-                        <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal }}</p>
+                        <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal|floatformat:2 }}</p>
                     </div>
 
                     <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
@@ -572,7 +573,7 @@
     <div class="order-summary-wrapper">
         <div class="order-summary-block">
             <div class="order-summary-left">
-                <h3 class="order-summary-title">Order Summary</h3>
+                <h3 class="order-summary-title">Basket Items Summary</h3>
 
                 <div class="order-summary-stats">
                     <div class="summary-row">
@@ -582,16 +583,14 @@
 
                     <div class="summary-row">
                         <span>Total Price</span>
-                        <strong>£{{ basket.total_price }}</strong>
+                        <strong>£{{ basket.total_price|floatformat:2 }}</strong>
                     </div>
                     <p style="margin-top: 1rem;">Note: delivery type and dates will be selected at checkout.</p>
                 </div>
             </div>
 
             <div class="order-summary-right">
-                <button class="btn-checkout">
-                    Proceed to Checkout →
-                </button>
+                <a href="/basket/checkout/" class="btn-checkout">Proceed to Checkout →</a>
             </div>
         </div>
     </div>

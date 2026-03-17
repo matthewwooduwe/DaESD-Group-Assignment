@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Basket, BasketItem
 from products.serializers import ProductSerializer
+from users.serializers import ProducerProfileSerializer
 from collections import defaultdict
 
 class BasketItemSerializer(serializers.ModelSerializer):
@@ -65,6 +66,7 @@ class BasketSerializer(serializers.ModelSerializer):
             result.append({
                 'producer_id': producer.id,
                 'producer_name': producer.username,
+                'producer_profile': ProducerProfileSerializer(producer.producer_profile).data,
                 'items': BasketItemSerializer(producer_items, many=True).data,
                 'subtotal': producer_subtotal
             })
