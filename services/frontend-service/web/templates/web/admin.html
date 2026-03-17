@@ -485,21 +485,8 @@
                     </td>
                     <td>{{ user.phone_number|default:"—" }}</td>
                     <td>
-                        <button class="btn-sm-edit"
-                            data-id="{{ user.id }}"
-                            data-username="{{ user.username|escapejs }}"
-                            data-email="{{ user.email|default:''|escapejs }}"
-                            data-phone="{{ user.phone_number|default:''|escapejs }}"
-                            data-role="{{ user.role }}"
-                            data-first-name="{{ user.customer_profile.first_name|default:''|escapejs }}"
-                            data-last-name="{{ user.customer_profile.last_name|default:''|escapejs }}"
-                            data-delivery-address="{{ user.customer_profile.delivery_address|default:''|escapejs }}"
-                            data-customer-postcode="{{ user.customer_profile.postcode|default:''|escapejs }}"
-                            data-business-name="{{ user.producer_profile.business_name|default:''|escapejs }}"
-                            data-business-address="{{ user.producer_profile.business_address|default:''|escapejs }}"
-                            data-producer-postcode="{{ user.producer_profile.postcode|default:''|escapejs }}"
-                            data-bio="{{ user.producer_profile.bio|default:''|escapejs }}"
-                            onclick="openEditModalFromBtn(this)">Edit</button>
+                        <script type="application/json" id="user-data-{{ user.id }}">{"id": {{ user.id }}, "username": "{{ user.username|escapejs }}", "email": "{{ user.email|default:''|escapejs }}", "phone": "{{ user.phone_number|default:''|escapejs }}", "role": "{{ user.role }}", "firstName": "{{ user.customer_profile.first_name|default:''|escapejs }}", "lastName": "{{ user.customer_profile.last_name|default:''|escapejs }}", "deliveryAddress": "{{ user.customer_profile.delivery_address|default:''|escapejs }}", "customerPostcode": "{{ user.customer_profile.postcode|default:''|escapejs }}", "businessName": "{{ user.producer_profile.business_name|default:''|escapejs }}", "businessAddress": "{{ user.producer_profile.business_address|default:''|escapejs }}", "producerPostcode": "{{ user.producer_profile.postcode|default:''|escapejs }}", "bio": "{{ user.producer_profile.bio|default:''|escapejs }}"}</script>
+                        <button class="btn-sm-edit" onclick="openEditModalFromBtn({{ user.id }})">Edit</button>
                         {% if user.role != 'ADMIN' %}
                         <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
                             {% csrf_token %}
@@ -707,13 +694,11 @@ function toggleModalProfileFields(role) {
     document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
 }
 
-function openEditModalFromBtn(btn) {
-    const d = btn.dataset;
-    openEditModal(
-        d.id, d.username, d.email, d.phone, d.role,
-        d.firstName, d.lastName, d.deliveryAddress, d.customerPostcode,
-        d.businessName, d.businessAddress, d.producerPostcode, d.bio
-    );
+function openEditModalFromBtn(userId) {
+    const data = JSON.parse(document.getElementById('user-data-' + userId).textContent);
+    openEditModal(data.id, data.username, data.email, data.phone, data.role,
+        data.firstName, data.lastName, data.deliveryAddress, data.customerPostcode,
+        data.businessName, data.businessAddress, data.producerPostcode, data.bio);
 }
 
 function openEditModal(id, username, email, phone, role, firstName, lastName, deliveryAddress, customerPostcode, businessName, businessAddress, producerPostcode, bio) {
