@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from .models import Order, OrderItem, OrderStatusLog
 from products.models import Product
-from products.models import Product
 from django.utils import timezone
+from decimal import Decimal
 import datetime
-from products.models import Product
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.ReadOnlyField(source='product.name')
@@ -46,10 +45,11 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             'id', 'customer', 'customer_username', 'customer_full_name', 'customer_phone', 
-            'customer_email', 'delivery_address', 'total_amount', 'producer_total', 
-            'status', 'status_logs', 'delivery_date', 'created_at', 'items', 'item_ids'
+            'customer_email', 'delivery_address', 'total_amount', 'commission_total',
+            'producer_total', 'status', 'status_logs', 'delivery_date', 'created_at', 
+            'items', 'item_ids'
         )
-        read_only_fields = ('id', 'customer', 'total_amount', 'created_at', 'items', 'producer_total', 'status_logs')
+        read_only_fields = ('id', 'customer', 'total_amount', 'commission_total', 'created_at', 'items', 'producer_total', 'status_logs')
 
     def get_items(self, obj):
         request = self.context.get('request')
@@ -109,6 +109,7 @@ class OrderSerializer(serializers.ModelSerializer):
             total_amount += product.price * item_data['quantity']
             
         order.total_amount = total_amount
+        order.commission_total = total_amount * Decimal('0.05')
         order.save()
         
         return order
