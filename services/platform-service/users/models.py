@@ -1,6 +1,12 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+class ActiveUserManager(UserManager):
+    """Manager that filters out soft-deleted users."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
 
 class User(AbstractUser):
     """
@@ -35,9 +41,30 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.CUSTOMER)
     phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for producer/customer contact")
+    is_deleted = models.BooleanField(default=False)
+
+    objects = ActiveUserManager()
+    all_objects = UserManager()
 
     class Meta:
         db_table = 'users'
+
+    def delete(self, *args, **kwargs):
+        """Soft delete the user and clear PII (GDPR compliance)."""
+        self.is_deleted = True
+        self.is_active = False
+        self.email = ""
+        self.first_name = ""
+        self.last_name = ""
+        self.phone_number = ""
+        self.username = f"deleted_user_{self.id}"
+        self.save()
+
+        # Cascade soft-delete to profiles
+        if hasattr(self, 'producer_profile') and self.producer_profile:
+            self.producer_profile.delete()
+        if hasattr(self, 'customer_profile') and self.customer_profile:
+            self.customer_profile.delete()
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
@@ -55,6 +82,14 @@ class ProducerProfile(models.Model):
     class Meta:
         db_table = 'producer_profiles'
 
+    def delete(self, *args, **kwargs):
+        """Clear PII data from profile on user deletion."""
+        self.business_name = "Deleted Business"
+        self.business_address = ""
+        self.postcode = ""
+        self.bio = ""
+        self.save()
+
     def __str__(self):
         return self.business_name
 
@@ -70,6 +105,14 @@ class CustomerProfile(models.Model):
 
     class Meta:
         db_table = 'customer_profiles'
+
+    def delete(self, *args, **kwargs):
+        """Clear PII data from profile on user deletion."""
+        self.first_name = ""
+        self.last_name = ""
+        self.delivery_address = ""
+        self.postcode = ""
+        self.save()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}".strip() or self.user.username
