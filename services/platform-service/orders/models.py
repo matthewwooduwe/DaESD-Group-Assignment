@@ -4,6 +4,59 @@ from django.utils.translation import gettext_lazy as _
 from products.models import Product
 from decimal import Decimal
 
+class CustomerOrder(models.Model):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='customer_order'
+    )
+    
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text=_("Total across all producer orders"))
+    commission_total = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text=_("Total 5% commission across all producer orders")
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'customer_orders'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Customer Order #{self.id} - {self.customer.username}"
+    
+    @property
+    def total_items(self):
+        return sum(
+            item.quantity
+            for order in self.orders.all()
+            for item in order.items.all()
+        )
+    
+    @property
+    def overall_status(self):
+        """
+        Calculate overall status based on producer orders:
+        - All delivered = DELIVERED
+        - All confirmed/ready/delivered = CONFIRMED
+        - Any pending = PENDING
+        """
+        producer_orders = self.orders.all()
+        if not producer_orders:
+            return "PENDING"
+        
+        statuses = set(po.status for po in producer_orders)
+        
+        if statuses == {'DELIVERED'}:
+            return 'DELIVERED'
+        elif 'PENDING' in statuses:
+            return 'PENDING'
+        elif statuses <= {'CONFIRMED', 'READY', 'DELIVERED'}:
+            return 'CONFIRMED'
+        else:
+            return 'READY'
+
 class Order(models.Model):
     """
     Represents a customer order within the platform.
@@ -18,11 +71,15 @@ class Order(models.Model):
         # Order successfully delivered to the customer
         DELIVERED = 'DELIVERED', _('Delivered')
 
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', help_text=_("Customer user that placed the order."))
+    customer_order = models.ForeignKey(CustomerOrder, on_delete=models.CASCADE, related_name='orders',help_text=_("Parent customer order item this order belongs to"))
+    producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,null=True, blank=True, related_name='producer_orders')
+    producer_payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     commission_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text=_("Calculated 5% network commission"))
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     delivery_date = models.DateField(blank=True, null=True, help_text=_("Must enforce 48-hour lead time"))
+    collection_type = models.CharField(blank=True, null=True, max_length=50, help_text=_("The collection type for the order. Options are deliver to address or collect from producer."))
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

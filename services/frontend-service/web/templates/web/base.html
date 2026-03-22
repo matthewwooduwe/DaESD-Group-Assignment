@@ -273,6 +273,7 @@
         <li><a href="/">Browse</a></li>
         {% if request.session.role == 'CUSTOMER' %}
         <li><a href="/basket/">Basket</a></li>
+        <li><a href="/orders/">Order History</a></li>
         <li><span class="nav-username">{{ request.session.username }}</span></li>
         <li><a href="/logout/">Sign Out</a></li>    
         {% elif request.session.role == 'PRODUCER' %}

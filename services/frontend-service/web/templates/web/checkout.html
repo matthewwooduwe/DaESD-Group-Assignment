@@ -504,7 +504,7 @@ min-height: 100px;
     <a href="/basket/" class="btn-secondary" style="text-decoration: none;">← Return to modify basket...</a>
 
     <!-- Group added order items by producer -->
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" action="/orders/place/">
         {% csrf_token %}
         {% for producer_group in items_by_producer %}
         <div class="producer-section">
@@ -540,7 +540,7 @@ min-height: 100px;
                 <div class="form-group">
                     <label class="form-label">Delivery / Collection Date<span class="required">*</span></label>
                     <p>Note: a 48-hour lead time must be enforced on all orders to allow producers time to prepare.</p>
-                    <input type="date" name="delivery_date" class="form-input">
+                    <input type="date" name="delivery_date_{{ producer_group.producer_id }}" class="form-input">
                 </div>
 
             </div>
@@ -602,12 +602,9 @@ min-height: 100px;
                     </div>
                 </div>
                 <div class="order-summary-section">
-                    <form method="POST" action="/basket/order/create/">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-checkout">
-                            Proceed to payment →
-                        </button>
-                    </form>
+                    <button type="submit" class="btn-checkout">
+                        Proceed to payment →
+                    </button>
                 </div>
                 <div class="order-summary-section">
                     
