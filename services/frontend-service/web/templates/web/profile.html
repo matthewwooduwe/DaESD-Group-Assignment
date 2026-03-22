@@ -1,0 +1,255 @@
+{% extends "web/base.html" %}
+
+{% block title %}My Profile — BRFN{% endblock %}
+
+{% block extra_styles %}
+.profile-header {
+    background: var(--nav-bg);
+    padding: 3rem 0;
+    color: #fff;
+    margin-bottom: 2rem;
+}
+.profile-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.4rem;
+}
+.profile-header p { color: rgba(255,255,255,0.75); }
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 760px) {
+    .profile-grid { grid-template-columns: 1fr; }
+}
+
+.profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+.profile-card.danger-card {
+    border-color: #f5c8b8;
+    background: #fff9f7;
+}
+.card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+}
+.card-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.form-group { margin-bottom: 1.1rem; }
+.form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+.form-input {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+.form-input:focus { border-color: var(--green); background: #fff; }
+textarea.form-input { resize: vertical; min-height: 80px; }
+
+.btn-save {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+}
+.btn-save:hover { background: var(--green-mid); }
+
+.btn-danger {
+    background: transparent;
+    color: #a0422a;
+    border: 1.5px solid #a0422a;
+    padding: 0.75rem 1.75rem;
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+.btn-danger:hover { background: #a0422a; color: #fff; }
+
+.success-banner {
+    background: var(--green-light);
+    border: 1px solid #b8dfc8;
+    color: var(--green);
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.role-pill {
+    display: inline-block;
+    padding: 3px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--green-light);
+    color: var(--green);
+    border: 1px solid #b8dfc8;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+{% endblock %}
+
+{% block content %}
+<section class="profile-header">
+    <div class="container">
+        <h1>
+            {{ user.username }}
+            <span class="role-pill">{{ user.role }}</span>
+        </h1>
+        <p>Manage your account details and preferences.</p>
+    </div>
+</section>
+
+<div class="container">
+
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success-banner">{{ success }}</div>
+    {% endif %}
+
+    <div class="profile-grid">
+
+        <!-- Update Details -->
+        <div class="profile-card">
+            <div class="card-title">Account Details</div>
+            <div class="card-subtitle">Update your contact information and profile.</div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_details">
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" type="email" name="email" value="{{ user.email|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input class="form-input" type="text" name="phone_number" value="{{ user.phone_number|default:'' }}">
+                </div>
+
+                {% if user.role == 'CUSTOMER' %}
+                <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div>
+                        <label class="form-label">First Name</label>
+                        <input class="form-input" type="text" name="first_name" value="{{ user.customer_profile.first_name|default:'' }}">
+                    </div>
+                    <div>
+                        <label class="form-label">Last Name</label>
+                        <input class="form-input" type="text" name="last_name" value="{{ user.customer_profile.last_name|default:'' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Delivery Address</label>
+                    <textarea class="form-input" name="delivery_address">{{ user.customer_profile.delivery_address|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Postcode</label>
+                    <input class="form-input" type="text" name="postcode" value="{{ user.customer_profile.postcode|default:'' }}">
+                </div>
+
+                {% elif user.role == 'PRODUCER' %}
+                <div class="form-group">
+                    <label class="form-label">Business Name</label>
+                    <input class="form-input" type="text" name="business_name" value="{{ user.producer_profile.business_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Business Address</label>
+                    <textarea class="form-input" name="business_address">{{ user.producer_profile.business_address|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Postcode</label>
+                    <input class="form-input" type="text" name="postcode" value="{{ user.producer_profile.postcode|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea class="form-input" name="bio">{{ user.producer_profile.bio|default:'' }}</textarea>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn-save">Save Changes</button>
+            </form>
+        </div>
+
+        <!-- Right column: password + delete -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+            <!-- Change Password -->
+            <div class="profile-card">
+                <div class="card-title">Change Password</div>
+                <div class="card-subtitle">Choose a strong password of at least 8 characters.</div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input class="form-input" type="password" name="new_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <input class="form-input" type="password" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="btn-save">Update Password</button>
+                </form>
+            </div>
+
+            <!-- Delete Account -->
+            <div class="profile-card danger-card">
+                <div class="card-title" style="color: #a0422a;">Delete Account</div>
+                <div class="card-subtitle">This is permanent and cannot be undone. All your data will be removed.</div>
+                <form method="POST" onsubmit="return confirm('Are you absolutely sure? This will permanently delete your account and cannot be undone.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_account">
+                    <button type="submit" class="btn-danger">Delete My Account</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+<br><br>
+{% endblock %}

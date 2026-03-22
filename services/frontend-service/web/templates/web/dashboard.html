@@ -168,6 +168,12 @@ display: flex;
 gap: 5px;
 flex-wrap: wrap;
 }
+
+.badge-surplus {
+background: var(--terra);
+color: #fff;
+font-weight: 700;
+}
 .card-stock-badge {
 position: absolute;
 top: 10px;
@@ -208,6 +214,15 @@ font-size: 1.5rem;
 font-weight: 700;
 color: var(--green);
 }
+
+.card-original-price {
+font-size: 1rem;
+color: var(--text-muted);
+text-decoration: line-through;
+margin-right: 0.25rem;
+font-weight: 400;
+}
+
 .card-price span {
 font-family: 'Source Sans 3', sans-serif;
 font-size: 0.85rem;
@@ -288,6 +303,9 @@ margin-bottom: 0.5rem;
                 {% endif %}
 
                 <div class="card-badges">
+                    {% if product.is_surplus %}
+                    <span class="badge badge-surplus">🔥 SURPLUS DEAL</span>
+                    {% endif %}
                     {% if product.category %}
                     <span class="badge badge-category">{{ product.category }}</span>
                     {% endif %}
@@ -320,7 +338,12 @@ margin-bottom: 0.5rem;
 
                 <div class="card-footer">
                     <div class="card-price">
+                        {% if product.is_surplus %}
+                        <span class="card-original-price">£{{ product.price }}</span>
+                        £{{ product.current_price }}
+                        {% else %}
                         £{{ product.price }}
+                        {% endif %}
                         <span>per {{ product.unit|default:"item" }}</span>
                     </div>
                     <div class="card-stock-info">

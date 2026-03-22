@@ -237,7 +237,8 @@ def register_view(request):
 
         # Build the nested profile payload based on role
         if role == 'CUSTOMER':
-            form_data['full_name'] = request.POST.get('full_name', '').strip()
+            form_data['first_name'] = request.POST.get('first_name', '').strip()
+            form_data['last_name'] = request.POST.get('last_name', '').strip()
             form_data['delivery_address'] = request.POST.get('delivery_address', '').strip()
             form_data['customer_postcode'] = request.POST.get('customer_postcode', '').strip()
 
@@ -248,7 +249,8 @@ def register_view(request):
                 'phone_number': form_data['phone_number'],
                 'role': 'CUSTOMER',
                 'customer_profile': {
-                    'full_name': form_data['full_name'],
+                    'first_name': form_data['first_name'],
+                    'last_name': form_data['last_name'],
                     'delivery_address': form_data['delivery_address'],
                     'postcode': form_data['customer_postcode'],
                 }
@@ -307,6 +309,260 @@ def register_view(request):
         'form_data': form_data,
     })
 
+def profile_view(request):
+    """
+    User profile page — view/update details, change password, delete account.
+    """
+    if not request.session.get('token'):
+        return redirect('/login/')
+
+    headers = get_auth_headers(request)
+    error = None
+    success = None
+    user = None
+
+    # Fetch current user data to pre-fill the form
+    try:
+        resp = requests.get(f"{PLATFORM_API_URL}/api/auth/me/", headers=headers, timeout=5)
+        if resp.status_code == 200:
+            user = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+    except Exception as e:
+        error = f"Could not load profile: {str(e)}"
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_details':
+            payload = {
+                'email': request.POST.get('email', '').strip(),
+                'phone_number': request.POST.get('phone_number', '').strip(),
+            }
+            role = request.session.get('role')
+            if role == 'CUSTOMER':
+                payload['customer_profile'] = {
+                    'first_name': request.POST.get('first_name', '').strip(),
+                    'last_name': request.POST.get('last_name', '').strip(),
+                    'delivery_address': request.POST.get('delivery_address', '').strip(),
+                    'postcode': request.POST.get('postcode', '').strip(),
+                }
+            elif role == 'PRODUCER':
+                payload['producer_profile'] = {
+                    'business_name': request.POST.get('business_name', '').strip(),
+                    'business_address': request.POST.get('business_address', '').strip(),
+                    'postcode': request.POST.get('postcode', '').strip(),
+                    'bio': request.POST.get('bio', '').strip(),
+                }
+            try:
+                resp = requests.patch(
+                    f"{PLATFORM_API_URL}/api/auth/me/",
+                    json=payload,
+                    headers=headers,
+                    timeout=5
+                )
+                if resp.status_code == 200:
+                    success = "Your details have been updated."
+                    user = resp.json()
+                else:
+                    error = f"Could not update details: {resp.text}"
+            except Exception as e:
+                error = f"Unexpected error: {str(e)}"
+
+        elif action == 'change_password':
+            new_password = request.POST.get('new_password', '')
+            confirm_password = request.POST.get('confirm_password', '')
+            if new_password != confirm_password:
+                error = "Passwords do not match."
+            elif len(new_password) < 8:
+                error = "Password must be at least 8 characters."
+            else:
+                try:
+                    resp = requests.patch(
+                        f"{PLATFORM_API_URL}/api/auth/me/",
+                        json={'password': new_password},
+                        headers=headers,
+                        timeout=5
+                    )
+                    if resp.status_code == 200:
+                        success = "Password changed successfully."
+                    else:
+                        error = f"Could not change password: {resp.text}"
+                except Exception as e:
+                    error = f"Unexpected error: {str(e)}"
+
+        elif action == 'delete_account':
+            try:
+                resp = requests.delete(
+                    f"{PLATFORM_API_URL}/api/auth/me/",
+                    headers=headers,
+                    timeout=5
+                )
+                if resp.status_code == 204:
+                    request.session.flush()
+                    return redirect('/')
+                else:
+                    error = "Could not delete account. Please try again."
+            except Exception as e:
+                error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/profile.html', {
+        'user': user,
+        'error': error,
+        'success': success,
+    })
+
+
+def admin_dashboard(request):
+    """
+    Admin dashboard with tabs for users, products, orders, and site stats.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+
+    headers = get_auth_headers(request)
+    users, products, orders = [], [], []
+    error = None
+
+    try:
+        resp_users = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", headers=headers, timeout=5)
+        if resp_users.status_code == 200:
+            users = resp_users.json()
+
+        resp_products = requests.get(f"{PLATFORM_API_URL}/api/products/", headers=headers, timeout=5)
+        if resp_products.status_code == 200:
+            products = resp_products.json()
+
+        resp_orders = requests.get(f"{PLATFORM_API_URL}/api/orders/", headers=headers, timeout=5)
+        if resp_orders.status_code == 200:
+            orders = resp_orders.json()
+
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API. Please check the service is running."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
+    total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
+    customers = [u for u in users if u.get('role') == 'CUSTOMER']
+    producers = [u for u in users if u.get('role') == 'PRODUCER']
+
+    return render(request, 'web/admin.html', {
+        'users': users,
+        'products': products,
+        'orders': orders,
+        'error': error,
+        'total_revenue': total_revenue,
+        'total_commission': total_commission,
+        'customer_count': len(customers),
+        'producer_count': len(producers),
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+
+def admin_delete_user(request, user_id):
+    """Admin-only: delete a user."""
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+    if request.method == 'POST':
+        try:
+            requests.delete(
+                f"{PLATFORM_API_URL}/api/auth/users/{user_id}/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+        except Exception:
+            pass
+    return redirect('/admin-dashboard/')
+
+
+def admin_edit_user(request, user_id):
+    """Admin-only: edit a user's details, profile and role."""
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+    if request.method == 'POST':
+        role = request.POST.get('role', 'CUSTOMER')
+        payload = {
+            'username': request.POST.get('username', '').strip(),
+            'email': request.POST.get('email', '').strip(),
+            'phone_number': request.POST.get('phone_number', '').strip(),
+            'role': role,
+        }
+        if role == 'CUSTOMER':
+            payload['customer_profile'] = {
+                'first_name': request.POST.get('first_name', '').strip(),
+                'last_name': request.POST.get('last_name', '').strip(),
+                'delivery_address': request.POST.get('delivery_address', '').strip(),
+                'postcode': request.POST.get('postcode', '').strip(),
+            }
+        elif role == 'PRODUCER':
+            payload['producer_profile'] = {
+                'business_name': request.POST.get('business_name', '').strip(),
+                'business_address': request.POST.get('business_address', '').strip(),
+                'postcode': request.POST.get('postcode', '').strip(),
+                'bio': request.POST.get('bio', '').strip(),
+            }
+        try:
+            requests.patch(
+                f"{PLATFORM_API_URL}/api/auth/users/{user_id}/",
+                json=payload,
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+        except Exception:
+            pass
+    return redirect('/admin-dashboard/')
+
+
+def admin_delete_product(request, product_id):
+    """Admin-only: delete any product."""
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+    if request.method == 'POST':
+        try:
+            requests.delete(
+                f"{PLATFORM_API_URL}/api/products/{product_id}/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+        except Exception:
+            pass
+    return redirect('/admin-dashboard/')
+
+
+    """
+    Dashboard for producers to manage their products.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+
+    products = []
+    error = None
+    username = request.session.get('username')
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/products/",
+            params={'producer__username': username},
+            timeout=5
+        )
+        if resp.status_code == 200:
+            products = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Could not load your products (status {resp.status_code})."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/dashboard.html', {
+        'products': products,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
 def producer_dashboard(request):
     """
     Dashboard for producers to manage their products.
@@ -340,6 +596,7 @@ def producer_dashboard(request):
         'media_base_url': MEDIA_BASE_URL,
     })
 
+
 def add_product_view(request):
     """
     Form view for adding a new product.
@@ -370,10 +627,30 @@ def add_product_view(request):
         form_data['is_organic'] = 'is_organic' in request.POST
         form_data['is_available'] = 'is_available' in request.POST
         
-        # Remove empty optional fields so API doesn't complain about empty strings for ints/dates
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
                 form_data.pop(key, None)
+
+        # Handle surplus fields
+        is_surplus = 'is_surplus' in request.POST
+        form_data['is_surplus'] = str(is_surplus).lower()
+        if is_surplus:
+            surplus_deal = {}
+            if form_data.get('discount_percentage'):
+                surplus_deal['discount_percentage'] = form_data.pop('discount_percentage')
+            if form_data.get('surplus_expiry'):
+                surplus_deal['expiry_date'] = form_data.pop('surplus_expiry')
+            if form_data.get('surplus_note'):
+                surplus_deal['deal_note'] = form_data.pop('surplus_note')
+            
+            if surplus_deal:
+                for k, v in surplus_deal.items():
+                    form_data[f'surplus_deal.{k}'] = v
+        else:
+             # Remove them from form_data so they don't get sent accidentally
+             form_data.pop('discount_percentage', None)
+             form_data.pop('surplus_expiry', None)
+             form_data.pop('surplus_note', None)
 
         files = {}
         if 'image' in request.FILES:
@@ -456,10 +733,30 @@ def edit_product_view(request, product_id):
         form_data['is_organic'] = 'is_organic' in request.POST
         form_data['is_available'] = 'is_available' in request.POST
         
-        # Remove empty optional fields
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
                 form_data.pop(key, None)
+
+        # Handle surplus fields
+        is_surplus = 'is_surplus' in request.POST
+        form_data['is_surplus'] = str(is_surplus).lower()
+        if is_surplus:
+            surplus_deal = {}
+            if form_data.get('discount_percentage'):
+                surplus_deal['discount_percentage'] = form_data.pop('discount_percentage')
+            if form_data.get('surplus_expiry'):
+                surplus_deal['expiry_date'] = form_data.pop('surplus_expiry')
+            if form_data.get('surplus_note'):
+                surplus_deal['deal_note'] = form_data.pop('surplus_note')
+            
+            if surplus_deal:
+                for k, v in surplus_deal.items():
+                    form_data[f'surplus_deal.{k}'] = v
+        else:
+             # Remove them from form_data so they don't get sent accidentally
+             form_data.pop('discount_percentage', None)
+             form_data.pop('surplus_expiry', None)
+             form_data.pop('surplus_note', None)
 
         files = {}
         if 'image' in request.FILES:

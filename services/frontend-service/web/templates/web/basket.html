@@ -94,6 +94,12 @@
     display: flex; gap: 5px; flex-wrap: wrap;
 }
 
+.badge-surplus {
+    background: var(--terra);
+    color: #fff;
+    font-weight: 700;
+}
+
 .card-stock-badge {
     position: absolute;
     top: 10px; right: 10px;
@@ -140,6 +146,14 @@
     font-weight: 700;
     color: var(--green);
     line-height: 1;
+}
+
+.card-original-price {
+    font-size: 1rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    margin-right: 0.25rem;
+    font-weight: 400;
 }
 
 .card-price span {
@@ -501,6 +515,9 @@
 
                     <!-- Badges overlay -->
                     <div class="card-badges">
+                        {% if item.product.is_surplus %}
+                        <span class="badge badge-surplus">🔥 SURPLUS DEAL</span>
+                        {% endif %}
                         {% if item.product.category %}
                         <span class="badge badge-category">{{ item.product.category }}</span>
                         {% endif %}
@@ -523,7 +540,13 @@
                         <h2 class="card-name">{{ item.product.name }}</h2>
                         <p class="card-producer">{{ item.product.producer_username }}</p>
                         <div class="card-price">
-                            £{{ item.product.price|floatformat:2 }} per {{ item.product.unit }}
+                            {% if item.product.is_surplus %}
+                            <span class="card-original-price">£{{ item.product.price }}</span>
+                            £{{ item.product.current_price }}
+                            {% else %}
+                            £{{ item.product.price }}
+                            {% endif %}
+                            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px;">per {{ item.product.unit }}</span>
                         </div>
                     </div>
                 </a>
@@ -536,7 +559,7 @@
                         <div class="card-detail">
                             <label>Units:</label>
                         </div>
-                        <input type="hidden" name="quantity" value="{{ item.quantity }}">
+                        <input type="hidden" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" style="width: 60px;">
                         <button type="submit"
                                 name="action"
                                 value="decrease"
@@ -555,12 +578,12 @@
                     </form>
 
                     <div class="card-detail">
-                        <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal|floatformat:2 }}</p>
+                        <p style="margin: 0.5rem 0;">Subtotal: £{{ item.subtotal }}</p>
                     </div>
 
                     <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                         {% csrf_token %}
-                        <button class="btn-danger" type="submit">Remove</button>
+                        <button class="btn-danger" type="submit" class="btn-secondary">Remove</button>
                     </form>
                 </div>
             </div>
