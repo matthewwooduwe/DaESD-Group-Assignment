@@ -171,6 +171,7 @@
 /* Checkout button */
 .btn-checkout {
     background: #fff;
+    margin-top: 2rem;
     color: var(--green);
     border: none;
     border-radius: 8px;
@@ -279,7 +280,6 @@
 .producer-section {
     margin-top: 2.5rem;
     margin-bottom: 2.5rem;
-    background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: var(--shadow);
@@ -292,14 +292,14 @@
     flex-direction: column;
     gap: 0.8rem;
     padding: 1.4rem 1.6rem;
-    background: var(--cream-dark);
+    background: white;
     border-bottom: 1px solid var(--border);
 }
 
 /* Producer title */
 
 .producer-name {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 1.35rem;
     font-weight: 700;
     color: var(--text);
@@ -313,7 +313,7 @@
     flex-direction: column;
     gap: 0.3rem;
     font-size: 0.85rem;
-    color: var(--text);
+    color: var(--text-muted);
 }
 
 .producer-info span {
@@ -322,12 +322,9 @@
 
 /* Delivery form section */
 
-.form-header {
-    margin-bottom: 1rem;
-}
-
-.form-header h1 {
-    font-size: 1rem;
+.form-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
     margin: 0.8rem 0 0.2rem 0;
 }
 
@@ -460,7 +457,7 @@ border: 1px solid var(--border);
 border-radius: 8px;
 font-family: 'Source Sans 3', sans-serif;
 font-size: 0.95rem;
-background: var(--bg);
+background: var(--cream);
 transition: all 0.2s;
 color: var(--text);
 }
@@ -512,14 +509,9 @@ min-height: 100px;
                 <h2 class="producer-name">
                     {{ producer_group.producer_profile.business_name }}
                 </h2>
-                
-                <div class="form-header">
-                    <h1>Enter Order Delivery Details</h1>
-                    <p>Please confirm the order collection type after reviewing the producer's address below.</p>
-                </div>
 
                 <div class="producer-info">
-                    <span>Producer: {{ producer_group.producer_name }} fhis0ighspdh</span>
+                    <span>Producer: {{ producer_group.producer_name }}</span>
                     <span>Collection address: {{ producer_group.producer_profile.business_address }}</span>
                     <span>Postcode: {{ producer_group.producer_profile.postcode }}</span>
                 </div>
@@ -527,6 +519,11 @@ min-height: 100px;
                 {% if error %}
                 <div class="error-banner">{{ error }}</div>
                 {% endif %}
+
+                <div class="form-header">
+                    <h3>Enter Order Delivery Details</h3>
+                    <p>Please confirm the order collection type after reviewing the producer's address below.</p>
+                </div>
 
                 <div class="form-group">
                     <label class="form-label">Collection Type <span class="required">*</span></label>
@@ -545,7 +542,7 @@ min-height: 100px;
 
             </div>
 
-            <!-- Simplified products grid for this producer, showing only product item name, quantity and image -->
+            <!-- Simplified products grid for each producer, showing only product item name, quantity and image -->
             <div class="products-grid">
                 {% for item in producer_group.items %}
                 <div class="product-card">
@@ -600,19 +597,13 @@ min-height: 100px;
                             <strong>£{{ basket.total_price }}</strong>
                         </div>
                     </div>
-                </div>
-                <div class="order-summary-section">
                     <button type="submit" class="btn-checkout">
                         Proceed to payment →
                     </button>
                 </div>
-                <div class="order-summary-section">
-                    
-                </div>
             </div>
         </div>
     </form>
-    
 </div>
 
 {% endblock %}
