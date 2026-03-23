@@ -270,19 +270,6 @@
     color: #fff;
 }
 
-/* Inactive / disabled button */
-.disabled-btn {
-    background: #A9A9A9;
-    color: #fff;
-    border: 1.5px solid #808080;
-    padding: 0.7rem 1.5rem;
-    border-radius: var(--radius);
-    font-family: 'Source Sans 3', sans-serif;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: background 0.2s, color 0.2s;
-}
-
 /* Remove button */
 .btn-danger {
     background: transparent;
@@ -306,26 +293,6 @@
     color: #fff;
 }
 
-/* Checkout button */
-.btn-checkout {
-    background: #fff;
-    color: var(--green);
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.4rem;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.btn-checkout:hover {
-    transform: translateY(-2px);
-    color: var(--terra-light);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-}
-
 /* -- RESULTS BAR -- */
 .results-bar {
     display: flex;
@@ -345,8 +312,8 @@
 
 .results-count strong { color: var(--text); }
 
-/* -- ORDER SUMMARY BLOCK -- */
-.order-summary-wrapper {
+/* -- ACTION BLOCK -- */
+.action-wrapper {
     padding: 1.25rem 0 0.75rem;
     border-top: 1px solid var(--border);
     margin-top: 1.75rem;
@@ -354,50 +321,11 @@
     gap: 0.5rem;
 }
 
-.order-summary-block {
-    background: linear-gradient(135deg, var(--green), #208922);
-    border-radius: 14px;
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
-
-/* -- LEFT SECTION -- */
-.order-summary-left {
-    color: #fff;
-}
-
-.order-summary-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    margin: 0 0 0.75rem 0;
-}
-
-.order-summary-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 3rem;
-    font-size: 0.95rem;
-    opacity: 0.95;
-}
-
-.summary-row strong {
-    font-weight: 700;
-}
-
 /* -- RIGHT SECTION -- */
-.order-summary-right {
+.action-buttons {
     display: flex;
     align-items: center;
+    gap: 1rem;
 }
 
 /* -- RESULT BANNERS -- */
@@ -469,15 +397,6 @@
     </nav>
 
     <h1 class="basket-name">My Basket</h1>
-
-    <form method="POST" action="/basket/clear/">
-        {% csrf_token %}
-        {% if basket.items %}
-        <button type="submit" class="btn-secondary"> Clear Basket </button>
-        {% else %}
-        <button type="submit" class="disabled-btn" disabled> Clear Basket </button>
-        {% endif %}
-    </form>
 
     {% if basket.items %}
     <div class="results-bar">
@@ -592,29 +511,16 @@
     </div>
     {% endfor %}
 
-    <!-- ORDER SUMMARY -->
-    <div class="order-summary-wrapper">
-        <div class="order-summary-block">
-            <div class="order-summary-left">
-                <h3 class="order-summary-title">Basket Items Summary</h3>
-
-                <div class="order-summary-stats">
-                    <div class="summary-row">
-                        <span>Total Items</span>
-                        <strong>{{ basket.total_items }}</strong>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Total Price</span>
-                        <strong>£{{ basket.total_price|floatformat:2 }}</strong>
-                    </div>
-                    <p style="margin-top: 1rem;">Note: delivery type and dates will be selected at checkout.</p>
-                </div>
-            </div>
-
-            <div class="order-summary-right">
-                <a href="/basket/checkout/" class="btn-checkout">Proceed to Checkout →</a>
-            </div>
+    <!-- CHECKOUT SECTION -->
+    <div class="action-wrapper">
+        <div class="action-buttons">
+            <form method="POST" action="/basket/clear/">
+                {% csrf_token %}
+                {% if basket.items %}
+                <button type="submit" class="btn-secondary"> Clear Basket </button>
+                {% endif %}
+            </form>
+            <a href="/basket/checkout/" class="btn-secondary" style="text-decoration: none;">Proceed to Checkout →</a>
         </div>
     </div>
     

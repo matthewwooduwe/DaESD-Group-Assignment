@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from users.models import ProducerProfile, CustomerProfile
 from products.models import Category, Product
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, OrderStatusLog, CustomerOrder
 from reviews.models import Review
 from decimal import Decimal
 from django.utils import timezone
@@ -21,7 +21,10 @@ class Command(BaseCommand):
         
         # Delete existing data in reverse order of dependency to maintain referential integrity.
         Review.objects.all().delete()
-        Order.objects.all().delete() 
+        OrderStatusLog.objects.all().delete()
+        OrderItem.objects.all().delete()
+        Order.objects.all().delete()
+        CustomerOrder.objects.all().delete()
         Product.objects.all().delete()
         Category.objects.all().delete()
         
@@ -148,10 +151,15 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'Created {len(created_products)} products'))
 
-        # 4. Create Order
+        # 4. Create Orders
         if created_products and customer:
+            customer_order, created = CustomerOrder.objects.get_or_create(
+                customer=customer
+            )
             order, created = Order.objects.get_or_create(
+                customer_order=customer_order,
                 customer=customer,
+                producer=producer,
                 status='PENDING',
                 defaults={
                     'total_amount': Decimal('0.00'), # Will calculate
@@ -176,6 +184,11 @@ class Command(BaseCommand):
                 
                 order.total_amount = total
                 order.save()
+
+                # Calculate and set overall customer order price
+                customer_order.total_amount = total
+                customer_order.save()
+
                 self.stdout.write(self.style.SUCCESS(f'Created order for {customer.username}'))
 
         # 5. Create Review

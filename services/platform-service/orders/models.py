@@ -11,7 +11,7 @@ class CustomerOrder(models.Model):
         related_name='customer_order'
     )
     
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text=_("Total across all producer orders"))
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text=_("The total amount of the overall order including multi-vendor subtotals."))
     commission_total = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00,
         help_text=_("Total 5% commission across all producer orders")
@@ -72,7 +72,7 @@ class Order(models.Model):
         DELIVERED = 'DELIVERED', _('Delivered')
 
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', help_text=_("Customer user that placed the order."))
-    customer_order = models.ForeignKey(CustomerOrder, on_delete=models.CASCADE, related_name='orders',help_text=_("Parent customer order item this order belongs to"))
+    customer_order = models.ForeignKey(CustomerOrder, on_delete=models.CASCADE, related_name='orders',help_text=_("Parent customer order item this order belongs to."))
     producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,null=True, blank=True, related_name='producer_orders')
     producer_payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
