@@ -1,0 +1,135 @@
+{% extends "web/base.html" %}
+
+{% block title %}My Orders — BRFN{% endblock %}
+
+{% block extra_styles %}
+.dashboard-header {
+    background: var(--nav-bg);
+    padding: 3rem 0;
+    color: #fff;
+    margin-bottom: 2rem;
+}
+.dashboard-header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+.dashboard-title h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-secondary:hover {
+    background: var(--green);
+    color: #fff;
+}
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.orders-table th, .orders-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.orders-table th {
+    background: var(--cream-dark);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+.orders-table tr:hover {
+    background: var(--cream);
+}
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+}
+.empty-state h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div class="container dashboard-header-inner">
+        <div class="dashboard-title">
+            <h1>My Orders</h1>
+            <p>View all your placed orders and track their status.</p>
+        </div>
+        <a href="/" class="btn-secondary" style="color: white; border-color: white;">← Continue Shopping</a>
+    </div>
+</section>
+
+<div class="container">
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+
+    {% if orders %}
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order Number</th>
+                <th>Date Placed</th>
+                <th>Total Items</th>
+                <th>Total Price</th>
+                <th>Overall Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.created_at|slice:":10" }}</td>
+                <td>{{ order.total_items }}</td>
+                <td>£{{ order.total_amount|default:"0.00"|floatformat:2 }}</td>
+                <td><span class="badge badge-category">{{ order.overall_status }}</span></td>
+                <td><a href="/orders/customer/{{ order.id }}/" class="btn-secondary btn-sm">View Details</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Orders Yet</h3>
+        <p>You haven't placed any orders yet.</p>
+    </div>
+    {% endif %}
+</div>
+<br><br>
+{% endblock %}

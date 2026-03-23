@@ -822,6 +822,7 @@ def basket_view(request):
     """
     basket = None
     error = None
+    items_by_producer = None
 
     if not request.session.get('token'):
         error = "Please log in to view your basket."
@@ -837,6 +838,7 @@ def basket_view(request):
         )
         if resp.status_code == 200:
             basket = resp.json()
+            items_by_producer = basket.get('items_by_producer')
         elif resp.status_code == 401:
             error = "Your session has expired. Please log in again."
             request.session.flush()
@@ -860,6 +862,7 @@ def basket_view(request):
 
     return render(request, 'web/basket.html', {
         'basket': basket,
+        'items_by_producer': items_by_producer,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
     })
@@ -1023,12 +1026,14 @@ def update_basket_item(request, item_id):
             )
             if resp.status_code == 200:
                 basket = resp.json()
+                items_by_producer = basket.get('items_by_producer', [])
         except:
             pass
         
         return render(request, 'web/basket.html', {
             'basket': basket,
             'error': error,
+            'items_by_producer': items_by_producer,
             'media_base_url': MEDIA_BASE_URL,
         })
     
@@ -1152,6 +1157,205 @@ def clear_basket(request):
         })
     
     return redirect('/basket/')
+
+def checkout_view(request):
+    """
+    Display the customer's basket with all items.
+    """
+    basket = None
+    error = None
+    items_by_producer = None
+
+    if not request.session.get('token'):
+        error = "Please log in to checkout."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/basket/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            basket = resp.json()
+            items_by_producer = basket.get('items_by_producer')
+        
+        elif resp.status_code == 401:
+            error = "Your session has expired. Please log in again."
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': error,
+            })
+        else:
+            error = f"Unexpected error: could not load checkout page (status {resp.status_code})."
+
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API. Is the platform-service running?"
+    except requests.exceptions.Timeout:
+        error = "The platform API took too long to respond."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/checkout.html', {
+        'basket': basket,
+        'items_by_producer': items_by_producer,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+def create_order(request):
+    """
+    Processes the checkout. Sends basket to backend API to create multi-vendor or single-vendor order.
+    """
+    if not request.session.get('token'):
+        error = "Please log in to place an order."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+    
+    error = None
+    delivery_dates = {}
+    collection_types = {}
+
+    if request.method == 'POST':
+        for key, value in request.POST.items():
+            if key.startswith('delivery_date_'):
+                producer_id = key.replace('delivery_date_', '')
+                delivery_dates[producer_id] = value
+            elif key.startswith('collection_type_'):
+                producer_id = key.replace('collection_type_', '')
+                collection_types[producer_id] = value
+
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/orders/place/",
+                headers=get_auth_headers(request),
+                json={
+                    'delivery_dates': delivery_dates,
+                    'collection_types': collection_types,
+                },
+                timeout=10
+            )
+            
+            if resp.status_code == 201:
+                # Order created successfully. Redirect customer to receipt page.
+                customer_order_id = resp.json().get('id')
+                return redirect(f'/orders/customer/{customer_order_id}/')
+                
+            elif resp.status_code == 400:
+                # Validation error (empty basket, insufficient stock, etc.)
+                data = resp.json()
+                error = data.get('error', 'Could not place order.')
+                
+                return render(request, 'web/basket.html', {
+                    'error': error
+                })
+                
+            elif resp.status_code == 401:
+                error = "Your session has expired. Please log in again."
+                request.session.flush()
+                return render(request, 'web/login.html', {
+                    'error': error,
+                })
+                
+            else:
+                error = f"Checkout failed (status {resp.status_code})."
+                return redirect('/basket/')
+
+        except requests.exceptions.ConnectionError:
+            error = "Cannot reach the platform API. Is the platform-service running?"
+        except requests.exceptions.Timeout:
+            error = "The platform API took too long to respond."
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
+    
+    return render(request, 'web/basket.html', {
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL,
+    })
+
+def customer_order_history_view(request):
+    if not request.session.get('token'):
+        error = "Please log in to place an order."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+
+    orders = None
+    error = None
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/customer-orders/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            orders = resp.json()
+        
+        elif resp.status_code == 401:
+            request.session.flush()
+            return redirect('/login/')
+        
+        else:
+            error = f"Could not load orders (status {resp.status_code})."
+    
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API."
+    except requests.exceptions.Timeout:
+        error = "Request timed out."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/customer_order_history.html', {
+        'orders': orders,
+        'error': error,
+    })
+
+def customer_order_detail_view(request, order_id):
+    """
+    Displays order confirmation and details to the customer after checkout.
+    """
+    if not request.session.get('token'):
+        error = "Please log in to place an order."
+        return render(request, 'web/login.html', {
+            'error': error,
+        })
+
+    order = None
+    error = None
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/customer-orders/{order_id}/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        
+        if resp.status_code == 200:
+            order = resp.json()
+        elif resp.status_code == 404:
+            error = "Order not found."
+        elif resp.status_code == 401:
+            error = "Your session has expired. Please log in again."
+            request.session.flush()
+            return redirect('/login/')
+        else:
+            error = f"Could not load order (status {resp.status_code})."
+
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API."
+    except requests.exceptions.Timeout:
+        error = "Request timed out."
+    except Exception as e:
+        error = f"Unexpected error: {str(e)}"
+
+    return render(request, 'web/customer_order_detail.html', {
+        'order': order,
+        'error': error,
+    })
 
 def producer_orders_view(request):
     """
