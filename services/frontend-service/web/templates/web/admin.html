@@ -488,10 +488,7 @@
                         <script type="application/json" id="user-data-{{ user.id }}">{"id": {{ user.id }}, "username": "{{ user.username|escapejs }}", "email": "{{ user.email|default:''|escapejs }}", "phone": "{{ user.phone_number|default:''|escapejs }}", "role": "{{ user.role }}", "firstName": "{{ user.customer_profile.first_name|default:''|escapejs }}", "lastName": "{{ user.customer_profile.last_name|default:''|escapejs }}", "deliveryAddress": "{{ user.customer_profile.delivery_address|default:''|escapejs }}", "customerPostcode": "{{ user.customer_profile.postcode|default:''|escapejs }}", "businessName": "{{ user.producer_profile.business_name|default:''|escapejs }}", "businessAddress": "{{ user.producer_profile.business_address|default:''|escapejs }}", "producerPostcode": "{{ user.producer_profile.postcode|default:''|escapejs }}", "bio": "{{ user.producer_profile.bio|default:''|escapejs }}"}</script>
                         <button class="btn-sm-edit" onclick="openEditModalFromBtn({{ user.id }})">Edit</button>
                         {% if user.role != 'ADMIN' %}
-                        <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-sm-danger">Delete</button>
-                        </form>
+                        <button type="button" class="btn-sm-danger" onclick="showConfirmModal('Delete User', 'Delete user {{ user.username }}? This cannot be undone.', '/admin-dashboard/users/{{ user.id }}/delete/')">Delete</button>
                         {% else %}
                         <span style="color: var(--text-muted); font-size:0.8rem;">Protected</span>
                         {% endif %}
@@ -539,10 +536,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <form method="POST" action="/admin-dashboard/products/{{ product.id }}/delete/" onsubmit="return confirm('Delete product {{ product.name }}? This cannot be undone.');" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-sm-danger">Delete</button>
-                        </form>
+                        <button type="button" class="btn-sm-danger" onclick="showConfirmModal('Delete Product', 'Delete {{ product.name }}? This cannot be undone.', '/admin-dashboard/products/{{ product.id }}/delete/')">Delete</button>
                     </td>
                 </tr>
                 {% empty %}

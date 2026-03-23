@@ -241,11 +241,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
             <div class="profile-card danger-card">
                 <div class="card-title" style="color: #a0422a;">Delete Account</div>
                 <div class="card-subtitle">This is permanent and cannot be undone. All your data will be removed.</div>
-                <form method="POST" onsubmit="return confirm('Are you absolutely sure? This will permanently delete your account and cannot be undone.');">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete_account">
-                    <button type="submit" class="btn-danger">Delete My Account</button>
-                </form>
+                <button type="button" class="btn-danger" onclick="showConfirmModal('Delete Account', 'Are you absolutely sure? This will permanently delete your account and all your data. This cannot be undone.', '/profile/', 'delete_account')">Delete My Account</button>
             </div>
 
         </div>
