@@ -3,7 +3,12 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from decimal import Decimal
-from django.utils.translation import gettext_lazy as _
+
+class ActiveManager(models.Manager):
+    """Manager to filter out soft-deleted objects."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
 
 class Category(models.Model):
     """
@@ -45,12 +50,22 @@ class Product(models.Model):
     seasonal_end_month = models.PositiveSmallIntegerField(blank=True, null=True, help_text=_("Automation for seasonal visibility (1-12)"))
     
     image = models.ImageField(upload_to="products/", blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     class Meta:
         db_table = 'products'
+
+    def delete(self, *args, **kwargs):
+        """Soft delete the product instead of resolving it from the DB."""
+        self.is_deleted = True
+        self.is_available = False
+        self.save()
 
     @property
     def surplus_deal(self):

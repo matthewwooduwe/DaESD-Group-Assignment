@@ -4,6 +4,12 @@ from django.utils.translation import gettext_lazy as _
 from products.models import Product
 from decimal import Decimal
 
+class ActiveManager(models.Manager):
+    """Manager to filter out soft-deleted objects."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
 class CustomerOrder(models.Model):
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -80,10 +86,19 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     delivery_date = models.DateField(blank=True, null=True, help_text=_("Must enforce 48-hour lead time"))
     collection_type = models.CharField(blank=True, null=True, max_length=50, help_text=_("The collection type for the order. Options are deliver to address or collect from producer."))
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         db_table = 'orders'
+
+    def delete(self, *args, **kwargs):
+        """Soft delete the order."""
+        self.is_deleted = True
+        self.save()
 
     def __str__(self):
         return f"Order #{self.id} - {self.customer.username}"
@@ -113,9 +128,18 @@ class OrderItem(models.Model):
     price_at_sale = models.DecimalField(max_digits=10, decimal_places=2, help_text=_("Snapshot for financial auditing"))
     producer_payout = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text=_("95% of item value"))
     network_commission = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text=_("5% of item value"))
+    is_deleted = models.BooleanField(default=False)
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         db_table = 'order_items'
+
+    def delete(self, *args, **kwargs):
+        """Soft delete the order item."""
+        self.is_deleted = True
+        self.save()
 
     def save(self, *args, **kwargs):
         # Capture current product price if not set
