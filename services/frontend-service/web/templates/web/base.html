@@ -278,6 +278,7 @@
         <li><a href="/" style="{% if request.path == '/' %}font-weight: bold; color: #fff;{% endif %}">Browse</a></li>
         {% if request.session.role == 'CUSTOMER' %}
         <li><a href="/basket/" style="{% if request.path == '/basket/' %}font-weight: bold; color: #fff;{% endif %}">Basket</a></li>
+        <li><a href="/orders/">Order History</a></li>
         <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% elif request.session.role == 'PRODUCER' %}

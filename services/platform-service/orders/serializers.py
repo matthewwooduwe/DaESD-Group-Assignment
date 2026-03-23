@@ -1,10 +1,8 @@
 from rest_framework import serializers
-from .models import Order, OrderItem, OrderStatusLog
-from products.models import Product
+from .models import Order, OrderItem, OrderStatusLog, CustomerOrder
 from products.models import Product
 from django.utils import timezone
 import datetime
-from products.models import Product
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.ReadOnlyField(source='product.name')
@@ -33,21 +31,18 @@ class OrderSerializer(serializers.ModelSerializer):
     customer_email = serializers.CharField(source='customer.email', read_only=True)
     delivery_address = serializers.CharField(source='customer.customer_profile.delivery_address', read_only=True)
     
+    # Producer Details for Overall Customer Orders
+    producer_name = serializers.CharField(source='producer.producer_profile.business_name')
+    
     # Producer specific total
     producer_total = serializers.SerializerMethodField()
-
-    item_ids = serializers.ListField(
-        child=serializers.DictField(child=serializers.IntegerField()), 
-        write_only=True,
-        help_text=" List of {'product_id': int, 'quantity': int}"
-    )
 
     class Meta:
         model = Order
         fields = (
             'id', 'customer', 'customer_username', 'customer_full_name', 'customer_phone', 
-            'customer_email', 'delivery_address', 'total_amount', 'producer_total', 
-            'status', 'status_logs', 'delivery_date', 'created_at', 'items', 'item_ids'
+            'customer_email', 'delivery_address', 'collection_type', 'total_amount', 'producer_name',
+            'producer_total', 'status', 'status_logs', 'delivery_date', 'created_at', 'items'
         )
         read_only_fields = ('id', 'customer', 'total_amount', 'created_at', 'items', 'producer_total', 'status_logs')
 
@@ -79,36 +74,14 @@ class OrderSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Delivery date must be at least 48 hours from now.")
         return value
 
-    def create(self, validated_data):
-        """
-        Custom create logic to handle multiple order items and stock validation.
-        """
-        item_ids = validated_data.pop('item_ids')
-        order = Order.objects.create(**validated_data)
-        
-        total_amount = 0
-        for item_data in item_ids:
-            product = Product.objects.get(id=item_data['product_id'])
-            
-            # Atomic check for stock availability
-            if product.stock_quantity < item_data['quantity']:
-                raise serializers.ValidationError(f"Not enough stock for {product.name}")
-            
-            # Create the order item snapshot
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item_data['quantity'],
-                price_at_sale=product.price
-            )
-            
-            # Deduct from inventory
-            product.stock_quantity -= item_data['quantity']
-            product.save()
-            
-            total_amount += product.price * item_data['quantity']
-            
-        order.total_amount = total_amount
-        order.save()
-        
-        return order
+class CustomerOrderSerializer(serializers.ModelSerializer):
+    orders = OrderSerializer(many=True, read_only=True)
+    overall_status = serializers.CharField(read_only=True)
+    total_items = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = CustomerOrder
+        fields = (
+            'id', 'customer', 'total_amount', 'commission_total', 'overall_status',
+            'total_items', 'orders', 'created_at', 'updated_at'
+        )

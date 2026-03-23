@@ -1,0 +1,249 @@
+{% extends "web/base.html" %}
+
+{% block title %}Order Confirmation - BRFN{% endblock %}
+
+{% block extra_styles %}
+
+/* -- BUTTONS --*/
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--green);
+    color: #fff;
+}
+
+.action-buttons{
+    margin-top: 2.5rem;
+    margin-bottom: 5rem;
+}
+
+/* -- ORDER HEADER & SUMMARY -- */
+.order-header{
+    margin: 2rem 0;
+}
+
+.order-header h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.order-detail-header h3{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* -- ORDER DETAILS BY PRODUCER -- */
+
+.detail-card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.detail-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.detail-row {
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: baseline;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.producer-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.producer-order-card {
+    background: var(--cream-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.producer-order-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.producer-order-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.producer-order-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.producer-order-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.producer-order-subtotal {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.order-status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.order-status-badge.pending { background: #f0cc8f; color: #854F0B; }
+.order-status-badge.confirmed { background: #91c1ed; color: #185FA5; }
+.order-status-badge.ready { background: #c3dda1; color: #3B6D11; }
+.order-status-badge.delivered { background: #53c69d; color: #0F6E56; }
+
+.producer-order-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.order-item-row:last-child { border-bottom: none; }
+.order-item-name { font-size: 14px; color: var(--text); }
+
+.order-item-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.order-item-qty { font-size: 13px; color: var(--text-muted); }
+.order-item-price { font-size: 13px; color: var(--text-muted); }
+
+.order-item-subtotal {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 60px;
+    text-align: right;
+}
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    {% if error %}
+    <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
+    {% endif %}
+
+    {% if order %}
+
+    <!-- Order Header -->
+    <div class="order-header">
+        <h1>Order #{{ order.id }}</h1>
+        <p style="color: var(--text-muted);">
+            • Placed on {{ order.created_at|slice:":10" }}
+        </p>
+    </div>
+    
+    <!-- Overall Order Summary -->
+    <div class="detail-card">
+        <h3>Order Summary</h3>
+        <div class="detail-row">
+            <span class="detail-label">Total Items:</span>
+            <span>{{ order.total_items }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Total Price:</span>
+            <span>£{{ order.total_amount|default:"0.00"|floatformat:2 }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Overall Status:</span>
+            <span><span class="badge badge-category">{{ order.overall_status }}</span></span>
+        </div>
+    </div>
+
+    <!-- Producer Orders -->
+    <div class="order-detail-header">
+        <h3>Order Details by Producer</h3>
+    </div>
+    <div class="producer-orders-list">
+        {% for producer_order in order.orders %}
+        <div class="producer-order-card">
+            <div class="producer-order-header">
+                <div class="producer-order-left">
+                    <p class="producer-order-name">{{ producer_order.producer_name }}</p>
+                    <div class="producer-order-meta">
+                        <span class="producer-order-subtotal">Subtotal: £{{ producer_order.total_amount|floatformat:2 }}</span>
+                        <span class="producer-order-subtotal">Delivery date: {{ producer_order.delivery_date }}</span>
+                        <span class="producer-order-subtotal">Collection type: {{ producer_order.collection_type }}</span>
+                    </div>
+                </div>
+                <span class="order-status-badge {{ producer_order.status|lower }}">{{ producer_order.status }}</span>
+            </div>
+            <div class="producer-order-items">
+                {% for item in producer_order.items %}
+                <div class="order-item-row">
+                    <span class="order-item-name">{{ item.product_name }}</span>
+                    <div class="order-item-right">
+                        <span class="order-item-qty">x{{ item.quantity }}</span>
+                        <span class="order-item-price">£{{ item.price_at_sale|floatformat:2 }} each</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+        <a href="/" class="btn-secondary" style="text-decoration: none;">← Continue Shopping</a>
+        <a href="/orders/" class="btn-secondary" style="text-decoration: none; margin-left: 1rem;">View All Orders</a>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
