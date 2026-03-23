@@ -246,6 +246,84 @@
             font-size: 0.875rem;
         }
 
+        /* ── CONFIRMATION MODAL ── */
+        .confirm-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirm-modal-overlay.open { display: flex; }
+        .confirm-modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        }
+        .confirm-modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #fde8e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+        .confirm-modal h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .confirm-modal p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .confirm-modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .btn-confirm-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+            padding: 0.65rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            flex: 1;
+        }
+        .btn-confirm-cancel:hover { border-color: var(--text-muted); }
+        .btn-confirm-delete {
+            background: #a0422a;
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+        .btn-confirm-delete:hover { background: #8b3520; }
+
         {% block extra_styles %}{% endblock %}
     </style>
 </head>
@@ -331,6 +409,52 @@
         <p class="footer-copy">© 2026 <strong>Bristol Regional Food Network</strong> · Bristol, UK</p>
     </div>
 </footer>
+
+<!-- Global Confirmation Modal -->
+<div class="confirm-modal-overlay" id="confirm-modal">
+    <div class="confirm-modal">
+        <div class="confirm-modal-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a0422a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </div>
+        <h2 id="confirm-modal-title">Are you sure?</h2>
+        <p id="confirm-modal-message">This action cannot be undone.</p>
+        <div class="confirm-modal-actions">
+            <button class="btn-confirm-cancel" id="confirm-cancel-btn">Cancel</button>
+            <form id="confirm-modal-form" method="POST" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm-delete" style="width:100%;">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showConfirmModal(title, message, action, hiddenAction) {
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-message').textContent = message;
+    document.getElementById('confirm-modal-form').action = action;
+    var existing = document.getElementById('confirm-hidden-action');
+    if (existing) existing.remove();
+    if (hiddenAction) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'action';
+        input.value = hiddenAction;
+        input.id = 'confirm-hidden-action';
+        document.getElementById('confirm-modal-form').appendChild(input);
+    }
+    document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.remove('open');
+}
+
+document.getElementById('confirm-cancel-btn').addEventListener('click', closeConfirmModal);
+document.getElementById('confirm-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirmModal();
+});
+</script>
 
 </body>
 </html>

@@ -329,11 +329,7 @@ margin-bottom: 0.5rem;
 
                 <div class="card-actions">
                     <a href="/products/{{ product.id }}/edit/" class="btn-secondary" style="flex: 1;">Edit</a>
-                    <form method="POST" action="/products/{{ product.id }}/delete/"
-                        onsubmit="return confirm('Are you sure you want to delete this product?');">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-danger">Delete</button>
-                    </form>
+                    <button type="button" class="btn-danger" onclick="showConfirmModal('Delete Product', 'Are you sure you want to delete {{ product.name }}? This cannot be undone.', '/products/{{ product.id }}/delete/')">Delete</button>
                 </div>
 
                 <div class="card-footer">
