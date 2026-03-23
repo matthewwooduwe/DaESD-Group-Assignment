@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from users.models import ProducerProfile, CustomerProfile
 from products.models import Category, Product
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, CustomerOrder
 from reviews.models import Review
 from decimal import Decimal
 from django.utils import timezone
@@ -83,8 +83,7 @@ class Command(BaseCommand):
             customer.save()
             CustomerProfile.objects.create(
                 user=customer,
-                first_name="Alice",
-                last_name="Smith",
+                full_name="Alice Smith",
                 delivery_address="456 City Road",
                 postcode="BS2 2BB"
             )
@@ -150,11 +149,20 @@ class Command(BaseCommand):
 
         # 4. Create Order
         if created_products and customer:
+            customer_order, _ = CustomerOrder.objects.get_or_create(
+                customer=customer,
+                defaults={
+                    'total_amount': Decimal('0.00'),
+                    'delivery_date': timezone.now().date() + timezone.timedelta(days=2)
+                }
+            )
+
             order, created = Order.objects.get_or_create(
                 customer=customer,
+                customer_order=customer_order,
                 status='PENDING',
                 defaults={
-                    'total_amount': Decimal('0.00'), # Will calculate
+                    'total_amount': Decimal('0.00'),
                     'delivery_date': timezone.now().date() + timezone.timedelta(days=2)
                 }
             )

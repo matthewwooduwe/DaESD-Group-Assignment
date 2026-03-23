@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order, OrderItem, OrderStatusLog
+from .models import Order, OrderItem, OrderStatusLog, CustomerOrder
 from products.models import Product
 from django.utils import timezone
 from decimal import Decimal
@@ -33,22 +33,19 @@ class OrderSerializer(serializers.ModelSerializer):
     customer_email = serializers.CharField(source='customer.email', read_only=True)
     delivery_address = serializers.CharField(source='customer.customer_profile.delivery_address', read_only=True)
     
+    # Producer Details
+    producer_name = serializers.CharField(source='producer.producer_profile.business_name', read_only=True)
+    
     # Producer specific total
     producer_total = serializers.SerializerMethodField()
-
-    item_ids = serializers.ListField(
-        child=serializers.DictField(child=serializers.IntegerField()), 
-        write_only=True,
-        help_text=" List of {'product_id': int, 'quantity': int}"
-    )
 
     class Meta:
         model = Order
         fields = (
             'id', 'customer', 'customer_username', 'customer_first_name', 'customer_last_name',
-            'customer_phone', 'customer_email', 'delivery_address', 'total_amount', 'commission_total',
-            'producer_total', 'status', 'status_logs', 'delivery_date', 'created_at', 
-            'items', 'item_ids'
+            'customer_phone', 'customer_email', 'delivery_address', 'collection_type',
+            'total_amount', 'commission_total', 'producer_name', 'producer_total',
+            'status', 'status_logs', 'delivery_date', 'created_at', 'items'
         )
         read_only_fields = ('id', 'customer', 'total_amount', 'commission_total', 'created_at', 'items', 'producer_total', 'status_logs')
 
@@ -56,7 +53,6 @@ class OrderSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         items = obj.items.all()
         
-        # If the requester is a PRODUCER, only show their products in this order
         if request and hasattr(request, 'user') and request.user.role == 'PRODUCER':
             items = items.filter(product__producer=request.user)
             
@@ -66,51 +62,24 @@ class OrderSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and hasattr(request, 'user') and request.user.role == 'PRODUCER':
             items = obj.items.filter(product__producer=request.user)
-            # Sum up producer_payout or just unit price * quantity depending on need
-            # We'll use price_at_sale * quantity as total value the customer paid for their items
             return sum(item.price_at_sale * item.quantity for item in items)
         return None
 
     def validate_delivery_date(self, value):
         if value:
-            # Enforce 48 hour lead time
-            # Assuming delivery dates are whole dates, 48 hours means delivery date must be >= today + 2 days
             min_date = timezone.now().date() + datetime.timedelta(days=2)
             if value < min_date:
                 raise serializers.ValidationError("Delivery date must be at least 48 hours from now.")
         return value
 
-    def create(self, validated_data):
-        """
-        Custom create logic to handle multiple order items and stock validation.
-        """
-        item_ids = validated_data.pop('item_ids')
-        order = Order.objects.create(**validated_data)
-        
-        total_amount = 0
-        for item_data in item_ids:
-            product = Product.objects.get(id=item_data['product_id'])
-            
-            # Atomic check for stock availability
-            if product.stock_quantity < item_data['quantity']:
-                raise serializers.ValidationError(f"Not enough stock for {product.name}")
-            
-            # Create the order item snapshot
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item_data['quantity'],
-                price_at_sale=product.price
-            )
-            
-            # Deduct from inventory
-            product.stock_quantity -= item_data['quantity']
-            product.save()
-            
-            total_amount += product.price * item_data['quantity']
-            
-        order.total_amount = total_amount
-        order.commission_total = total_amount * Decimal('0.05')
-        order.save()
-        
-        return order
+class CustomerOrderSerializer(serializers.ModelSerializer):
+    orders = OrderSerializer(many=True, read_only=True)
+    overall_status = serializers.CharField(read_only=True)
+    total_items = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = CustomerOrder
+        fields = (
+            'id', 'customer', 'total_amount', 'commission_total', 'overall_status',
+            'total_items', 'orders', 'created_at', 'updated_at'
+        )

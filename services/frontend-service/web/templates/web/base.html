@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'web/assets/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'web/assets/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'web/assets/favicon-16x16.png' %}">
+    <link rel="shortcut icon" href="{% static 'web/assets/favicon.ico' %}">
     <style>
         :root {
             --bg:           #fdf9f3;
@@ -273,6 +278,7 @@
         <li><a href="/" style="{% if request.path == '/' %}font-weight: bold; color: #fff;{% endif %}">Browse</a></li>
         {% if request.session.role == 'CUSTOMER' %}
         <li><a href="/basket/" style="{% if request.path == '/basket/' %}font-weight: bold; color: #fff;{% endif %}">Basket</a></li>
+        <li><a href="/orders/">Order History</a></li>
         <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% elif request.session.role == 'PRODUCER' %}
