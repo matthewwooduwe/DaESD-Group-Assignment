@@ -183,7 +183,13 @@ class Command(BaseCommand):
                     prod.save()
                 
                 order.total_amount = total
+                order.commission_total = total * Decimal('0.05')
                 order.save()
+
+                customer_order.total_amount = total
+                customer_order.commission_total = total * Decimal('0.05')
+                customer_order.save()
+
                 self.stdout.write(self.style.SUCCESS(f'Created order for {customer.username}'))
 
         # 5. Create Review
