@@ -1456,3 +1456,7 @@ def producer_update_order_status_view(request, order_id):
             return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(str(e))}')
 
     return redirect(f'/dashboard/orders/{order_id}/')
+
+def custom_404(request, exception=None):
+    """Custom 404 page."""
+    return render(request, 'web/404.html', status=404)

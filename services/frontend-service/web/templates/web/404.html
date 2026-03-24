@@ -1,0 +1,112 @@
+{% extends "web/base.html" %}
+
+{% block title %}Page Not Found — Bristol Regional Food Network{% endblock %}
+
+{% block extra_styles %}
+.error-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+}
+
+.error-content {
+    text-align: center;
+    max-width: 520px;
+}
+
+.error-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(6rem, 15vw, 10rem);
+    font-weight: 600;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    opacity: 0.15;
+}
+
+.error-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+}
+
+.error-message {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-home {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-home:hover { background: var(--green-mid); }
+
+.btn-back {
+    background: transparent;
+    color: var(--green);
+    border: 2px solid var(--green);
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.btn-back:hover { background: var(--green); color: #fff; }
+
+.error-illustration {
+    margin-bottom: 1.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-illustration">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="40" cy="40" r="38" stroke="var(--green)" stroke-width="2" opacity="0.2"/>
+                <circle cx="40" cy="40" r="30" fill="var(--green-light)"/>
+                <path d="M40 24C31.2 24 24 31.2 24 40C24 48.8 31.2 56 40 56C48.8 56 56 48.8 56 40C56 31.2 48.8 24 40 24Z" fill="var(--green)" opacity="0.15"/>
+                <path d="M32 36C32 34.9 32.9 34 34 34C35.1 34 36 34.9 36 36C36 37.1 35.1 38 34 38C32.9 38 32 37.1 32 36Z" fill="var(--green)"/>
+                <path d="M44 36C44 34.9 44.9 34 46 34C47.1 34 48 34.9 48 36C48 37.1 47.1 38 46 38C44.9 38 44 37.1 44 36Z" fill="var(--green)"/>
+                <path d="M32 47C33.5 44.5 36.5 43 40 43C43.5 43 46.5 44.5 48 47" stroke="var(--green)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="error-number">404</div>
+        <h1 class="error-title">Page not found</h1>
+        <p class="error-message">
+            Sorry, we couldn't find the page you were looking for.<br>
+            It may have been moved or no longer exists.
+        </p>
+        <div class="error-actions">
+            <a href="/" class="btn-home">Browse Produce</a>
+            <button onclick="history.back()" class="btn-back">Go Back</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
