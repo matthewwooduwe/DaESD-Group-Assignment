@@ -24,7 +24,6 @@ class CategoryList(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] # Allow admins to create? For now open or just producers? Let's generic.
 
 class ProductListCreateView(generics.ListCreateAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsProducerOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -32,8 +31,17 @@ class ProductListCreateView(generics.ListCreateAPIView):
     search_fields = ['name', 'description', 'producer__username']
     ordering_fields = ['price', 'created_at', 'stock_quantity']
 
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        # Filter out products containing specified allergens
+        exclude_allergens = self.request.query_params.getlist('exclude_allergen')
+        if exclude_allergens:
+            for allergen in exclude_allergens:
+                # Exclude products whose allergens JSON list contains this allergen
+                queryset = queryset.exclude(allergens__contains=allergen)
+        return queryset
+
     def perform_create(self, serializer):
-        # Automatically link the new product to the logged-in producer
         serializer.save(producer=self.request.user)
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -1,4 +1,5 @@
 import os
+import json
 import requests
 from django.shortcuts import render, redirect
 
@@ -7,6 +8,13 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
+
+# UK 14 Major Allergens
+UK_ALLERGENS = [
+    'Celery', 'Cereals containing gluten', 'Crustaceans', 'Eggs',
+    'Fish', 'Lupin', 'Milk', 'Molluscs', 'Mustard', 'Tree nuts',
+    'Peanuts', 'Sesame', 'Soya', 'Sulphur dioxide/sulphites',
+]
 
 def get_auth_headers(request):
     """Helper method to build authorization headers from session token."""
@@ -36,7 +44,7 @@ def index(request):
     """
     Product browsing / listing page.
     Fetches products and categories from the platform API, supporting
-    server-side filtering by category, organic status, and search term.
+    server-side filtering by category, organic status, search term and allergen exclusion.
     """
     products = []
     categories = []
@@ -45,6 +53,7 @@ def index(request):
     search = request.GET.get('search', '').strip()
     selected_category = request.GET.get('category', '').strip()
     is_organic = request.GET.get('organic', '')
+    exclude_allergens = request.GET.getlist('exclude_allergen')
 
     try:
         # Fetch available categories for the filter dropdown
@@ -63,6 +72,8 @@ def index(request):
             params['category__name'] = selected_category
         if is_organic:
             params['is_organic'] = 'true'
+        if exclude_allergens:
+            params['exclude_allergen'] = exclude_allergens
 
         resp_prod = requests.get(
             f"{PLATFORM_API_URL}/api/products/",
@@ -90,6 +101,8 @@ def index(request):
         'search': search,
         'selected_category': selected_category,
         'is_organic': is_organic,
+        'exclude_allergens': exclude_allergens,
+        'allergen_list': UK_ALLERGENS,
         'media_base_url': MEDIA_BASE_URL,
     })
 
@@ -631,6 +644,10 @@ def add_product_view(request):
             if not form_data.get(key):
                 form_data.pop(key, None)
 
+        # Handle allergens as JSON list
+        allergens = request.POST.getlist('allergens')
+        form_data['allergens'] = json.dumps(allergens)
+
         # Handle surplus fields
         is_surplus = 'is_surplus' in request.POST
         form_data['is_surplus'] = str(is_surplus).lower()
@@ -684,7 +701,8 @@ def add_product_view(request):
     return render(request, 'web/add_product.html', {
         'categories': categories,
         'error': error,
-        'success': success
+        'success': success,
+        'allergen_list': UK_ALLERGENS,
     })
 
 def edit_product_view(request, product_id):
@@ -736,6 +754,10 @@ def edit_product_view(request, product_id):
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
                 form_data.pop(key, None)
+
+        # Handle allergens as JSON list
+        allergens = request.POST.getlist('allergens')
+        form_data['allergens'] = json.dumps(allergens)
 
         # Handle surplus fields
         is_surplus = 'is_surplus' in request.POST
@@ -795,6 +817,7 @@ def edit_product_view(request, product_id):
         'product': product,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
+        'allergen_list': UK_ALLERGENS,
     })
 
 def delete_product_view(request, product_id):

@@ -1,10 +1,15 @@
 from django.contrib import admin
 from django.urls import path
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 from web import views
 
 handler404 = views.custom_404
 
 urlpatterns = [
+    # Favicon
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('web/assets/favicon.ico'), permanent=True)),
+
     # Index
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
@@ -36,7 +41,7 @@ urlpatterns = [
     path('orders/place/', views.create_order, name='create-order'),
     path('orders/customer/<int:order_id>/', views.customer_order_detail_view, name='customer-order-detail'),
 
-    # Producer dashboard and orders
+    # Profile, admin and producer
     path('profile/', views.profile_view, name='profile'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
     path('admin-dashboard/users/<int:user_id>/delete/', views.admin_delete_user, name='admin-delete-user'),

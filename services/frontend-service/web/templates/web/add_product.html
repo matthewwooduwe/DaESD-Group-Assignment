@@ -111,6 +111,27 @@ color: var(--text-muted);
 margin-top: 0.2rem;
 }
 
+.allergen-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.allergen-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, background 0.2s;
+}
+.allergen-checkbox-item:hover { border-color: var(--green); background: var(--green-pale); }
+.allergen-checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
+.allergen-checkbox-item input[type="checkbox"]:checked + span { color: var(--green); font-weight: 600; }
+
 .file-input {
 background: #fff;
 border: 2px dashed var(--border);
@@ -224,9 +245,21 @@ color: var(--green);
             </div>
 
             <div class="form-group full-width">
-                <label class="form-label">Allergen Information</label>
-                <input type="text" name="allergen_info" class="form-input" placeholder="e.g. Contains eggs, nuts">
-                <span class="form-help">Important for customer safety</span>
+                <label class="form-label">Major Allergens <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(UK 14 Allergens — tick all that apply)</span></label>
+                <div class="allergen-checkbox-grid">
+                    {% for allergen in allergen_list %}
+                    <label class="allergen-checkbox-item">
+                        <input type="checkbox" name="allergens" value="{{ allergen }}">
+                        <span>{{ allergen }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label class="form-label">Other Allergen Information</label>
+                <input type="text" name="allergen_info" class="form-input" placeholder="Any additional allergen details not listed above">
+                <span class="form-help">Optional — for allergens not covered by the 14 major allergens above</span>
             </div>
 
             <div class="form-group">
