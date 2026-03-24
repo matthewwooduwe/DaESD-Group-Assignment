@@ -7,6 +7,11 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
+PAYMENT_GATEWAY_API_URL = os.environ.get(
+    'PAYMENT_GATEWAY_API_URL',
+    os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
+).rstrip('/')
+PAYMENT_GATEWAY_PUBLIC_URL = os.environ.get('PAYMENT_GATEWAY_PUBLIC_URL', 'http://localhost:8003').rstrip('/')
 
 def get_auth_headers(request):
     """Helper method to build authorization headers from session token."""
@@ -41,10 +46,28 @@ def index(request):
     products = []
     categories = []
     error = None
+    success = None
 
     search = request.GET.get('search', '').strip()
     selected_category = request.GET.get('category', '').strip()
     is_organic = request.GET.get('organic', '')
+    payment_state = request.GET.get('payment', '').strip().lower()
+    payment_order_id = request.GET.get('order_id', '').strip()
+
+    if payment_state == 'success':
+        if request.session.get('token') and request.session.get('role') == 'CUSTOMER':
+            try:
+                requests.delete(
+                    f"{PLATFORM_API_URL}/api/basket/clear/",
+                    headers=get_auth_headers(request),
+                    timeout=5
+                )
+            except requests.exceptions.RequestException:
+                pass
+        if payment_order_id:
+            success = f"Payment successful. Order #{payment_order_id} has been placed."
+        else:
+            success = "Payment successful. Your order has been placed."
 
     try:
         # Fetch available categories for the filter dropdown
@@ -87,6 +110,7 @@ def index(request):
         'products': products,
         'categories': categories,
         'error': error,
+        'success': success,
         'search': search,
         'selected_category': selected_category,
         'is_organic': is_organic,
@@ -422,8 +446,9 @@ def admin_dashboard(request):
         return redirect('/login/')
 
     headers = get_auth_headers(request)
-    users, products, orders = [], [], []
+    users, products, orders, invoices = [], [], [], []
     error = None
+    invoices_error = None
 
     try:
         resp_users = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", headers=headers, timeout=5)
@@ -438,8 +463,30 @@ def admin_dashboard(request):
         if resp_orders.status_code == 200:
             orders = resp_orders.json()
 
+        resp_invoices = requests.get(
+            f"{PAYMENT_GATEWAY_API_URL}/payments/api/transactions/",
+            timeout=8
+        )
+        if resp_invoices.status_code == 200:
+            invoices = resp_invoices.json().get('transactions', [])
+        else:
+            invoices_error = "Could not load Stripe transactions."
+            detail = None
+            try:
+                payload = resp_invoices.json()
+                if isinstance(payload, dict):
+                    detail = payload.get('error') or payload.get('detail')
+            except ValueError:
+                text = (resp_invoices.text or '').strip()
+                if text:
+                    detail = text[:180]
+            if detail:
+                invoices_error = f"{invoices_error} {detail}"
+
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
+    except requests.exceptions.Timeout:
+        error = "A service request timed out while loading the admin dashboard."
     except Exception as e:
         error = f"Unexpected error: {str(e)}"
 
@@ -452,7 +499,9 @@ def admin_dashboard(request):
         'users': users,
         'products': products,
         'orders': orders,
+        'invoices': invoices,
         'error': error,
+        'invoices_error': invoices_error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
         'customer_count': len(customers),
@@ -859,6 +908,172 @@ def basket_view(request):
         error = f"Unexpected error: {str(e)}"
 
     return render(request, 'web/basket.html', {
+            'basket': basket,
+            'error': error,
+            'media_base_url': MEDIA_BASE_URL,
+        })
+    
+def basket_checkout(request):
+    """
+    Convert the current basket into checkout JSON and redirect to Stripe.
+    """
+    if not request.session.get('token'):
+        return render(request, 'web/login.html', {
+            'error': "Please log in to proceed to checkout.",
+        })
+    if request.method != 'POST':
+        return redirect('/basket/')
+    basket = None
+    error = None
+    try:
+        resp_basket = requests.get(
+            f"{PLATFORM_API_URL}/api/basket/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp_basket.status_code == 200:
+            basket = resp_basket.json()
+        elif resp_basket.status_code == 401:
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': "Your session has expired. Please log in again.",
+            })
+        elif resp_basket.status_code == 403:
+            return render(request, 'web/index.html', {
+                'error': "Only customers can access checkout.",
+            })
+        else:
+            error = _api_error_message(resp_basket.status_code)
+        if error:
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': error,
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        items = basket.get('items') or []
+        if not items:
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': "Your basket is empty.",
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        order_items = []
+        checkout_items = []
+        for item in items:
+            product = item.get('product', {})
+            product_id = product.get('id')
+            quantity = item.get('quantity', 1)
+            try:
+                quantity = int(quantity)
+            except (TypeError, ValueError):
+                quantity = 1
+            if quantity < 1:
+                return render(request, 'web/basket.html', {
+                    'basket': basket,
+                    'error': "Basket contains an invalid quantity.",
+                    'media_base_url': MEDIA_BASE_URL,
+                })
+            if not product_id:
+                return render(request, 'web/basket.html', {
+                    'basket': basket,
+                    'error': "Basket contains an invalid product.",
+                    'media_base_url': MEDIA_BASE_URL,
+                })
+            order_items.append({
+                'product_id': int(product_id),
+                'quantity': quantity,
+            })
+            price_at_sale = product.get('current_price', product.get('price', '0.00'))
+            checkout_items.append({
+                'product_name': product.get('name', 'Product'),
+                'description': product.get('description') or '',
+                'quantity': quantity,
+                'price_at_sale': str(price_at_sale),
+            })
+        resp_order = requests.post(
+            f"{PLATFORM_API_URL}/api/orders/",
+            headers=get_auth_headers(request),
+            json={'item_ids': order_items},
+            timeout=10
+        )
+        if resp_order.status_code == 401:
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': "Your session has expired. Please log in again.",
+            })
+        if resp_order.status_code == 403:
+            return render(request, 'web/index.html', {
+                'error': "Only customers can place orders.",
+            })
+        if resp_order.status_code not in (200, 201):
+            order_error = "Could not create order from basket."
+            try:
+                order_error_data = resp_order.json()
+            except ValueError:
+                order_error_data = None
+            if isinstance(order_error_data, dict):
+                order_error = (
+                    order_error_data.get('error')
+                    or order_error_data.get('detail')
+                    or order_error
+                )
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': order_error,
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        order_data = resp_order.json()
+        order_id = str(order_data.get('id') or '').strip()
+        if not order_id:
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': "Order was created but no order id was returned.",
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        checkout_payload = {
+            'order_id': order_id,
+            'currency': 'gbp',
+            'items': checkout_items,
+            'success_url': f"{PAYMENT_GATEWAY_PUBLIC_URL}/payments/success/?session_id={{CHECKOUT_SESSION_ID}}",
+            'cancel_url': f"{PAYMENT_GATEWAY_PUBLIC_URL}/payments/cancel/",
+        }
+        customer_email = order_data.get('customer_email')
+        if customer_email:
+            checkout_payload['customer_email'] = customer_email
+        resp_checkout = requests.post(
+            f"{PAYMENT_GATEWAY_API_URL}/payments/api/checkout/",
+            json=checkout_payload,
+            timeout=10
+        )
+        if resp_checkout.status_code not in (200, 201):
+            checkout_error = "Could not start payment checkout."
+            try:
+                checkout_error = resp_checkout.json().get('error', checkout_error)
+            except ValueError:
+                pass
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': checkout_error,
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        checkout_url = resp_checkout.json().get('url')
+        if not checkout_url:
+            return render(request, 'web/basket.html', {
+                'basket': basket,
+                'error': "Payment checkout URL was not returned.",
+                'media_base_url': MEDIA_BASE_URL,
+            })
+        return redirect(checkout_url)
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach platform or payment services. Check containers are running."
+    except requests.exceptions.Timeout:
+        error = "Checkout service timed out. Please try again."
+    except requests.exceptions.RequestException:
+        error = "A network error occurred while starting checkout."
+    except Exception:
+        error = "Unexpected error while starting checkout."
+
+    return render(request, 'web/basket.html', {
         'basket': basket,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
@@ -1152,6 +1367,126 @@ def clear_basket(request):
         })
     
     return redirect('/basket/')
+
+def customer_orders_view(request):
+    """
+    Customer page to view previously placed orders.
+    """
+    if not request.session.get('token'):
+        return render(request, 'web/login.html', {
+            'error': "Please log in to view your orders.",
+        })
+    if request.session.get('role') != 'CUSTOMER':
+        return redirect('/')
+
+    orders = []
+    error = request.GET.get('error')
+    success = None
+    payment_state = request.GET.get('payment', '').strip().lower()
+    payment_order_id = request.GET.get('order_id', '').strip()
+
+    if payment_state == 'success':
+        try:
+            requests.delete(
+                f"{PLATFORM_API_URL}/api/basket/clear/",
+                headers=get_auth_headers(request),
+                timeout=5
+            )
+        except requests.exceptions.RequestException:
+            pass
+
+        if payment_order_id:
+            success = f"Payment successful. Order #{payment_order_id} is now in your orders list."
+        else:
+            success = "Payment successful. Your order is now in your orders list."
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            orders = sorted(
+                resp.json(),
+                key=lambda order: order.get('created_at') or '',
+                reverse=True,
+            )
+        elif resp.status_code == 401:
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': "Your session has expired. Please log in again.",
+            })
+        else:
+            error = _api_error_message(resp.status_code)
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API. Please check the service is running."
+    except requests.exceptions.Timeout:
+        error = "The request took too long to respond. Please try again."
+    except requests.exceptions.RequestException:
+        error = "A network error occurred. Please try again."
+    except Exception:
+        error = "An unexpected error occurred while loading your orders."
+
+    return render(request, 'web/customer_orders.html', {
+        'orders': orders,
+        'error': error,
+        'success': success,
+    })
+
+def customer_order_detail_view(request, order_id):
+    """
+    Customer page for a single order with item-level details.
+    """
+    if not request.session.get('token'):
+        return render(request, 'web/login.html', {
+            'error': "Please log in to view order details.",
+        })
+    if request.session.get('role') != 'CUSTOMER':
+        return redirect('/')
+
+    order = None
+    error = None
+
+    try:
+        resp = requests.get(
+            f"{PLATFORM_API_URL}/api/orders/{order_id}/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            order = resp.json()
+        elif resp.status_code == 401:
+            request.session.flush()
+            return render(request, 'web/login.html', {
+                'error': "Your session has expired. Please log in again.",
+            })
+        elif resp.status_code == 404:
+            return redirect('/orders/?error=Order not found or not accessible.')
+        else:
+            error = _api_error_message(resp.status_code)
+    except requests.exceptions.ConnectionError:
+        error = "Cannot reach the platform API. Please check the service is running."
+    except requests.exceptions.Timeout:
+        error = "The request took too long to respond. Please try again."
+    except requests.exceptions.RequestException:
+        error = "A network error occurred. Please try again."
+    except Exception:
+        error = "An unexpected error occurred while loading this order."
+
+    if order and isinstance(order.get('items'), list):
+        for item in order['items']:
+            try:
+                quantity = int(item.get('quantity') or 0)
+                unit_price = float(item.get('price_at_sale') or 0)
+                item['subtotal'] = f"{(quantity * unit_price):.2f}"
+            except (TypeError, ValueError):
+                item['subtotal'] = ''
+
+    return render(request, 'web/customer_order_detail.html', {
+        'order': order,
+        'error': error,
+    })
 
 def producer_orders_view(request):
     """

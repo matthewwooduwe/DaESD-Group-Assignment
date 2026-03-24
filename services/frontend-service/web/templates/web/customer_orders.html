@@ -1,0 +1,164 @@
+{% extends "web/base.html" %}
+
+{% block title %}My Orders - BRFN{% endblock %}
+
+{% block extra_styles %}
+.orders-header {
+background: var(--nav-bg);
+padding: 3rem 0;
+color: #fff;
+margin-bottom: 2rem;
+}
+.orders-header h1 {
+font-family: 'Cormorant Garamond', serif;
+font-size: 2.4rem;
+margin-bottom: 0.5rem;
+}
+.orders-header p {
+color: rgba(255,255,255,0.85);
+}
+.orders-meta {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 1rem;
+color: var(--text-muted);
+font-size: 0.88rem;
+}
+.orders-table {
+width: 100%;
+border-collapse: collapse;
+background: var(--card-bg);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+overflow: hidden;
+box-shadow: var(--shadow);
+}
+.orders-table th,
+.orders-table td {
+padding: 0.9rem 1rem;
+text-align: left;
+border-bottom: 1px solid var(--border);
+font-size: 0.9rem;
+}
+.orders-table th {
+background: var(--cream-dark);
+color: var(--text-muted);
+font-weight: 700;
+text-transform: uppercase;
+font-size: 0.78rem;
+letter-spacing: 0.05em;
+}
+.orders-table tr:last-child td {
+border-bottom: none;
+}
+.orders-table tr:hover td {
+background: var(--green-pale);
+}
+.order-link {
+text-decoration: none;
+color: var(--green);
+}
+.order-link:hover {
+text-decoration: underline;
+}
+.btn-secondary {
+background: transparent;
+color: var(--green);
+border: 1.5px solid var(--green);
+padding: 0.45rem 0.9rem;
+border-radius: 8px;
+font-family: 'Source Sans 3', sans-serif;
+font-weight: 600;
+font-size: 0.8rem;
+cursor: pointer;
+transition: background 0.2s, color 0.2s;
+text-decoration: none;
+display: inline-block;
+}
+.btn-secondary:hover {
+background: var(--green);
+color: #fff;
+}
+.empty-state {
+text-align: center;
+padding: 3rem 2rem;
+background: var(--card-bg);
+border: 1px dashed var(--border);
+border-radius: var(--radius);
+color: var(--text-muted);
+}
+.success-banner {
+background: var(--green-light);
+border: 1px solid #b8dfc8;
+color: var(--green);
+padding: 0.85rem 1.25rem;
+border-radius: var(--radius);
+margin-bottom: 1rem;
+font-size: 0.9rem;
+}
+.status-chip {
+display: inline-block;
+padding: 2px 10px;
+border-radius: 14px;
+background: var(--cream-dark);
+color: var(--text-muted);
+font-size: 0.74rem;
+font-weight: 700;
+text-transform: uppercase;
+}
+{% endblock %}
+
+{% block content %}
+<section class="orders-header">
+    <div class="container">
+        <h1>My Orders</h1>
+        <p>All processed and in-progress orders linked to your account. Open any order for full details.</p>
+    </div>
+</section>
+
+<div class="container">
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success-banner">{{ success }}</div>
+    {% endif %}
+
+    {% if orders %}
+    <div class="orders-meta">
+        <span><strong>{{ orders|length }}</strong> order{{ orders|length|pluralize }} found</span>
+    </div>
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Placed</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Items</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><a class="order-link" href="/orders/{{ order.id }}/"><strong>#{{ order.id }}</strong></a></td>
+                <td>{{ order.created_at|slice:":10" }}</td>
+                <td>&pound;{{ order.total_amount|default:"0.00" }}</td>
+                <td><span class="status-chip">{{ order.status }}</span></td>
+                <td>{{ order.items|length }}</td>
+                <td><a href="/orders/{{ order.id }}/" class="btn-secondary">View Details</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <h3>No orders yet</h3>
+        <p>Once you complete checkout, your orders will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+<br><br>
+{% endblock %}

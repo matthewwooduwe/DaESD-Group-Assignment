@@ -25,4 +25,5 @@ urlpatterns = [
     path('dashboard/orders/', views.producer_orders_view, name='producer_orders'),
     path('dashboard/orders/<int:order_id>/', views.producer_order_detail_view, name='producer_order_detail'),
     path('dashboard/orders/<int:order_id>/status/', views.producer_update_order_status_view, name='producer_update_order_status'),
+        path('basket/checkout/', views.basket_checkout, name='basket-checkout'),
 ]

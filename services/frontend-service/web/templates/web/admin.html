@@ -129,6 +129,9 @@
 .status-confirmed { background: #e8f5ee; color: #00622e; }
 .status-ready     { background: #e3f2fd; color: #1565c0; }
 .status-delivered { background: #f3e5f5; color: #6a1b9a; }
+.status-paid      { background: #e8f5ee; color: #00622e; }
+.status-unpaid    { background: #fde8e0; color: #a0422a; }
+.status-open      { background: #e3f2fd; color: #1565c0; }
 
 .btn-sm-danger {
     background: transparent;
@@ -409,7 +412,7 @@
 <section class="admin-header">
     <div class="container">
         <h1>Admin Dashboard</h1>
-        <p>Manage users, products, and orders across the entire platform.</p>
+        <p>Manage users, products, orders, and payment invoices across the entire platform.</p>
     </div>
 </section>
 
@@ -443,11 +446,11 @@
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Revenue</div>
-            <div class="stat-value">£{{ total_revenue|floatformat:2 }}</div>
+            <div class="stat-value">&pound;{{ total_revenue|floatformat:2 }}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Commission</div>
-            <div class="stat-value">£{{ total_commission|floatformat:2 }}</div>
+            <div class="stat-value">&pound;{{ total_commission|floatformat:2 }}</div>
         </div>
     </div>
 
@@ -456,6 +459,7 @@
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+        <button class="tab-btn" onclick="switchTab('invoices', this)">Invoices</button>
     </div>
 
     <!-- Users Tab -->
@@ -485,8 +489,24 @@
                     </td>
                     <td>{{ user.phone_number|default:"—" }}</td>
                     <td>
-                        <script type="application/json" id="user-data-{{ user.id }}">{"id": {{ user.id }}, "username": "{{ user.username|escapejs }}", "email": "{{ user.email|default:''|escapejs }}", "phone": "{{ user.phone_number|default:''|escapejs }}", "role": "{{ user.role }}", "firstName": "{{ user.customer_profile.first_name|default:''|escapejs }}", "lastName": "{{ user.customer_profile.last_name|default:''|escapejs }}", "deliveryAddress": "{{ user.customer_profile.delivery_address|default:''|escapejs }}", "customerPostcode": "{{ user.customer_profile.postcode|default:''|escapejs }}", "businessName": "{{ user.producer_profile.business_name|default:''|escapejs }}", "businessAddress": "{{ user.producer_profile.business_address|default:''|escapejs }}", "producerPostcode": "{{ user.producer_profile.postcode|default:''|escapejs }}", "bio": "{{ user.producer_profile.bio|default:''|escapejs }}"}</script>
-                        <button class="btn-sm-edit" onclick="openEditModalFromBtn({{ user.id }})">Edit</button>
+                        <button
+                            class="btn-sm-edit"
+                            type="button"
+                            onclick="openEditModalFromBtn(this)"
+                            data-id="{{ user.id }}"
+                            data-username="{{ user.username|default:'' }}"
+                            data-email="{{ user.email|default:'' }}"
+                            data-phone="{{ user.phone_number|default:'' }}"
+                            data-role="{{ user.role }}"
+                            data-first-name="{{ user.customer_profile.first_name|default:'' }}"
+                            data-last-name="{{ user.customer_profile.last_name|default:'' }}"
+                            data-delivery-address="{{ user.customer_profile.delivery_address|default:'' }}"
+                            data-customer-postcode="{{ user.customer_profile.postcode|default:'' }}"
+                            data-business-name="{{ user.producer_profile.business_name|default:'' }}"
+                            data-business-address="{{ user.producer_profile.business_address|default:'' }}"
+                            data-producer-postcode="{{ user.producer_profile.postcode|default:'' }}"
+                            data-bio="{{ user.producer_profile.bio|default:'' }}"
+                        >Edit</button>
                         {% if user.role != 'ADMIN' %}
                         <form method="POST" action="/admin-dashboard/users/{{ user.id }}/delete/" onsubmit="return confirm('Delete user {{ user.username }}? This cannot be undone.');" style="display:inline;">
                             {% csrf_token %}
@@ -529,7 +549,7 @@
                     <td><strong>{{ product.name }}</strong></td>
                     <td>{{ product.producer }}</td>
                     <td>{{ product.category|default:"—" }}</td>
-                    <td>£{{ product.price }}</td>
+                    <td>&pound;{{ product.price }}</td>
                     <td>{{ product.stock_quantity }}</td>
                     <td>
                         {% if product.is_available %}
@@ -574,8 +594,8 @@
                 <tr>
                     <td><strong>#{{ order.id }}</strong></td>
                     <td>{{ order.customer }}</td>
-                    <td>£{{ order.total_amount }}</td>
-                    <td>£{{ order.commission_total|default:"0.00" }}</td>
+                    <td>&pound;{{ order.total_amount }}</td>
+                    <td>&pound;{{ order.commission_total|default:"0.00" }}</td>
                     <td>
                         <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
                     </td>
@@ -589,13 +609,55 @@
         </table>
     </div>
 
+    <!-- Invoices Tab -->
+    <div id="tab-invoices" class="tab-panel">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search invoices by session, order, or email…" oninput="filterTable('invoices-table', this.value)">
+        </div>
+        {% if invoices_error %}
+        <div class="error-banner">{{ invoices_error }}</div>
+        {% endif %}
+        <table class="data-table" id="invoices-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Checkout Session</th>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Stripe Status</th>
+                    <th>Local Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ invoice.session_id|default:"—" }}</strong></td>
+                    <td>{{ invoice.order_id|default:"—" }}</td>
+                    <td>{{ invoice.customer_email|default:"—" }}</td>
+                    <td>&pound;{{ invoice.amount_total|default:"0.00" }}</td>
+                    <td>{{ invoice.currency|default:"GBP" }}</td>
+                    <td><span class="status-badge status-{{ invoice.payment_status|lower }}">{{ invoice.payment_status|default:"unknown" }}</span></td>
+                    <td>{{ invoice.status|default:"—" }}</td>
+                    <td>{{ invoice.created_at|slice:":10"|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="9">No invoices found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </div>
 <br><br>
 
 <!-- Edit User Modal -->
 <div class="modal-overlay" id="edit-modal">
     <div class="modal">
-        <button class="modal-close" onclick="closeEditModal()">×</button>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
         <h2>Edit User</h2>
         <form method="POST" id="edit-user-form">
             {% csrf_token %}
@@ -694,11 +756,23 @@ function toggleModalProfileFields(role) {
     document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
 }
 
-function openEditModalFromBtn(userId) {
-    const data = JSON.parse(document.getElementById('user-data-' + userId).textContent);
-    openEditModal(data.id, data.username, data.email, data.phone, data.role,
-        data.firstName, data.lastName, data.deliveryAddress, data.customerPostcode,
-        data.businessName, data.businessAddress, data.producerPostcode, data.bio);
+function openEditModalFromBtn(button) {
+    const data = button.dataset;
+    openEditModal(
+        data.id || '',
+        data.username || '',
+        data.email || '',
+        data.phone || '',
+        data.role || 'CUSTOMER',
+        data.firstName || '',
+        data.lastName || '',
+        data.deliveryAddress || '',
+        data.customerPostcode || '',
+        data.businessName || '',
+        data.businessAddress || '',
+        data.producerPostcode || '',
+        data.bio || ''
+    );
 }
 
 function openEditModal(id, username, email, phone, role, firstName, lastName, deliveryAddress, customerPostcode, businessName, businessAddress, producerPostcode, bio) {

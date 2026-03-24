@@ -107,6 +107,13 @@
         }
 
         .nav-links a:hover { color: #fff; }
+        .nav-links a.nav-active {
+            color: #fff;
+            font-weight: 700;
+        }
+        .nav-links a.nav-accent-active {
+            color: var(--nav-accent);
+        }
 
         .nav-links .nav-cta {
             background: #fff;
@@ -270,23 +277,24 @@
         </svg>
         <div class="nav-logo-text">
             Bristol Regional Food Network
-            <span>Farm to fork · Bristol</span>
+            <span>Farm to fork &middot; Bristol</span>
         </div>
     </a>
 
     <ul class="nav-links">
-        <li><a href="/" style="{% if request.path == '/' %}font-weight: bold; color: #fff;{% endif %}">Browse</a></li>
+        <li><a href="/" class="{% if request.path == '/' %}nav-active{% endif %}">Browse</a></li>
         {% if request.session.role == 'CUSTOMER' %}
-        <li><a href="/basket/" style="{% if request.path == '/basket/' %}font-weight: bold; color: #fff;{% endif %}">Basket</a></li>
-        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/basket/" class="{% if request.path == '/basket/' %}nav-active{% endif %}">Basket</a></li>
+        <li><a href="/orders/" class="{% if request.path|slice:':8' == '/orders/' %}nav-active{% endif %}">Orders</a></li>
+        <li><a href="/profile/" class="nav-username {% if request.path == '/profile/' %}nav-active{% endif %}">{{ request.session.username }}</a></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% elif request.session.role == 'PRODUCER' %}
-        <li><a href="/dashboard/" style="{% if request.path == '/dashboard/' %}font-weight: bold; color: var(--nav-accent);{% endif %}">Dashboard</a></li>
-        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/dashboard/" class="{% if request.path == '/dashboard/' %}nav-active nav-accent-active{% endif %}">Dashboard</a></li>
+        <li><a href="/profile/" class="nav-username {% if request.path == '/profile/' %}nav-active{% endif %}">{{ request.session.username }}</a></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% elif request.session.role == 'ADMIN' %}
-        <li><a href="/admin-dashboard/" style="{% if request.path == '/admin-dashboard/' %}font-weight: bold; color: var(--nav-accent);{% endif %}">Admin</a></li>
-        <li><a href="/profile/" class="nav-username" style="{% if request.path == '/profile/' %}font-weight: bold;{% endif %}">{{ request.session.username }}</a></li>
+        <li><a href="/admin-dashboard/" class="{% if request.path == '/admin-dashboard/' %}nav-active nav-accent-active{% endif %}">Admin</a></li>
+        <li><a href="/profile/" class="nav-username {% if request.path == '/profile/' %}nav-active{% endif %}">{{ request.session.username }}</a></li>
         <li><a href="/logout/">Sign Out</a></li>
         {% else %}
         <li><a href="/login/" class="nav-cta">Sign In</a></li>
@@ -327,7 +335,7 @@
             <li><a href="/register/">Sell With Us</a></li>
             <li><a href="/login/">Sign In</a></li>
         </ul>
-        <p class="footer-copy">© 2026 <strong>Bristol Regional Food Network</strong> · Bristol, UK</p>
+        <p class="footer-copy">&copy; 2026 <strong>Bristol Regional Food Network</strong> &middot; Bristol, UK</p>
     </div>
 </footer>
 

@@ -25,6 +25,9 @@ env/
 # Environment variables
 ############################
 DaESD-Group-Assignment.code-workspace
+services/payment-gateway-service/.env.secure
+services/payment-gateway-service/.env.secure.*
+!services/payment-gateway-service/.env.secure.example
 
 ############################
 # IDE

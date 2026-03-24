@@ -528,7 +528,7 @@
 
                 <form class="quantity-form" method="POST" action="/basket/remove/{{ item.id }}/" style="margin-top: 0.5rem">
                     {% csrf_token %}
-                    <button class="btn-danger" type="submit" class="btn-secondary">Remove</button>
+                    <button class="btn-danger" type="submit">Remove</button>
                 </form>
             </div>
         </div>
@@ -556,9 +556,12 @@
             </div>
 
             <div class="order-summary-right">
-                <button class="btn-checkout">
-                    Proceed to Checkout →
-                </button>
+                <form method="POST" action="/basket/checkout/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-checkout">
+                        Proceed to Checkout &rarr;
+                    </button>
+                </form>
             </div>
         </div>
     </div>
