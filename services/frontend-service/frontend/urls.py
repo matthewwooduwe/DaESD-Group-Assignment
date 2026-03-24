@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.urls import path
 from web import views
+
+handler404 = views.custom_404
+
 urlpatterns = [
     # Index
     path('admin/', admin.site.urls),
