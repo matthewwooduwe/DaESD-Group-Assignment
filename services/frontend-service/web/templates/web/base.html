@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <title>{% block title %}Bristol Regional Food Network{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,7 +86,7 @@
             font-size: 0.55rem;
             font-family: 'Source Sans 3', sans-serif;
             font-weight: 300;
-            color: rgba(255,255,255,0.65);
+            color: rgba(255,255,255,0.85);
             letter-spacing: 0.2em;
             text-transform: uppercase;
         }
@@ -98,7 +99,7 @@
         }
 
         .nav-links a {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.92);
             text-decoration: none;
             font-size: 0.875rem;
             font-weight: 400;
@@ -162,7 +163,7 @@
         }
 
         .footer-tagline {
-            color: rgba(255,255,255,0.55);
+            color: rgba(255,255,255,0.8);
             font-size: 0.78rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
@@ -178,7 +179,7 @@
         }
 
         .footer-links a {
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.8);
             text-decoration: none;
             font-size: 0.8rem;
             transition: color 0.2s;
@@ -187,11 +188,11 @@
         .footer-links a:hover { color: #fff; }
 
         .footer-copy {
-            color: rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.7);
             font-size: 0.75rem;
         }
 
-        .footer-copy strong { color: rgba(255,255,255,0.6); font-weight: 400; }
+        .footer-copy strong { color: rgba(255,255,255,0.85); font-weight: 400; }
 
         /* ── UTILITIES ── */
         .container {
@@ -324,14 +325,209 @@
         }
         .btn-confirm-delete:hover { background: #8b3520; }
 
+        /* ── SKIP LINK ── */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            z-index: 9999;
+            border-radius: 0 0 4px 0;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        .skip-link:focus { left: 0; }
+
+        /* ── ACCESSIBILITY TOGGLE ── */
+        .a11y-toggle-wrap {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.15);
+        }
+        .a11y-toggle-btn {
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.85);
+            padding: 0.5rem 1.25rem;
+            border-radius: 4px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .a11y-toggle-btn:hover { border-color: #fff; color: #fff; }
+        .a11y-toggle-btn.active { background: rgba(255,255,255,0.15); border-color: #fff; color: #fff; }
+
+        /* ── ACCESSIBLE MODE ── */
+        body.accessible {
+            --bg:           #ffffff;
+            --card-bg:      #ffffff;
+            --nav-bg:       #2d2d2d;
+            --nav-accent:   #ffffff;
+            --green:        #005a28;
+            --green-mid:    #005a28;
+            --green-light:  #e0f0e8;
+            --green-pale:   #f0f8f4;
+            --terra:        #8b2000;
+            --terra-light:  #8b2000;
+            --terra-pale:   #fff0ec;
+            --cream:        #ffffff;
+            --cream-dark:   #f0f0f0;
+            --text:         #1a1a1a;
+            --text-muted:   #444444;
+            --border:       #767676;
+            --shadow:       none;
+            --shadow-hover: none;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+        body.accessible * {
+            font-family: Arial, Helvetica, sans-serif !important;
+            letter-spacing: 0 !important;
+            transition: none !important;
+            animation: none !important;
+        }
+        body.accessible h1,
+        body.accessible h2,
+        body.accessible h3,
+        body.accessible h4 { font-size: revert; font-weight: bold; }
+        body.accessible a:focus,
+        body.accessible button:focus,
+        body.accessible input:focus,
+        body.accessible select:focus,
+        body.accessible textarea:focus {
+            outline: 3px solid #005a28 !important;
+            outline-offset: 3px !important;
+        }
+        body.accessible .site-nav { background: #2d2d2d !important; }
+        body.accessible footer { background: #2d2d2d !important; }
+        body.accessible .footer-bridge,
+        body.accessible .bridge-scene,
+        body.accessible .bridge-svg { display: none !important; }
+        body.accessible .nav-logo-icon { display: none !important; }
+        body.accessible .a11y-toggle-btn { font-family: Arial, Helvetica, sans-serif !important; font-size: 1rem; }
+
+        /* Fix hero section */
+        body.accessible .hero { background: #ffffff !important; min-height: auto !important; }
+        body.accessible .hero::before,
+        body.accessible .hero::after { display: none !important; }
+        body.accessible .hero-bridge-wrap { min-height: auto !important; padding: 2rem 1rem !important; }
+        body.accessible .hero-text { position: static !important; transform: none !important; padding: 1.5rem 1rem !important; }
+        body.accessible .hero-title { font-family: Arial, Helvetica, sans-serif !important; color: #1a1a1a !important; text-shadow: none !important; }
+        body.accessible .hero-title em { color: #005a28 !important; font-style: normal !important; }
+        body.accessible .hero-subtitle { color: #333333 !important; text-shadow: none !important; }
+        body.accessible .hero-eyebrow { color: #005a28 !important; }
+        body.accessible .hero-eyebrow::before,
+        body.accessible .hero-eyebrow::after { display: none !important; }
+
+        /* Fix filter bar */
+        body.accessible .filter-bar { background: #2d2d2d !important; }
+        body.accessible .filter-input,
+        body.accessible .filter-select {
+            background: #ffffff !important;
+            color: #1a1a1a !important;
+            border: 1.5px solid #767676 !important;
+        }
+        body.accessible .filter-input::placeholder { color: #767676 !important; }
+        body.accessible .filter-select option { background: #ffffff !important; color: #1a1a1a !important; }
+
+        /* Fix backgrounds */
+        body.accessible * { background-image: none !important; }
+        body.accessible .auth-section,
+        body.accessible .auth-card,
+        body.accessible .auth-header { background: #ffffff !important; }
+        body.accessible .dashboard-header,
+        body.accessible .admin-header,
+        body.accessible .profile-header,
+        body.accessible .detail-meta { background: #2d2d2d !important; }
+        body.accessible .card-image-placeholder,
+        body.accessible .detail-image-placeholder { background: #f0f0f0 !important; color: #333333 !important; }
+
+        /* Fix detail meta grid */
+        body.accessible .detail-meta { grid-template-columns: auto !important; background: transparent !important; }
+        body.accessible .meta-item { background: #f0f0f0 !important; border: 1px solid #767676 !important; }
+        body.accessible .meta-label { color: #444444 !important; }
+        body.accessible .meta-value { color: #1a1a1a !important; }
+
+        /* Fix price block */
+        body.accessible .detail-price-block { background: #ffffff !important; border: 2px solid #005a28 !important; }
+        body.accessible .detail-price,
+        body.accessible .detail-price span,
+        body.accessible .detail-stock,
+        body.accessible .detail-stock strong { color: #1a1a1a !important; }
+
+        /* Fix buttons */
+        body.accessible .btn-primary,
+        body.accessible .btn-submit,
+        body.accessible .btn-save,
+        body.accessible .btn-checkout,
+        body.accessible .btn-modal-save {
+            background: #005a28 !important;
+            color: #ffffff !important;
+            border: 2px solid #005a28 !important;
+            padding: 0.85rem 1.75rem !important;
+            font-size: 1rem !important;
+            font-weight: bold !important;
+        }
+        body.accessible .btn-danger,
+        body.accessible .btn-sm-danger {
+            background: transparent !important;
+            color: #8b2000 !important;
+            border: 2px solid #8b2000 !important;
+        }
+        body.accessible .btn-secondary {
+            background: transparent !important;
+            color: #005a28 !important;
+            border: 2px solid #005a28 !important;
+        }
+
+        /* Fix placeholders */
+        body.accessible input::placeholder,
+        body.accessible textarea::placeholder { color: #767676 !important; }
+
+        /* Fix badges */
+        body.accessible .role-customer,
+        body.accessible .role-producer,
+        body.accessible .role-admin,
+        body.accessible .badge-organic,
+        body.accessible .badge-category,
+        body.accessible .status-badge,
+        body.accessible .badge-unavailable,
+        body.accessible .badge-low-stock {
+            background: #f0f0f0 !important;
+            color: #1a1a1a !important;
+            border: 1px solid #767676 !important;
+        }
+
+        /* Fix tables */
+        body.accessible .data-table th { background: #2d2d2d !important; color: #ffffff !important; }
+        body.accessible .data-table td { color: #1a1a1a !important; }
+
+        /* Fix modals */
+        body.accessible .modal,
+        body.accessible .confirm-modal { background: #ffffff !important; }
+        body.accessible .modal h2,
+        body.accessible .confirm-modal h2 { color: #1a1a1a !important; }
+
+        /* Fix quantity input */
+        body.accessible .quantity-field { border: 2px solid #005a28 !important; box-shadow: none !important; }
+        body.accessible .quantity-input { font-size: 1.1rem !important; padding: 0.75rem !important; }
+
         {% block extra_styles %}{% endblock %}
     </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
-<nav class="site-nav">
-    <a href="/" class="nav-logo">
-        <svg class="nav-logo-icon" viewBox="0 0 84 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+<nav class="site-nav" role="navigation" aria-label="Main navigation">
+    <a href="/" class="nav-logo" aria-label="Bristol Regional Food Network home">
+        <svg class="nav-logo-icon" viewBox="0 0 84 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
             <rect x="0" y="38" width="14" height="18" fill="rgba(255,255,255,0.5)" rx="1"/>
             <rect x="70" y="38" width="14" height="18" fill="rgba(255,255,255,0.5)" rx="1"/>
             <rect x="0" y="34" width="84" height="4" fill="rgba(255,255,255,0.7)"/>
@@ -373,12 +569,12 @@
     </ul>
 </nav>
 
-<main>
+<main id="main-content" role="main">
     {% block content %}{% endblock %}
 </main>
 
 <footer>
-    <svg class="footer-bridge" viewBox="0 0 900 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg class="footer-bridge" viewBox="0 0 900 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
         <rect x="0" y="120" width="120" height="80" fill="white" rx="2"/>
         <rect x="780" y="120" width="120" height="80" fill="white" rx="2"/>
         <rect x="0" y="108" width="900" height="14" fill="white"/>
@@ -407,6 +603,12 @@
             <li><a href="/login/">Sign In</a></li>
         </ul>
         <p class="footer-copy">© 2026 <strong>Bristol Regional Food Network</strong> · Bristol, UK</p>
+        <div class="a11y-toggle-wrap">
+            <button class="a11y-toggle-btn" id="a11y-toggle" aria-pressed="false">
+                <span aria-hidden="true">&#9855;</span>
+                <span id="a11y-label">Enable Accessible Mode</span>
+            </button>
+        </div>
     </div>
 </footer>
 
@@ -454,6 +656,43 @@ document.getElementById('confirm-cancel-btn').addEventListener('click', closeCon
 document.getElementById('confirm-modal').addEventListener('click', function(e) {
     if (e.target === this) closeConfirmModal();
 });
+</script>
+
+<script>
+// Accessibility toggle
+(function() {
+    var body = document.body;
+    var btn = document.getElementById('a11y-toggle');
+    var label = document.getElementById('a11y-label');
+
+    function setAccessible(on) {
+        if (on) {
+            body.classList.add('accessible');
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
+            label.textContent = 'Disable Accessible Mode';
+        } else {
+            body.classList.remove('accessible');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-pressed', 'false');
+            label.textContent = 'Enable Accessible Mode';
+        }
+    }
+
+    var saved = localStorage.getItem('brfn-accessible');
+    var prefersHighContrast = window.matchMedia('(prefers-contrast: more)').matches;
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (saved === 'true' || (saved === null && (prefersHighContrast || prefersReducedMotion))) {
+        setAccessible(true);
+    }
+
+    btn.addEventListener('click', function() {
+        var isOn = body.classList.contains('accessible');
+        setAccessible(!isOn);
+        localStorage.setItem('brfn-accessible', String(!isOn));
+    });
+})();
 </script>
 
 </body>
