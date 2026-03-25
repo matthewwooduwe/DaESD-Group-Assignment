@@ -106,7 +106,8 @@ class Command(BaseCommand):
                 'price': Decimal('1.50'),
                 'unit': 'kg',
                 'stock': 100,
-                'organic': True
+                'organic': True,
+                'allergens': []
             },
             {
                 'name': 'Milk',
@@ -114,7 +115,8 @@ class Command(BaseCommand):
                 'price': Decimal('1.20'),
                 'unit': 'L',
                 'stock': 50,
-                'organic': False
+                'organic': False,
+                'allergens': ['Milk']
             },
             {
                 'name': 'Bread',
@@ -122,7 +124,8 @@ class Command(BaseCommand):
                 'price': Decimal('3.50'),
                 'unit': 'loaf',
                 'stock': 20,
-                'organic': True
+                'organic': True,
+                'allergens': ['Cereals containing gluten']
             }
         ]
 
@@ -140,7 +143,8 @@ class Command(BaseCommand):
                         'unit': p_data['unit'],
                         'stock_quantity': p_data['stock'],
                         'is_organic': p_data['organic'],
-                        'is_available': True
+                        'is_available': True,
+                        'allergens': p_data.get('allergens', [])
                     }
                 )
                 if created:
