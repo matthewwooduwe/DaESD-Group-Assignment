@@ -181,13 +181,32 @@ class APITester:
     def test_order_creation(self):
         print("\n7. Creating Order...")
         headers = {"Authorization": f"Bearer {self.customer_token}"}
-        order_data = {
-            "item_ids": [{"product_id": self.current_product_id, "quantity": 5}]
+        
+        # Step 7a: Add product to basket
+        print("  - Adding product to basket...")
+        basket_data = {
+            "product_id": self.current_product_id,
+            "quantity": 5
         }
-        response = requests.post(f"{BASE_URL}/orders/", json=order_data, headers=headers)
+        basket_response = requests.post(f"{BASE_URL}/basket/add/", json=basket_data, headers=headers)
+        if basket_response.status_code != 200:
+             raise Exception(f"Add to Basket Failed: {basket_response.text}")
+        self.log("Product Added to Basket")
+        
+        # Step 7b: Place Order
+        print("  - Placing order...")
+        order_data = {
+            "delivery_dates": {},
+            "collection_types": {}
+        }
+        response = requests.post(f"{BASE_URL}/orders/place/", json=order_data, headers=headers)
         if response.status_code == 201:
             self.log("Order Created")
-            self.current_order_id = response.json()['id']
+            # The response is a CustomerOrder, which contains multiple orders
+            # For cleanup, we can delete the individual orders or the customer order
+            # The cleanup loop expects individual order IDs
+            resp_json = response.json()
+            self.current_order_id = resp_json['orders'][0]['id'] # Get first producer order
             self.created_orders.append((self.current_order_id, self.customer_token))
         else:
              raise Exception(f"Order Create Failed: {response.text}")

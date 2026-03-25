@@ -20,8 +20,23 @@ class Command(BaseCommand):
         self.stdout.write('Cleaning old data...')
         
         # Delete existing data in reverse order of dependency to maintain referential integrity.
+        # We use all_objects where available to ensure soft-deleted records are also cleared.
         Review.objects.all().delete()
-        Order.objects.all().delete() 
+        
+        # Order items protect products, so delete them first
+        if hasattr(OrderItem, 'all_objects'):
+            OrderItem.all_objects.all().delete()
+        else:
+            OrderItem.objects.all().delete()
+
+        if hasattr(Order, 'all_objects'):
+            Order.all_objects.all().delete()
+        else:
+            Order.objects.all().delete()
+            
+        CustomerOrder.objects.all().delete()
+        Recipe.objects.all().delete()
+        FarmStory.objects.all().delete()
         Product.objects.all().delete()
         Category.objects.all().delete()
         

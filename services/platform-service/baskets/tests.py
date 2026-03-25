@@ -21,7 +21,7 @@ class BasketSurplusDealTests(TestCase):
             price=Decimal('10.00'),
             stock_quantity=100
         )
-        self.basket = Basket.objects.create(user=self.customer)
+        self.basket = Basket.objects.create(customer=self.customer)
 
     def test_basket_total_with_surplus_deal(self):
         # Initial basket with regular price product
