@@ -1601,33 +1601,29 @@ def producer_public_profile(request, producer_id):
     error = None
     
     try:
-        resp_u = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", timeout=5)
+        # Link to the new public producer detail endpoint
+        resp_u = requests.get(f"{PLATFORM_API_URL}/api/auth/public-producers/{producer_id}/", timeout=5)
         if resp_u.status_code == 200:
-            users = resp_u.json()
-            # find producer by id
-            for u in users:
-                if u.get('id') == producer_id:
-                    producer = u
-                    break
-                    
-            if producer:
-                username = producer.get('username')
+            producer = resp_u.json()
+            username = producer.get('username')
+            
+            resp_p = requests.get(f"{PLATFORM_API_URL}/api/products/", params={'producer__username': username}, timeout=5)
+            if resp_p.status_code == 200:
+                products = resp_p.json()
                 
-                resp_p = requests.get(f"{PLATFORM_API_URL}/api/products/", params={'producer__username': username}, timeout=5)
-                if resp_p.status_code == 200:
-                    products = resp_p.json()
-                    
-                resp_r = requests.get(f"{PLATFORM_API_URL}/api/products/recipes/", params={'producer__username': username}, timeout=5)
-                if resp_r.status_code == 200:
-                    recipes = resp_r.json()
-                    
-                resp_s = requests.get(f"{PLATFORM_API_URL}/api/products/farm-stories/", params={'producer__username': username}, timeout=5)
-                if resp_s.status_code == 200:
-                    stories = resp_s.json()
-            else:
-                error = "Producer not found."
+            resp_r = requests.get(f"{PLATFORM_API_URL}/api/products/recipes/", params={'producer__username': username}, timeout=5)
+            if resp_r.status_code == 200:
+                recipes = resp_r.json()
+                
+            resp_s = requests.get(f"{PLATFORM_API_URL}/api/products/farm-stories/", params={'producer__username': username}, timeout=5)
+            if resp_s.status_code == 200:
+                stories = resp_s.json()
+        elif resp_u.status_code == 404:
+            error = "Producer not found."
+        else:
+            error = f"Error fetching producer details (Status {resp_u.status_code})."
     except Exception as e:
-        error = f"Error: {str(e)}"
+        error = f"Error communicating with API: {str(e)}"
         
     return render(request, 'web/producer_public_profile.html', {
         'producer': producer,

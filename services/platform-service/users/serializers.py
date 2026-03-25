@@ -72,3 +72,11 @@ class UserSerializer(serializers.ModelSerializer):
             CustomerProfile.objects.update_or_create(user=instance, defaults=customer_data)
 
         return instance
+
+class ProducerPublicSerializer(serializers.ModelSerializer):
+    producer_profile = ProducerProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'producer_profile')
+        read_only_fields = ('id', 'username', 'producer_profile')

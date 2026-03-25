@@ -1,8 +1,16 @@
 {% extends "web/base.html" %}
 
-{% block title %}{{ producer.producer_profile.business_name|default:producer.username }} — Bristol Regional Food Network{% endblock %}
+{% block title %}
+    {% if producer %}
+        {{ producer.producer_profile.business_name|default:producer.username }}
+    {% else %}
+        Producer Not Found
+    {% endif %}
+    — Bristol Regional Food Network
+{% endblock %}
 
 {% block content %}
+{% if producer %}
 <section style="padding: 3rem 0; background-color: var(--cream);">
     <div class="container" style="text-align: center;">
         <h1 style="font-size: 3rem; margin-bottom: 1rem;">{{ producer.producer_profile.business_name|default:producer.username }}</h1>
@@ -21,10 +29,10 @@
     <div class="container">
         
         {% if error %}
-        <div class="error-banner">{{ error }}</div>
+        <div class="error-banner" style="margin-bottom: 2rem;">{{ error }}</div>
         {% endif %}
 
-        <h2>Available Products</h2>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; margin-bottom: 2rem;">Available Products</h2>
         {% if products %}
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-top: 1.5rem; margin-bottom: 4rem;">
                 {% for product in products %}
@@ -47,8 +55,8 @@
 
                         <div style="padding: 1.5rem;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                                <h3 style="margin: 0; font-size: 1.25rem;">{{ product.name }}</h3>
-                                <span style="font-weight: 700; color: var(--green); font-size: 1.25rem;">
+                                <h3 style="margin: 0; font-size: 1.25rem; font-family: 'Cormorant Garamond', serif;">{{ product.name }}</h3>
+                                <span style="font-weight: 700; color: var(--green); font-size: 1.25rem; font-family: 'Cormorant Garamond', serif;">
                                     {% if product.is_surplus %}
                                         <div style="display: flex; flex-direction: column; align-items: flex-end;">
                                             <span style="font-size: 1rem; color: #999; text-decoration: line-through;">£{{ product.price }}</span>
@@ -85,12 +93,12 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
             <!-- Farm Stories -->
             <div>
-                <h2 style="border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Farm Stories</h2>
+                <h2 style="font-family: 'Cormorant Garamond', serif; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Farm Stories</h2>
                 {% if stories %}
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         {% for story in stories %}
                             <div style="border-left: 3px solid var(--green); padding-left: 1.5rem;">
-                                <h3 style="margin-top: 0; margin-bottom: 0.5rem;">{{ story.title }}</h3>
+                                <h3 style="margin-top: 0; font-family: 'Cormorant Garamond', serif; margin-bottom: 0.5rem;">{{ story.title }}</h3>
                                 <small class="text-muted" style="display: block; margin-bottom: 1rem;">{{ story.created_at|date:"F d, Y" }}</small>
                                 
                                 {% if story.image %}
@@ -108,13 +116,13 @@
 
             <!-- Recipes -->
             <div>
-                <h2 style="border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Recipes from the Farm</h2>
+                <h2 style="font-family: 'Cormorant Garamond', serif; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Recipes from the Farm</h2>
                 {% if recipes %}
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         {% for recipe in recipes %}
-                            <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+                            <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow);">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                    <h3 style="margin-top: 0; margin-bottom: 0.5rem;">{{ recipe.title }}</h3>
+                                    <h3 style="margin-top: 0; font-family: 'Cormorant Garamond', serif; margin-bottom: 0.5rem;">{{ recipe.title }}</h3>
                                     {% if recipe.season_tag %}
                                         <span class="badge" style="background: var(--green-light); color: var(--green);">{{ recipe.season_tag }}</span>
                                     {% endif %}
@@ -162,4 +170,13 @@
 
     </div>
 </section>
+{% else %}
+<section style="padding: 5rem 0; text-align: center;">
+    <div class="container">
+        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; margin-bottom: 1rem;">Producer Not Found</h1>
+        <p class="text-muted" style="margin-bottom: 2rem;">The profile you are looking for does not exist or has been removed.</p>
+        <a href="/" class="btn-secondary" style="text-decoration: none; display: inline-block;">Back to Browse</a>
+    </div>
+</section>
+{% endif %}
 {% endblock %}

@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ProducerPublicSerializer
 
 User = get_user_model()
 
@@ -47,3 +47,13 @@ class UserAdminDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return User.objects.all()
+
+class ProducerPublicDetailView(generics.RetrieveAPIView):
+    """
+    Publicly accessible endpoint to view a producer's business profile.
+    """
+    serializer_class = ProducerPublicSerializer
+    permission_classes = (permissions.AllowAny,)
+    
+    def get_queryset(self):
+        return User.objects.filter(role='PRODUCER')
