@@ -95,3 +95,45 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.producer.username}"
+
+class Recipe(models.Model):
+    """
+    Educational content: Recipes sharing how to use products.
+    """
+    producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recipes")
+    products = models.ManyToManyField(Product, related_name="recipes", blank=True)
+    
+    title = models.CharField(max_length=255)
+    description = models.TextField(help_text=_("Brief overview of the recipe"))
+    ingredients = models.TextField(help_text=_("List of ingredients"))
+    instructions = models.TextField(help_text=_("Step-by-step cooking instructions"))
+    season_tag = models.CharField(max_length=100, blank=True, null=True, help_text=_("e.g. Autumn/Winter"))
+    image = models.ImageField(upload_to="recipes/", blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'recipes'
+
+    def __str__(self):
+        return f"{self.title} by {self.producer.username}"
+
+class FarmStory(models.Model):
+    """
+    Educational content: Stories from the farm to engage the community.
+    """
+    producer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="farm_stories")
+    
+    title = models.CharField(max_length=255)
+    content = models.TextField(help_text=_("The story content"))
+    image = models.ImageField(upload_to="farm_stories/", blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'farm_stories'
+
+    def __str__(self):
+        return f"{self.title} by {self.producer.username}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category
+from .models import Product, Category, Recipe, FarmStory
 from orders.models import SurplusDeal
 from django.utils import timezone
 from users.serializers import ProducerProfileSerializer
@@ -101,3 +101,21 @@ class ProductSerializer(serializers.ModelSerializer):
                     active_deal.delete()
 
         return product
+
+class FarmStorySerializer(serializers.ModelSerializer):
+    producer_username = serializers.ReadOnlyField(source='producer.username')
+    producer_business_name = serializers.ReadOnlyField(source='producer.producer_profile.business_name')
+    
+    class Meta:
+        model = FarmStory
+        fields = ('id', 'producer', 'producer_username', 'producer_business_name', 'title', 'content', 'image', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'producer', 'created_at', 'updated_at')
+
+class RecipeSerializer(serializers.ModelSerializer):
+    producer_username = serializers.ReadOnlyField(source='producer.username')
+    producer_business_name = serializers.ReadOnlyField(source='producer.producer_profile.business_name')
+    
+    class Meta:
+        model = Recipe
+        fields = ('id', 'producer', 'producer_username', 'producer_business_name', 'products', 'title', 'description', 'ingredients', 'instructions', 'season_tag', 'image', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'producer', 'created_at', 'updated_at')

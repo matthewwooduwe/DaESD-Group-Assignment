@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from users.models import ProducerProfile, CustomerProfile
-from products.models import Category, Product
+from products.models import Category, Product, Recipe, FarmStory
 from orders.models import Order, OrderItem, CustomerOrder
 from reviews.models import Review
 from decimal import Decimal
@@ -203,5 +203,35 @@ class Command(BaseCommand):
                 }
             )
             self.stdout.write(self.style.SUCCESS('Created review'))
+
+        # 6. Create Educational Content (TC-020)
+        if producer:
+            FarmStory.objects.get_or_create(
+                producer=producer,
+                defaults={
+                    'title': 'Harvesting Our First Carrots of the Season',
+                    'content': 'It has been a wonderful autumn here at the farm. We just started pulling our first batch of carrots from the ground, and they look fantastic and crunchy!'
+                }
+            )
+            self.stdout.write(self.style.SUCCESS('Created farm story'))
+            
+            if created_products:
+                recipe, _ = Recipe.objects.get_or_create(
+                    producer=producer,
+                    title='Roasted Root Vegetable Medley',
+                    defaults={
+                        'description': 'A simple and hearty side dish perfect for autumn evenings.',
+                        'ingredients': '- 500g Carrots, chopped\n- 500g Parsnips, chopped\n- 2 tbsp Olive Oil\n- 1 tsp Sea Salt\n- 1 tsp Black Pepper\n- Fresh rosemary',
+                        'instructions': '1. Preheat oven to 200°C.\n2. Toss vegetables with oil, salt, pepper, and rosemary.\n3. Spread evenly on a baking tray.\n4. Roast for 30-40 minutes until tender and caramelized.',
+                        'season_tag': 'Autumn/Winter'
+                    }
+                )
+                
+                # Link carrots if we have them
+                for prod in created_products:
+                    if 'Carrot' in prod.name:
+                        recipe.products.add(prod)
+                        
+                self.stdout.write(self.style.SUCCESS('Created recipe'))
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))

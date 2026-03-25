@@ -1,0 +1,130 @@
+{% extends "web/base.html" %}
+
+{% block title %}Content Management — Bristol Regional Food Network{% endblock %}
+
+{% block extra_styles %}
+.btn-primary {
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary:hover {
+    background: var(--terra-light);
+}
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+.btn-secondary:hover {
+    background: var(--green);
+    color: #fff;
+}
+.btn-sm-danger {
+    background: transparent;
+    color: #a0422a;
+    border: 1.5px solid #a0422a;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-sm-danger:hover {
+    background: #a0422a;
+    color: #fff;
+}
+{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
+            <div>
+                <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; margin-bottom: 0.5rem;">Content & Farm Stories</h1>
+                <p class="text-muted">Engage with the community by sharing recipes and stories from your farm.</p>
+            </div>
+            <a href="/dashboard/" class="btn-secondary">Back to Dashboard</a>
+        </div>
+
+        {% if error %}
+        <div class="error-banner">{{ error }}</div>
+        {% endif %}
+
+        <div style="margin-bottom: 3rem; display: flex; gap: 1rem;">
+            <a href="/dashboard/content/recipes/add/" class="btn-primary" style="background: var(--green);">Add New Recipe</a>
+            <a href="/dashboard/content/stories/add/" class="btn-primary" style="background: var(--green);">Add Farm Story</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+            <!-- Recipes Column -->
+            <div>
+                <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">Your Recipes</h2>
+                {% if recipes %}
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    {% for recipe in recipes %}
+                        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); position: relative;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <h3 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;">{{ recipe.title }}</h3>
+                                <button type="button" class="btn-sm-danger" onclick="showConfirmModal('Delete Recipe', 'Are you sure you want to delete this recipe?', '/dashboard/content/recipes/{{ recipe.id }}/delete/')">Delete</button>
+                            </div>
+                            <p class="text-muted" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">{{ recipe.description }}</p>
+                            {% if recipe.season_tag %}
+                                <span class="badge" style="background: var(--green-light); color: var(--green);">{{ recipe.season_tag }}</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">You haven't published any recipes yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Farm Stories Column -->
+            <div>
+                <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">Your Farm Stories</h2>
+                {% if stories %}
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    {% for story in stories %}
+                        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); position: relative;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <h3 style="margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;">{{ story.title }}</h3>
+                                <button type="button" class="btn-sm-danger" onclick="showConfirmModal('Delete Farm Story', 'Are you sure you want to delete this story?', '/dashboard/content/stories/{{ story.id }}/delete/')">Delete</button>
+                            </div>
+                            <p class="text-muted" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">{{ story.content|truncatewords:20 }}</p>
+                            <small class="text-muted">{{ story.created_at|date:"M d, Y" }}</small>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">You haven't published any farm stories yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

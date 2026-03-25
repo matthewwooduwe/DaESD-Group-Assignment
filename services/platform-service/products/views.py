@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer
+from .models import Product, Category, Recipe, FarmStory
+from .serializers import ProductSerializer, CategorySerializer, RecipeSerializer, FarmStorySerializer
 
 class IsProducerOrReadOnly(permissions.BasePermission):
     """
@@ -45,3 +45,37 @@ class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class RecipeListCreateView(generics.ListCreateAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = [IsProducerOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['producer__username', 'products__id']
+    search_fields = ['title', 'description', 'ingredients', 'producer__username']
+    ordering_fields = ['created_at']
+
+    def perform_create(self, serializer):
+        serializer.save(producer=self.request.user)
+
+class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = [IsProducerOrReadOnly]
+
+class FarmStoryListCreateView(generics.ListCreateAPIView):
+    queryset = FarmStory.objects.all()
+    serializer_class = FarmStorySerializer
+    permission_classes = [IsProducerOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['producer__username']
+    search_fields = ['title', 'content', 'producer__username']
+    ordering_fields = ['created_at']
+
+    def perform_create(self, serializer):
+        serializer.save(producer=self.request.user)
+
+class FarmStoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = FarmStory.objects.all()
+    serializer_class = FarmStorySerializer
+    permission_classes = [IsProducerOrReadOnly]

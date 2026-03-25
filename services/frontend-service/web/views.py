@@ -101,6 +101,7 @@ def product_detail(request, product_id):
     """
     product = None
     reviews = []
+    recipes = []
     error = None
 
     try:
@@ -124,6 +125,15 @@ def product_detail(request, product_id):
             )
             if resp_rev.status_code == 200:
                 reviews = resp_rev.json()
+                
+            # Fetch linked recipes
+            resp_rec = requests.get(
+                f"{PLATFORM_API_URL}/api/products/recipes/",
+                params={'products__id': product_id},
+                timeout=5
+            )
+            if resp_rec.status_code == 200:
+                recipes = resp_rec.json()
 
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
@@ -137,6 +147,7 @@ def product_detail(request, product_id):
     return render(request, 'web/product_detail.html', {
         'product': product,
         'reviews': reviews,
+        'recipes': recipes,
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
     })
@@ -1456,6 +1467,212 @@ def producer_update_order_status_view(request, order_id):
             return redirect(f'/dashboard/orders/{order_id}/?error={quote_plus(str(e))}')
 
     return redirect(f'/dashboard/orders/{order_id}/')
+
+def producer_content_dashboard(request):
+    """
+    Dashboard for producers to manage their recipes and farm stories.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+    
+    recipes, stories = [], []
+    error = None
+    username = request.session.get('username')
+    
+    try:
+        resp_r = requests.get(f"{PLATFORM_API_URL}/api/products/recipes/", params={'producer__username': username}, timeout=5)
+        if resp_r.status_code == 200:
+            recipes = resp_r.json()
+            
+        resp_s = requests.get(f"{PLATFORM_API_URL}/api/products/farm-stories/", params={'producer__username': username}, timeout=5)
+        if resp_s.status_code == 200:
+            stories = resp_s.json()
+    except Exception as e:
+        error = f"Could not load content: {str(e)}"
+        
+    return render(request, 'web/content_dashboard.html', {
+        'recipes': recipes,
+        'stories': stories,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL
+    })
+
+def add_recipe_view(request):
+    """
+    Form view for adding a new recipe.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+        
+    error = None
+    products = []
+    
+    try:
+        resp_p = requests.get(f"{PLATFORM_API_URL}/api/products/", params={'producer__username': request.session.get('username')}, timeout=5)
+        if resp_p.status_code == 200:
+            products = resp_p.json()
+    except:
+        pass
+        
+    if request.method == 'POST':
+        form_data = request.POST.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        
+        files = {}
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            files['image'] = (image_file.name, image_file.read(), image_file.content_type)
+            
+        selected_products = request.POST.getlist('products')
+        
+        data_tuples = []
+        for k, v in form_data.items():
+            if k != 'products':
+                data_tuples.append((k, v))
+                
+        for pid in selected_products:
+            data_tuples.append(('products', pid))
+            
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/products/recipes/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                data=data_tuples,
+                files=files if files else None,
+                timeout=10
+            )
+            if resp.status_code == 201:
+                return redirect('/dashboard/content/')
+            else:
+                error = f"Failed to create recipe: {resp.text}"
+        except Exception as e:
+            error = f"Error: {str(e)}"
+            
+    return render(request, 'web/add_recipe.html', {
+        'products': products,
+        'error': error
+    })
+
+def add_farm_story_view(request):
+    """
+    Form view for adding a new farm story.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+        
+    error = None
+    
+    if request.method == 'POST':
+        form_data = request.POST.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        
+        files = {}
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            files['image'] = (image_file.name, image_file.read(), image_file.content_type)
+            
+        try:
+            resp = requests.post(
+                f"{PLATFORM_API_URL}/api/products/farm-stories/",
+                headers={'Authorization': f"Bearer {request.session.get('token')}"},
+                data=form_data,
+                files=files if files else None,
+                timeout=10
+            )
+            if resp.status_code == 201:
+                return redirect('/dashboard/content/')
+            else:
+                error = f"Failed to create story: {resp.text}"
+        except Exception as e:
+            error = f"Error: {str(e)}"
+            
+    return render(request, 'web/add_farm_story.html', {
+        'error': error
+    })
+
+def producer_public_profile(request, producer_id):
+    """
+    Public profile page for a producer, showing their products, recipes, and stories.
+    """
+    producer = None
+    products = []
+    recipes = []
+    stories = []
+    error = None
+    
+    try:
+        resp_u = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", timeout=5)
+        if resp_u.status_code == 200:
+            users = resp_u.json()
+            # find producer by id
+            for u in users:
+                if u.get('id') == producer_id:
+                    producer = u
+                    break
+                    
+            if producer:
+                username = producer.get('username')
+                
+                resp_p = requests.get(f"{PLATFORM_API_URL}/api/products/", params={'producer__username': username}, timeout=5)
+                if resp_p.status_code == 200:
+                    products = resp_p.json()
+                    
+                resp_r = requests.get(f"{PLATFORM_API_URL}/api/products/recipes/", params={'producer__username': username}, timeout=5)
+                if resp_r.status_code == 200:
+                    recipes = resp_r.json()
+                    
+                resp_s = requests.get(f"{PLATFORM_API_URL}/api/products/farm-stories/", params={'producer__username': username}, timeout=5)
+                if resp_s.status_code == 200:
+                    stories = resp_s.json()
+            else:
+                error = "Producer not found."
+    except Exception as e:
+        error = f"Error: {str(e)}"
+        
+    return render(request, 'web/producer_public_profile.html', {
+        'producer': producer,
+        'products': products,
+        'recipes': recipes,
+        'stories': stories,
+        'error': error,
+        'media_base_url': MEDIA_BASE_URL
+    })
+
+def delete_recipe_view(request, recipe_id):
+    """
+    Delete a recipe.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+        
+    try:
+        resp = requests.delete(
+            f"{PLATFORM_API_URL}/api/products/recipes/{recipe_id}/",
+            headers={'Authorization': f"Bearer {request.session.get('token')}"},
+            timeout=5
+        )
+    except:
+        pass
+        
+    return redirect('/dashboard/content/')
+
+def delete_farm_story_view(request, story_id):
+    """
+    Delete a farm story.
+    """
+    if not request.session.get('token') or request.session.get('role') != 'PRODUCER':
+        return redirect('/login/')
+        
+    try:
+        resp = requests.delete(
+            f"{PLATFORM_API_URL}/api/products/farm-stories/{story_id}/",
+            headers={'Authorization': f"Bearer {request.session.get('token')}"},
+            timeout=5
+        )
+    except:
+        pass
+        
+    return redirect('/dashboard/content/')
 
 def custom_404(request, exception=None):
     """Custom 404 page."""

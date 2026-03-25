@@ -45,4 +45,12 @@ urlpatterns = [
     path('dashboard/orders/', views.producer_orders_view, name='producer_orders'),
     path('dashboard/orders/<int:order_id>/', views.producer_order_detail_view, name='producer_order_detail'),
     path('dashboard/orders/<int:order_id>/status/', views.producer_update_order_status_view, name='producer_update_order_status'),
+    path('dashboard/content/', views.producer_content_dashboard, name='producer_content_dashboard'),
+    path('dashboard/content/recipes/add/', views.add_recipe_view, name='add_recipe'),
+    path('dashboard/content/recipes/<int:recipe_id>/delete/', views.delete_recipe_view, name='delete_recipe'),
+    path('dashboard/content/stories/add/', views.add_farm_story_view, name='add_farm_story'),
+    path('dashboard/content/stories/<int:story_id>/delete/', views.delete_farm_story_view, name='delete_farm_story'),
+    
+    # Public Producer Profile
+    path('producers/<int:producer_id>/', views.producer_public_profile, name='producer_public_profile'),
 ]
