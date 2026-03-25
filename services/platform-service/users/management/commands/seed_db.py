@@ -209,8 +209,8 @@ class Command(BaseCommand):
             FarmStory.objects.get_or_create(
                 producer=producer,
                 defaults={
-                    'title': 'Harvesting Our First Carrots of the Season',
-                    'content': 'It has been a wonderful autumn here at the farm. We just started pulling our first batch of carrots from the ground, and they look fantastic and crunchy!'
+                    'title': 'Harvest Carrots!',
+                    'content': 'This is a test farm story! It is about harvesting carrots. Yeah... we did that ;-)'
                 }
             )
             self.stdout.write(self.style.SUCCESS('Created farm story'))
@@ -218,11 +218,11 @@ class Command(BaseCommand):
             if created_products:
                 recipe, _ = Recipe.objects.get_or_create(
                     producer=producer,
-                    title='Roasted Root Vegetable Medley',
+                    title='Carrot recipe',
                     defaults={
-                        'description': 'A simple and hearty side dish perfect for autumn evenings.',
-                        'ingredients': '- 500g Carrots, chopped\n- 500g Parsnips, chopped\n- 2 tbsp Olive Oil\n- 1 tsp Sea Salt\n- 1 tsp Black Pepper\n- Fresh rosemary',
-                        'instructions': '1. Preheat oven to 200°C.\n2. Toss vegetables with oil, salt, pepper, and rosemary.\n3. Spread evenly on a baking tray.\n4. Roast for 30-40 minutes until tender and caramelized.',
+                        'description': 'This is a test recipe! It is about roasting root vegetables. Yeah... we did that ;-)',
+                        'ingredients': '- 1kg Carrots\n- 1kg More Carrots\n- 1kg More Carrots\n- 1kg More Carrots',
+                        'instructions': '1. Chop carrots\n2. Chop more carrots\n3. Chop even more carrots\n4. Chop so many carrots.',
                         'season_tag': 'Autumn/Winter'
                     }
                 )
