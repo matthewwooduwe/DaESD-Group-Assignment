@@ -198,6 +198,17 @@
 
 .allergen-block strong { display: block; margin-bottom: 2px; }
 
+.allergen-tag {
+    display: inline-block;
+    background: #f5e6a8;
+    color: #7a5a0a;
+    border: 1px solid #e8d080;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
 /* ── SURPLUS INFO ── */
 .surplus-block {
     background: #fdf0ed;
@@ -519,10 +530,23 @@
                 </div>
                 {% endif %}
 
-                {% if product.allergen_info %}
+                {% if product.allergens or product.allergen_info %}
                 <div class="allergen-block">
                     <strong>⚠ Allergen Information</strong>
-                    {{ product.allergen_info }}
+                    {% if product.allergens %}
+                    <div class="allergen-tags" style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-top:0.4rem;">
+                        {% for allergen in product.allergens %}
+                        <span class="allergen-tag">{{ allergen }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if product.allergen_info %}
+                    <p style="margin-top:0.4rem;font-size:0.8rem;">{{ product.allergen_info }}</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="allergen-block" style="color:#3a5a3a;background:#e8f5ee;border-color:#b8dfc8;">
+                    <strong>✓ No declared allergens</strong>
                 </div>
                 {% endif %}
 

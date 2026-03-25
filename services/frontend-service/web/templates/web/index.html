@@ -207,6 +207,59 @@
 
 .filter-clear:hover { color: rgba(255,255,255,0.9); }
 
+.allergen-filter-toggle {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.9);
+    padding: 0.45rem 0.9rem;
+    border-radius: 4px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.allergen-filter-toggle:hover,
+.allergen-filter-toggle.active { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+
+.allergen-filter-panel {
+    display: none;
+    width: 100%;
+    padding: 0.85rem 0 0.25rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    margin-top: 0.75rem;
+}
+.allergen-filter-panel.open { display: block; }
+.allergen-filter-panel-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+}
+.allergen-filter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.allergen-filter-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.9);
+    transition: all 0.2s;
+}
+.allergen-filter-item:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+.allergen-filter-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #fff; cursor: pointer; }
+.allergen-filter-item input:checked + span { font-weight: 700; color: #fff; }
+
 /* ── TRUST STRIP ── */
 .trust-strip {
     background: var(--cream-dark);
@@ -618,7 +671,7 @@
 
     <!-- Filter bar -->
     <div class="filter-bar">
-        <form class="filter-form" method="GET" action="/">
+        <form class="filter-form" method="GET" action="/" id="filter-form">
             <input
                 class="filter-input filter-search"
                 type="text"
@@ -638,10 +691,27 @@
                 <input type="checkbox" name="organic" value="1" {% if is_organic %}checked{% endif %}>
                 Organic only
             </label>
+            <button type="button" class="allergen-filter-toggle {% if exclude_allergens %}active{% endif %}" id="allergen-toggle" aria-expanded="false" aria-controls="allergen-panel">
+                ⚠ Allergen Filter {% if exclude_allergens %}({{ exclude_allergens|length }} active){% endif %}
+            </button>
             <button class="filter-btn" type="submit">Search</button>
-            {% if search or selected_category or is_organic %}
+            {% if search or selected_category or is_organic or exclude_allergens %}
             <a class="filter-clear" href="/">Clear</a>
             {% endif %}
+
+            <!-- Allergen filter panel -->
+            <div class="allergen-filter-panel {% if exclude_allergens %}open{% endif %}" id="allergen-panel">
+                <p class="allergen-filter-panel-title">Hide products containing:</p>
+                <div class="allergen-filter-grid">
+                    {% for allergen in allergen_list %}
+                    <label class="allergen-filter-item">
+                        <input type="checkbox" name="exclude_allergen" value="{{ allergen }}"
+                            {% if allergen in exclude_allergens %}checked{% endif %}>
+                        <span>{{ allergen }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
         </form>
     </div>
 
@@ -761,5 +831,15 @@
 
     </div>
 </section>
+
+<script>
+document.getElementById('allergen-toggle').addEventListener('click', function() {
+    var panel = document.getElementById('allergen-panel');
+    var isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open');
+    this.setAttribute('aria-expanded', String(!isOpen));
+    this.classList.toggle('active');
+});
+</script>
 
 {% endblock %}
