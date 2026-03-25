@@ -115,6 +115,7 @@ class Recipe(models.Model):
 
     class Meta:
         db_table = 'recipes'
+        unique_together = ('producer', 'title')
 
     def __str__(self):
         return f"{self.title} by {self.producer.username}"
@@ -134,6 +135,7 @@ class FarmStory(models.Model):
 
     class Meta:
         db_table = 'farm_stories'
+        unique_together = ('producer', 'title')
 
     def __str__(self):
         return f"{self.title} by {self.producer.username}"

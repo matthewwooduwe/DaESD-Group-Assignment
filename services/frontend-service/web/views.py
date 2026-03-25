@@ -1592,44 +1592,30 @@ def add_farm_story_view(request):
 
 def producer_public_profile(request, producer_id):
     """
-    Public profile page for a producer, showing their products, recipes, and stories.
+    Public profile for a producer showing their products, recipes, and stories.
+    Uses the composite platform-api endpoint to fetch all data in one request.
     """
-    producer = None
-    products = []
-    recipes = []
-    stories = []
+    profile_data = {}
     error = None
     
     try:
-        # Link to the new public producer detail endpoint
-        resp_u = requests.get(f"{PLATFORM_API_URL}/api/auth/public-producers/{producer_id}/", timeout=5)
-        if resp_u.status_code == 200:
-            producer = resp_u.json()
-            username = producer.get('username')
-            
-            resp_p = requests.get(f"{PLATFORM_API_URL}/api/products/", params={'producer__username': username}, timeout=5)
-            if resp_p.status_code == 200:
-                products = resp_p.json()
-                
-            resp_r = requests.get(f"{PLATFORM_API_URL}/api/products/recipes/", params={'producer__username': username}, timeout=5)
-            if resp_r.status_code == 200:
-                recipes = resp_r.json()
-                
-            resp_s = requests.get(f"{PLATFORM_API_URL}/api/products/farm-stories/", params={'producer__username': username}, timeout=5)
-            if resp_s.status_code == 200:
-                stories = resp_s.json()
-        elif resp_u.status_code == 404:
+        # Fetch the composite profile data (batch request)
+        resp = requests.get(f"{PLATFORM_API_URL}/api/auth/public-producers/{producer_id}/profile/", timeout=5)
+        if resp.status_code == 200:
+            profile_data = resp.json()
+        elif resp.status_code == 404:
             error = "Producer not found."
         else:
-            error = f"Error fetching producer details (Status {resp_u.status_code})."
+            error = f"Error fetching producer profile (Status {resp.status_code})."
     except Exception as e:
         error = f"Error communicating with API: {str(e)}"
-        
+    
+    # Map the nested data to template context variables
     return render(request, 'web/producer_public_profile.html', {
-        'producer': producer,
-        'products': products,
-        'recipes': recipes,
-        'stories': stories,
+        'producer': profile_data, # Contains basic info and producer_profile nested
+        'products': profile_data.get('products', []),
+        'recipes': profile_data.get('recipes', []),
+        'stories': profile_data.get('farm_stories', []),
         'error': error,
         'media_base_url': MEDIA_BASE_URL
     })

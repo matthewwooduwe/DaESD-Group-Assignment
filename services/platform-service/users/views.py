@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, ProducerPublicSerializer
+from products.serializers import ProducerFullProfileSerializer
 
 User = get_user_model()
 
@@ -57,3 +58,16 @@ class ProducerPublicDetailView(generics.RetrieveAPIView):
     
     def get_queryset(self):
         return User.objects.filter(role='PRODUCER')
+
+class ProducerPublicProfileView(generics.RetrieveAPIView):
+    """
+    Composite endpoint to fetch a producer's full public profile,
+    including their products, recipes, and farm stories in one request.
+    """
+    serializer_class = ProducerFullProfileSerializer
+    permission_classes = (permissions.AllowAny,)
+    
+    def get_queryset(self):
+        return User.objects.filter(role='PRODUCER').prefetch_related(
+            'products', 'recipes', 'farm_stories'
+        ).select_related('producer_profile')
