@@ -462,7 +462,7 @@
 
                 <p class="detail-producer">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Sold by <a href="/?search={{ product.producer_username }}">{{ product.producer_username }}</a>
+                    Sold by <a href="/producers/{{ product.producer }}/">{{ product.producer_profile.business_name|default:product.producer_username }}</a>
                 </p>
 
                 <div class="detail-price-block">
@@ -598,9 +598,32 @@
         </div>
     </section>
     {% else %}
-    <section class="reviews-section">
-        <h2 class="reviews-heading">Customer Reviews</h2>
-        <p class="no-reviews">No reviews yet for this product.</p>
+    </section>
+    {% endif %}
+
+    <!-- RECIPE SUGGESTIONS -->
+    {% if recipes %}
+    <section class="reviews-section" style="border-top: 1px solid var(--border); padding-top: 2.5rem; margin-top: 2rem;">
+        <h2 class="reviews-heading">Recipe Suggestions</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for recipe in recipes %}
+            <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <h3 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.25rem;">{{ recipe.title }}</h3>
+                    {% if recipe.season_tag %}
+                    <span class="badge badge-category" style="background: var(--green-light); color: var(--green);">{{ recipe.season_tag }}</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">{{ recipe.description|truncatewords:20 }}</p>
+                
+                {% if recipe.image %}
+                <img src="{{ media_base_url }}{{ recipe.image }}" alt="{{ recipe.title }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+                {% endif %}
+
+                <a href="/producers/{{ product.producer }}/" class="btn-secondary" style="width: 100%; text-align: center; padding: 0.5rem; font-size: 0.85rem;">View Full Recipe</a>
+            </div>
+            {% endfor %}
+        </div>
     </section>
     {% endif %}
 

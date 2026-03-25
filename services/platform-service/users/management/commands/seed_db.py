@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from users.models import ProducerProfile, CustomerProfile
-from products.models import Category, Product
+from products.models import Category, Product, Recipe, FarmStory
 from orders.models import Order, OrderItem, CustomerOrder
 from reviews.models import Review
 from decimal import Decimal
@@ -20,8 +20,23 @@ class Command(BaseCommand):
         self.stdout.write('Cleaning old data...')
         
         # Delete existing data in reverse order of dependency to maintain referential integrity.
+        # We use all_objects where available to ensure soft-deleted records are also cleared.
         Review.objects.all().delete()
-        Order.objects.all().delete() 
+        
+        # Order items protect products, so delete them first
+        if hasattr(OrderItem, 'all_objects'):
+            OrderItem.all_objects.all().delete()
+        else:
+            OrderItem.objects.all().delete()
+
+        if hasattr(Order, 'all_objects'):
+            Order.all_objects.all().delete()
+        else:
+            Order.objects.all().delete()
+            
+        CustomerOrder.objects.all().delete()
+        Recipe.objects.all().delete()
+        FarmStory.objects.all().delete()
         Product.objects.all().delete()
         Category.objects.all().delete()
         
@@ -207,5 +222,35 @@ class Command(BaseCommand):
                 }
             )
             self.stdout.write(self.style.SUCCESS('Created review'))
+
+        # 6. Create Educational Content (TC-020)
+        if producer:
+            FarmStory.objects.get_or_create(
+                producer=producer,
+                defaults={
+                    'title': 'Harvest Carrots!',
+                    'content': 'This is a test farm story! It is about harvesting carrots. Yeah... we did that ;-)'
+                }
+            )
+            self.stdout.write(self.style.SUCCESS('Created farm story'))
+            
+            if created_products:
+                recipe, _ = Recipe.objects.get_or_create(
+                    producer=producer,
+                    title='Carrot recipe',
+                    defaults={
+                        'description': 'This is a test recipe! It is about roasting root vegetables. Yeah... we did that ;-)',
+                        'ingredients': '- 1kg Carrots\n- 1kg More Carrots\n- 1kg More Carrots\n- 1kg More Carrots',
+                        'instructions': '1. Chop carrots\n2. Chop more carrots\n3. Chop even more carrots\n4. Chop so many carrots.',
+                        'season_tag': 'Autumn/Winter'
+                    }
+                )
+                
+                # Link carrots if we have them
+                for prod in created_products:
+                    if 'Carrot' in prod.name:
+                        recipe.products.add(prod)
+                        
+                self.stdout.write(self.style.SUCCESS('Created recipe'))
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))

@@ -1,0 +1,86 @@
+{% extends "web/base.html" %}
+
+{% block title %}Add Farm Story — Bristol Regional Food Network{% endblock %}
+
+{% block extra_styles %}
+.btn-primary {
+    background: var(--terra);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary:hover {
+    background: var(--terra-light);
+}
+.btn-secondary {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius);
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+.btn-secondary:hover {
+    background: var(--green);
+    color: #fff;
+}
+{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container" style="max-width: 600px;">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem;">
+            <h1 style="font-family: 'Cormorant Garamond', serif; font-size: 2.25rem;">Share a Farm Story</h1>
+            <a href="/dashboard/content/" class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">← Back to Content</a>
+        </div>
+
+        {% if error %}
+        <div class="error-banner" style="margin-bottom: 2rem;">{{ error }}</div>
+        {% endif %}
+
+        <div style="background: var(--card-bg); padding: 2.5rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow);">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="title" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Story Title *</label>
+                    <input type="text" id="title" name="title" required style="width: 100%; padding: 0.75rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="content" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Story Content *</label>
+                    <p class="text-muted" style="font-size: 0.85rem; margin-top: 0; margin-bottom: 0.5rem;">Share news, updates, or educational info about your farm.</p>
+                    <textarea id="content" name="content" required rows="8" style="width: 100%; padding: 0.75rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: 'Source Sans 3', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+                </div>
+
+                <div style="margin-bottom: 2.5rem; opacity: 0.5; cursor: not-allowed;">
+                    <label for="image" style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Add a Photo <span style="color: var(--terra); letter-spacing: normal;">(Coming Soon)</span></label>
+                    <input type="file" id="image" name="image" accept="image/*" disabled style="width: 100%; font-size: 0.9rem; cursor: not-allowed;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; align-items: center;">
+                    <a href="/dashboard/content/" style="color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem;">Cancel</a>
+                    <button type="submit" class="btn-primary" style="background: var(--green);">Publish Story</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

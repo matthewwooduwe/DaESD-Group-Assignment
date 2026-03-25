@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, Category
+from django.contrib.auth import get_user_model
+from .models import Product, Category, Recipe, FarmStory
 from orders.models import SurplusDeal
 from django.utils import timezone
 from users.serializers import ProducerProfileSerializer
@@ -101,3 +102,54 @@ class ProductSerializer(serializers.ModelSerializer):
                     active_deal.delete()
 
         return product
+
+class FarmStorySerializer(serializers.ModelSerializer):
+    producer_username = serializers.ReadOnlyField(source='producer.username')
+    producer_business_name = serializers.ReadOnlyField(source='producer.producer_profile.business_name')
+    
+    class Meta:
+        model = FarmStory
+        fields = ('id', 'producer', 'producer_username', 'producer_business_name', 'title', 'content', 'image', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'producer', 'created_at', 'updated_at')
+
+class RecipeSerializer(serializers.ModelSerializer):
+    producer_username = serializers.ReadOnlyField(source='producer.username')
+    producer_business_name = serializers.ReadOnlyField(source='producer.producer_profile.business_name')
+    
+    class Meta:
+        model = Recipe
+        fields = ('id', 'producer', 'producer_username', 'producer_business_name', 'products', 'title', 'description', 'ingredients', 'instructions', 'season_tag', 'image', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'producer', 'created_at', 'updated_at')
+    def validate_products(self, value):
+        """
+        Check that all products in the recipe belong to the producer.
+        """
+        request = self.context.get('request')
+        if not request or not request.user:
+            return value
+
+        # 'value' is a list of Product objects (since it's a many-to-many field)
+        invalid_products = [p.name for p in value if p.producer != request.user]
+        if invalid_products:
+            raise serializers.ValidationError(
+                f"The following products do not belong to you: {', '.join(invalid_products)}. "
+                "You can only link your own products to recipes."
+            )
+        return value
+
+User = get_user_model()
+
+class ProducerFullProfileSerializer(serializers.ModelSerializer):
+    """
+    Composite serializer for the public producer profile page.
+    Batches basic info, products, recipes, and farm stories into one response.
+    """
+    producer_profile = ProducerProfileSerializer(read_only=True)
+    products = ProductSerializer(many=True, read_only=True)
+    recipes = RecipeSerializer(many=True, read_only=True)
+    farm_stories = FarmStorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'producer_profile', 'products', 'recipes', 'farm_stories')
+        read_only_fields = ('id', 'username', 'producer_profile', 'products', 'recipes', 'farm_stories')

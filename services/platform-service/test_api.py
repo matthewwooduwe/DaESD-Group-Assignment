@@ -16,6 +16,8 @@ class APITester:
         self.created_orders = [] # list of (id, token)
         self.created_products = [] # list of (id, token)
         self.created_categories = [] # list of (id, token)
+        self.created_recipes = [] # list of (id, token)
+        self.created_farm_stories = [] # list of (id, token)
         self.created_users = [] # list of (username, token)
 
     def log(self, msg, success=True):
@@ -29,6 +31,8 @@ class APITester:
             self.test_producer_login()
             self.test_category_creation()
             self.test_product_creation()
+            self.test_recipe_creation()
+            self.test_farm_story_creation()
             self.test_customer_registration()
             self.test_customer_login()
             self.test_order_creation()
@@ -111,6 +115,38 @@ class APITester:
         else:
              raise Exception(f"Product Create Failed: {response.text}")
 
+    def test_recipe_creation(self):
+        print("\n4a. Creating Recipe...")
+        headers = {"Authorization": f"Bearer {self.producer_token}"}
+        recipe_data = {
+            "title": f"Recipe_{int(time.time())}",
+            "description": "Tasty",
+            "ingredients": "Carrots",
+            "instructions": "Cook it",
+            "season_tag": "Summer",
+            "products": [self.current_product_id]
+        }
+        response = requests.post(f"{BASE_URL}/products/recipes/", json=recipe_data, headers=headers)
+        if response.status_code == 201:
+            self.log("Recipe Created")
+            self.created_recipes.append((response.json()['id'], self.producer_token))
+        else:
+             raise Exception(f"Recipe Create Failed: {response.text}")
+
+    def test_farm_story_creation(self):
+        print("\n4b. Creating Farm Story...")
+        headers = {"Authorization": f"Bearer {self.producer_token}"}
+        story_data = {
+            "title": f"Story_{int(time.time())}",
+            "content": "A story about farm."
+        }
+        response = requests.post(f"{BASE_URL}/products/farm-stories/", json=story_data, headers=headers)
+        if response.status_code == 201:
+            self.log("Farm Story Created")
+            self.created_farm_stories.append((response.json()['id'], self.producer_token))
+        else:
+             raise Exception(f"Farm Story Create Failed: {response.text}")
+
     def test_customer_registration(self):
         print("\n5. Registering Customer...")
         username = f"cust_{int(time.time())}"
@@ -145,13 +181,32 @@ class APITester:
     def test_order_creation(self):
         print("\n7. Creating Order...")
         headers = {"Authorization": f"Bearer {self.customer_token}"}
-        order_data = {
-            "item_ids": [{"product_id": self.current_product_id, "quantity": 5}]
+        
+        # Step 7a: Add product to basket
+        print("  - Adding product to basket...")
+        basket_data = {
+            "product_id": self.current_product_id,
+            "quantity": 5
         }
-        response = requests.post(f"{BASE_URL}/orders/", json=order_data, headers=headers)
+        basket_response = requests.post(f"{BASE_URL}/basket/add/", json=basket_data, headers=headers)
+        if basket_response.status_code != 200:
+             raise Exception(f"Add to Basket Failed: {basket_response.text}")
+        self.log("Product Added to Basket")
+        
+        # Step 7b: Place Order
+        print("  - Placing order...")
+        order_data = {
+            "delivery_dates": {},
+            "collection_types": {}
+        }
+        response = requests.post(f"{BASE_URL}/orders/place/", json=order_data, headers=headers)
         if response.status_code == 201:
             self.log("Order Created")
-            self.current_order_id = response.json()['id']
+            # The response is a CustomerOrder, which contains multiple orders
+            # For cleanup, we can delete the individual orders or the customer order
+            # The cleanup loop expects individual order IDs
+            resp_json = response.json()
+            self.current_order_id = resp_json['orders'][0]['id'] # Get first producer order
             self.created_orders.append((self.current_order_id, self.customer_token))
         else:
              raise Exception(f"Order Create Failed: {response.text}")
@@ -194,6 +249,16 @@ class APITester:
         for cid, token in self.created_categories:
             r = requests.delete(f"{BASE_URL}/products/categories/{cid}/", headers={"Authorization": f"Bearer {token}"})
             print(f"Deleted Category {cid}: {r.status_code}")
+            
+        # Recipes
+        for rid, token in self.created_recipes:
+            r = requests.delete(f"{BASE_URL}/products/recipes/{rid}/", headers={"Authorization": f"Bearer {token}"})
+            print(f"Deleted Recipe {rid}: {r.status_code}")
+            
+        # Farm Stories
+        for fid, token in self.created_farm_stories:
+            r = requests.delete(f"{BASE_URL}/products/farm-stories/{fid}/", headers={"Authorization": f"Bearer {token}"})
+            print(f"Deleted Farm Story {fid}: {r.status_code}")
             
         # Users (Self deletion)
         # We need to cleanup created users tokens first? No, we use them.
