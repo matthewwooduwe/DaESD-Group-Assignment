@@ -122,7 +122,11 @@
                 <td>{{ order.created_at|slice:":10" }}</td>
                 <td>{{ order.total_items }}</td>
                 <td>£{{ order.total_amount|default:"0.00"|floatformat:2 }}</td>
-                <td><span class="badge badge-category">{{ order.overall_status }}</span></td>
+                <td>
+                    <span class="status-badge status-{{ order.overall_status|default:'unknown'|lower }}">
+                        {{ order.overall_status }}
+                    </span>
+                </td>
                 <td><a href="/orders/customer/{{ order.id }}/" class="btn-secondary btn-sm">View Details</a></td>
             </tr>
             {% endfor %}
