@@ -95,6 +95,10 @@
 </section>
 
 <div class="container">
+    {% if success %}
+    <div class="success-banner">{{ success }}</div>
+    {% endif %}
+
     {% if error %}
     <div class="error-banner">{{ error }}</div>
     {% endif %}

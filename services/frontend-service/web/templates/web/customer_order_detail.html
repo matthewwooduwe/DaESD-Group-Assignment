@@ -177,6 +177,13 @@
     {% if error %}
     <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
     {% endif %}
+    {% if success %}
+    <div class="success-banner" style="margin-top: 2rem;">{{ success }}</div>
+    {% endif %}
+
+    {% if payment_error %}
+    <div class="error-banner" style="margin-top: 2rem;">Warning: {{ payment_error }}</div>
+    {% endif %}
 
     {% if order %}
 

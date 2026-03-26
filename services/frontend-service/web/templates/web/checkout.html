@@ -537,7 +537,7 @@ min-height: 100px;
                 <div class="form-group">
                     <label class="form-label">Delivery / Collection Date<span class="required">*</span></label>
                     <p>Note: a 48-hour lead time must be enforced on all orders to allow producers time to prepare.</p>
-                    <input type="date" name="delivery_date_{{ producer_group.producer_id }}" class="form-input">
+                    <input type="date" name="delivery_date_{{ producer_group.producer_id }}" class="form-input" min="{{ minimum_delivery_date }}" required>
                 </div>
 
             </div>
