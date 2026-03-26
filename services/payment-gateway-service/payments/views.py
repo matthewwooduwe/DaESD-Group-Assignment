@@ -71,8 +71,8 @@ def list_transactions(request):
         limit = _coerce_limit(request.GET.get('limit'))
 
         sessions = stripe.checkout.Session.list(limit=limit)
-        session_rows = sessions.get('data', [])
-        session_ids = [s.get('id') for s in session_rows if s.get('id')]
+        session_rows = sessions.data
+        session_ids = [s.id for s in session_rows if s.id]
 
         payments_by_session = {
             p.stripe_session_id: p
@@ -81,24 +81,24 @@ def list_transactions(request):
 
         transactions = []
         for session in session_rows:
-            session_id = session.get('id')
+            session_id = session.id
             local_payment = payments_by_session.get(session_id)
-            amount_total = session.get('amount_total')
-            created_unix = session.get('created')
-            metadata = session.get('metadata') or {}
+            amount_total = session.amount_total
+            created_unix = session.created
+            metadata = session.metadata or {}
 
             transactions.append(
                 {
                     'session_id': session_id,
                     'order_id': (local_payment.order_id if local_payment else '') or metadata.get('order_id') or '',
-                    'customer_email': session.get('customer_email') or '',
+                    'customer_email': session.customer_email or '',
                     'amount_total': _format_amount(amount_total),
-                    'currency': (session.get('currency') or '').upper(),
-                    'payment_status': session.get('payment_status') or 'unknown',
+                    'currency': (session.currency or '').upper(),
+                    'payment_status': session.payment_status or 'unknown',
                     'status': local_payment.status if local_payment else '',
                     'created_at': _format_unix(created_unix),
-                    'payment_intent': session.get('payment_intent') or '',
-                    'url': session.get('url') or '',
+                    'payment_intent': session.payment_intent or '',
+                    'url': session.url or '',
                 }
             )
 
@@ -166,8 +166,8 @@ def checkout_success(request):
             if not payment:
                 payment = Payment.objects.filter(stripe_session_id=session_id).first()
             if payment:
-                payment_status = session.get('payment_status')
-                payment_intent_id = session.get('payment_intent')
+                payment_status = session.payment_status
+                payment_intent_id = session.payment_intent
                 update_fields = []
                 if payment_intent_id and payment.stripe_payment_intent != payment_intent_id:
                     payment.stripe_payment_intent = payment_intent_id
@@ -579,4 +579,4 @@ def _payment_intent_failed(payment_intent_id):
         intent = stripe.PaymentIntent.retrieve(payment_intent_id)
     except stripe.error.StripeError:
         return False
-    return intent.get('status') in {'requires_payment_method', 'canceled'}
+    return intent.status in {'requires_payment_method', 'canceled'}
