@@ -72,6 +72,11 @@ def list_transactions(request):
 
         sessions = stripe.checkout.Session.list(limit=limit)
         session_rows = sessions.get('data', [])
+        session_rows = sorted(
+            session_rows,
+            key=lambda session: int(session.get('created') or 0),
+            reverse=True,
+        )
         session_ids = [s.get('id') for s in session_rows if s.get('id')]
 
         payments_by_session = {
@@ -86,12 +91,17 @@ def list_transactions(request):
             amount_total = session.get('amount_total')
             created_unix = session.get('created')
             metadata = session.get('metadata') or {}
+            customer_email = _extract_customer_email(
+                session=session,
+                local_payment=local_payment,
+                metadata=metadata,
+            )
 
             transactions.append(
                 {
                     'session_id': session_id,
                     'order_id': (local_payment.order_id if local_payment else '') or metadata.get('order_id') or '',
-                    'customer_email': session.get('customer_email') or '',
+                    'customer_email': customer_email,
                     'amount_total': _format_amount(amount_total),
                     'currency': (session.get('currency') or '').upper(),
                     'payment_status': session.get('payment_status') or 'unknown',
@@ -536,6 +546,33 @@ def _coerce_limit(value):
     if parsed < 1:
         return default_limit
     return min(parsed, max_limit)
+
+
+def _extract_customer_email(*, session, local_payment, metadata):
+    customer_details = session.get('customer_details') or {}
+    email = session.get('customer_email') or customer_details.get('email') or ''
+    if email:
+        return email
+
+    if local_payment and isinstance(local_payment.request_payload, dict):
+        payload = local_payment.request_payload
+        order_payload = payload.get('order') if isinstance(payload.get('order'), dict) else {}
+        email = (
+            payload.get('customer_email')
+            or payload.get('email')
+            or order_payload.get('customer_email')
+            or order_payload.get('email')
+            or ''
+        )
+        if email:
+            return str(email)
+
+    if isinstance(metadata, dict):
+        email = metadata.get('customer_email') or metadata.get('email') or ''
+        if email:
+            return str(email)
+
+    return ''
 
 
 def _format_amount(value):

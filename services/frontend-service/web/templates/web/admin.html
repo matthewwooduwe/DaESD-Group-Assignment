@@ -129,6 +129,12 @@
 .status-confirmed { background: #e8f5ee; color: #00622e; }
 .status-ready     { background: #e3f2fd; color: #1565c0; }
 .status-delivered { background: #f3e5f5; color: #6a1b9a; }
+.status-success,
+.status-paid      { background: #e8f5ee; color: #00622e; }
+.status-unpaid    { background: #fdf3dc; color: #9a6b10; }
+.status-failed,
+.status-cancelled { background: #fde8e0; color: #a0422a; }
+.status-unknown   { background: #eef1f4; color: #4f5b67; }
 
 .btn-sm-danger {
     background: transparent;
@@ -409,7 +415,7 @@
 <section class="admin-header">
     <div class="container">
         <h1>Admin Dashboard</h1>
-        <p>Manage users, products, and orders across the entire platform.</p>
+        <p>Manage users, products, orders, and Stripe invoices across the platform.</p>
     </div>
 </section>
 
@@ -417,6 +423,9 @@
 
     {% if error %}
     <div class="error-banner">{{ error }}</div>
+    {% endif %}
+    {% if stripe_error %}
+    <div class="error-banner">{{ stripe_error }}</div>
     {% endif %}
 
     <!-- Stats -->
@@ -456,6 +465,7 @@
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+        <button class="tab-btn" onclick="switchTab('invoices', this)">Invoices</button>
     </div>
 
     <!-- Users Tab -->
@@ -578,6 +588,53 @@
                 </tr>
                 {% empty %}
                 <tr class="empty-row"><td colspan="7">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Invoices Tab -->
+    <div id="tab-invoices" class="tab-panel">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search invoices by session, order or email..." oninput="filterTable('transactions-table', this.value)">
+        </div>
+        <table class="data-table" id="transactions-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Session</th>
+                    <th>Order</th>
+                    <th>Email</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Stripe</th>
+                    <th>Local</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ tx.session_id|default:"-" }}</td>
+                    <td>{{ tx.order_id|default:"-" }}</td>
+                    <td>{{ tx.customer_email|default:"-" }}</td>
+                    <td>&pound;{{ tx.amount_total|default:"0.00" }}</td>
+                    <td>{{ tx.currency|default:"-" }}</td>
+                    <td>
+                        <span class="status-badge status-{{ tx.payment_status|default:'unknown'|lower }}">
+                            {{ tx.payment_status|default:"unknown" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ tx.status|default:'unknown'|lower }}">
+                            {{ tx.status|default:"unknown" }}
+                        </span>
+                    </td>
+                    <td>{{ tx.created_at|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="9">No Stripe invoices found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

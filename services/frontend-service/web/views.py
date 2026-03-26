@@ -572,14 +572,16 @@ def profile_view(request):
 
 def admin_dashboard(request):
     """
-    Admin dashboard with tabs for users, products, orders, and site stats.
+    Admin dashboard with tabs for users, products, orders, invoices, and site stats.
     """
     if not request.session.get('token') or request.session.get('role') != 'ADMIN':
         return redirect('/login/')
 
     headers = get_auth_headers(request)
     users, products, orders = [], [], []
+    transactions = []
     error = None
+    stripe_error = None
 
     try:
         resp_users = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", headers=headers, timeout=5)
@@ -599,6 +601,29 @@ def admin_dashboard(request):
     except Exception as e:
         error = f"Unexpected error: {str(e)}"
 
+    try:
+        resp_transactions = requests.get(
+            f"{PAYMENT_GATEWAY_URL}/payments/api/transactions/",
+            params={'limit': 100},
+            timeout=8
+        )
+        if resp_transactions.status_code == 200:
+            transactions = (resp_transactions.json() or {}).get('transactions', [])
+            transactions = sorted(
+                transactions,
+                key=lambda tx: tx.get('created_at') or '',
+                reverse=True,
+            )
+        else:
+            stripe_error = _extract_error_from_response(
+                resp_transactions,
+                "Could not load Stripe transactions."
+            )
+    except requests.exceptions.ConnectionError:
+        stripe_error = "Cannot reach payment service. Please check payment-gateway is running."
+    except Exception as e:
+        stripe_error = f"Unexpected Stripe error: {str(e)}"
+
     total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
     total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
     customers = [u for u in users if u.get('role') == 'CUSTOMER']
@@ -608,7 +633,9 @@ def admin_dashboard(request):
         'users': users,
         'products': products,
         'orders': orders,
+        'transactions': transactions,
         'error': error,
+        'stripe_error': stripe_error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
         'customer_count': len(customers),
