@@ -130,6 +130,25 @@
 .status-ready     { background: #e3f2fd; color: #1565c0; }
 .status-delivered { background: #f3e5f5; color: #6a1b9a; }
 
+.status-payment-paid              { background: #e8f5ee; color: #00622e; }
+.status-payment-unpaid            { background: #fdf3dc; color: #9a6b10; }
+.status-payment-no_payment_required { background: #e3f2fd; color: #1565c0; }
+
+.copy-btn {
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.75rem;
+    color: var(--green);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--green);
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+}
+.copy-btn:hover { background: var(--green); color: #fff; }
+.copy-btn.copied { background: var(--green); color: #fff; }
+
 .btn-sm-danger {
     background: transparent;
     color: #a0422a;
@@ -456,6 +475,7 @@
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+        <button class="tab-btn" onclick="switchTab('transactions', this)">Transactions</button>
     </div>
 
     <!-- Users Tab -->
@@ -583,6 +603,41 @@
         </table>
     </div>
 
+    <!-- Transactions Tab -->
+    <div id="tab-transactions" class="tab-panel">
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search transactions by session ID, order ID or email…" oninput="filterTable('transactions-table', this.value)">
+        </div>
+        <table class="data-table" id="transactions-table">
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Order ID</th>
+                    <th>Customer Email</th>
+                    <th>Amount</th>
+                    <th>Payment Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td><button class="copy-btn" onclick="copySessionId('{{ transaction.session_id }}', this)">Copy</button></td>
+                    <td>{{ transaction.order_id|default:"—" }}</td>
+                    <td>{{ transaction.customer_email|default:"—" }}</td>
+                    <td>{{ transaction.amount_total }} {{ transaction.currency }}</td>
+                    <td>
+                        <span class="status-badge status-payment-{{ transaction.payment_status|lower }}">{{ transaction.payment_status }}</span>
+                    </td>
+                    <td>{{ transaction.created_at }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="6">No transactions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </div>
 <br><br>
 
@@ -686,6 +741,17 @@ function filterTable(tableId, query) {
 function toggleModalProfileFields(role) {
     document.getElementById('modal-customer-fields').style.display = role === 'CUSTOMER' ? '' : 'none';
     document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
+}
+
+function copySessionId(sessionId, btn) {
+    navigator.clipboard.writeText(sessionId).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.textContent = 'Copy';
+        }, 1500);
+    });
 }
 
 function openEditModalFromBtn(userId) {
