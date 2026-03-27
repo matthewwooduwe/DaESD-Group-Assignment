@@ -124,18 +124,6 @@
     color: var(--text-muted);
 }
 
-.order-status-badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 999px;
-}
-
-.order-status-badge.pending { background: #f0cc8f; color: #854F0B; }
-.order-status-badge.confirmed { background: #91c1ed; color: #185FA5; }
-.order-status-badge.ready { background: #c3dda1; color: #3B6D11; }
-.order-status-badge.delivered { background: #53c69d; color: #0F6E56; }
-
 .producer-order-items {
     display: flex;
     flex-direction: column;
@@ -177,6 +165,13 @@
     {% if error %}
     <div class="error-banner" style="margin-top: 2rem;">⚠ {{ error }}</div>
     {% endif %}
+    {% if success %}
+    <div class="success-banner" style="margin-top: 2rem;">{{ success }}</div>
+    {% endif %}
+
+    {% if payment_error %}
+    <div class="error-banner" style="margin-top: 2rem;">Warning: {{ payment_error }}</div>
+    {% endif %}
 
     {% if order %}
 
@@ -201,7 +196,11 @@
         </div>
         <div class="detail-row">
             <span class="detail-label">Overall Status:</span>
-            <span><span class="badge badge-category">{{ order.overall_status }}</span></span>
+            <span>
+                <span class="status-badge status-{{ order.overall_status|default:'unknown'|lower }}">
+                    {{ order.overall_status }}
+                </span>
+            </span>
         </div>
     </div>
 
@@ -221,7 +220,9 @@
                         <span class="producer-order-subtotal">Collection type: {{ producer_order.collection_type }}</span>
                     </div>
                 </div>
-                <span class="order-status-badge {{ producer_order.status|lower }}">{{ producer_order.status }}</span>
+                <span class="status-badge status-{{ producer_order.status|default:'unknown'|lower }}">
+                    {{ producer_order.status }}
+                </span>
             </div>
             <div class="producer-order-items">
                 {% for item in producer_order.items %}
