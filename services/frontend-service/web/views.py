@@ -11,6 +11,7 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
+PAYMENT_GATEWAY_API_URL = os.environ.get('PAYMENT_GATEWAY_API_URL', PAYMENT_GATEWAY_URL).rstrip('/')
 
 # UK 14 Major Allergens
 UK_ALLERGENS = [
@@ -46,7 +47,7 @@ def _api_error_message(status_code):
 AUTH_EXPIRED_ERROR = '__AUTH_EXPIRED__'
 
 
-def _build_payment_checkout_payload(*, basket, pending_order_reference):
+def _build_payment_checkout_payload(*, basket, pending_order_reference, customer_email=''):
     """
     Build the JSON payload expected by payment-gateway /payments/api/checkout/
     from the current basket snapshot.
@@ -79,6 +80,9 @@ def _build_payment_checkout_payload(*, basket, pending_order_reference):
     if not items and total_amount not in (None, ''):
         payload['total_amount'] = str(total_amount)
         payload['title'] = f'Order {pending_order_reference}'
+
+    if customer_email:
+        payload['customer_email'] = customer_email
 
     return payload
 
@@ -572,13 +576,13 @@ def profile_view(request):
 
 def admin_dashboard(request):
     """
-    Admin dashboard with tabs for users, products, orders, and site stats.
+    Admin dashboard with tabs for users, products, orders, transactions, and site stats.
     """
     if not request.session.get('token') or request.session.get('role') != 'ADMIN':
         return redirect('/login/')
 
     headers = get_auth_headers(request)
-    users, products, orders = [], [], []
+    users, products, orders, transactions = [], [], [], []
     error = None
 
     try:
@@ -594,8 +598,15 @@ def admin_dashboard(request):
         if resp_orders.status_code == 200:
             orders = resp_orders.json()
 
+        resp_transactions = requests.get(f"{PAYMENT_GATEWAY_API_URL}/payments/api/transactions/?limit=50", timeout=8)
+        if resp_transactions.status_code == 200:
+            trans_data = resp_transactions.json()
+            transactions = trans_data.get('transactions', [])
+
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
+    except requests.exceptions.Timeout:
+        error = "A service request timed out while loading the admin dashboard."
     except Exception as e:
         error = f"Unexpected error: {str(e)}"
 
@@ -608,6 +619,7 @@ def admin_dashboard(request):
         'users': users,
         'products': products,
         'orders': orders,
+        'transactions': transactions,
         'error': error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
@@ -1442,9 +1454,23 @@ def create_order(request):
     request.session.pop('finalized_order_id', None)
     request.session.modified = True
 
+    # Fetch current user to get their email
+    customer_email = ''
+    try:
+        user_resp = requests.get(
+            f"{PLATFORM_API_URL}/api/auth/me/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if user_resp.status_code == 200:
+            customer_email = user_resp.json().get('email', '')
+    except:
+        pass
+
     checkout_payload = _build_payment_checkout_payload(
         basket=basket,
         pending_order_reference=pending_order_reference,
+        customer_email=customer_email,
     )
 
     try:

@@ -87,11 +87,20 @@ def list_transactions(request):
             created_unix = session.created
             metadata = session.metadata or {}
 
+            # Try to get email from Stripe session first, then from local payment request payload
+            customer_email = session.customer_email or ''
+            if not customer_email and local_payment:
+                try:
+                    payload = local_payment.request_payload or {}
+                    customer_email = payload.get('customer_email') or ''
+                except (TypeError, AttributeError):
+                    pass
+
             transactions.append(
                 {
                     'session_id': session_id,
                     'order_id': (local_payment.order_id if local_payment else '') or metadata.get('order_id') or '',
-                    'customer_email': session.customer_email or '',
+                    'customer_email': customer_email,
                     'amount_total': _format_amount(amount_total),
                     'currency': (session.currency or '').upper(),
                     'payment_status': session.payment_status or 'unknown',
