@@ -451,7 +451,9 @@
                     {% if product.is_organic %}
                     <span class="badge badge-organic">🌿 Certified Organic</span>
                     {% endif %}
-                    {% if not product.is_available %}
+                    {% if not product.is_currently_in_season and product.seasonal_availability_text %}
+                    <span class="badge badge-unavailable">Out of Season</span>
+                    {% elif not product.is_available %}
                     <span class="badge badge-unavailable">Currently Unavailable</span>
                     {% elif product.stock_quantity <= 5 %}
                     <span class="badge badge-low-stock">Low Stock</span>
@@ -497,10 +499,10 @@
                         <div class="meta-value">{{ product.best_before_date }}</div>
                     </div>
                     {% endif %}
-                    {% if product.seasonal_start_month and product.seasonal_end_month %}
+                    {% if product.seasonal_availability_text %}
                     <div class="meta-item">
                         <div class="meta-label">In Season</div>
-                        <div class="meta-value">Month {{ product.seasonal_start_month }}–{{ product.seasonal_end_month }}</div>
+                        <div class="meta-value">{{ product.seasonal_availability_text }}</div>
                     </div>
                     {% endif %}
                     <div class="meta-item">
@@ -560,7 +562,7 @@
                             min="1" max="{{ product.stock_quantity }}">
                             <span class="quantity-suffix">units</span>
                         </div>
-                        <button type="submit" class="btn-primary" {% if not product.is_available %}disabled{% endif %}>
+                        <button type="submit" class="btn-primary" {% if not product.is_available or not product.is_currently_in_season %}disabled{% endif %}>
                             Add to Basket
                         </button>
                     </form>

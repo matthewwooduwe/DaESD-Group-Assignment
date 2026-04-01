@@ -781,7 +781,23 @@ def add_product_view(request):
         
         # Handle boolean fields properly
         form_data['is_organic'] = 'is_organic' in request.POST
-        form_data['is_available'] = 'is_available' in request.POST
+        # Handle availability status
+        availability_status = request.POST.get('availability_status', 'ALWAYS')
+        if availability_status == 'OUT_OF_STOCK':
+            form_data['is_available'] = False
+            form_data.pop('seasonal_start_month', None)
+            form_data.pop('seasonal_end_month', None)
+            form_data['seasonal_start_month'] = ''
+            form_data['seasonal_end_month'] = ''
+        elif availability_status == 'IN_SEASON':
+            form_data['is_available'] = True
+            # Keep seasonal_start_month and seasonal_end_month
+        else: # ALWAYS
+            form_data['is_available'] = True
+            form_data.pop('seasonal_start_month', None)
+            form_data.pop('seasonal_end_month', None)
+            form_data['seasonal_start_month'] = ''
+            form_data['seasonal_end_month'] = ''
         
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
@@ -892,7 +908,23 @@ def edit_product_view(request, product_id):
         
         # Handle boolean fields properly
         form_data['is_organic'] = 'is_organic' in request.POST
-        form_data['is_available'] = 'is_available' in request.POST
+        # Handle availability status
+        availability_status = request.POST.get('availability_status', 'ALWAYS')
+        if availability_status == 'OUT_OF_STOCK':
+            form_data['is_available'] = False
+            form_data.pop('seasonal_start_month', None)
+            form_data.pop('seasonal_end_month', None)
+            form_data['seasonal_start_month'] = ''
+            form_data['seasonal_end_month'] = ''
+        elif availability_status == 'IN_SEASON':
+            form_data['is_available'] = True
+            # Keep seasonal_start_month and seasonal_end_month
+        else: # ALWAYS
+            form_data['is_available'] = True
+            form_data.pop('seasonal_start_month', None)
+            form_data.pop('seasonal_end_month', None)
+            form_data['seasonal_start_month'] = ''
+            form_data['seasonal_end_month'] = ''
         
         for key in ['seasonal_start_month', 'seasonal_end_month', 'harvest_date', 'best_before_date', 'unit', 'allergen_info', 'description']:
             if not form_data.get(key):
