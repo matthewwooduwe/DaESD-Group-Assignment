@@ -1619,6 +1619,25 @@ def write_review_view(request, product_id):
 
             return redirect(f"/reviews/create/{product_id}/?error=Review error: {err_msg}")
 
+def delete_review_view(request, review_id):
+    """
+    Allow a customer to delete their previously submitted review.
+    """
+    headers = get_auth_headers(request)
+    if not headers:
+        return redirect('login')
+    
+    product_id = request.POST.get('product_id')
+    
+    resp = requests.delete(f"{PLATFORM_API_URL}/api/reviews/{review_id}/", headers=headers)
+    
+    if resp.status_code == 204:
+        msg = "Your review has been deleted."
+        return redirect(f"/products/{product_id}/?success={msg}") if product_id else redirect('customer-orders')
+    else:
+        err_msg = "Could not delete review."
+        return redirect(f"/products/{product_id}/?error={err_msg}") if product_id else redirect('customer-orders')
+
 def customer_order_detail_view(request, order_id):
     """
     Displays order confirmation and details to the customer after checkout.
