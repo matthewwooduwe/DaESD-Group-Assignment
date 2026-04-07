@@ -54,6 +54,30 @@ class Product(models.Model):
         db_table = 'products'
 
     @property
+    def is_currently_in_season(self):
+        """
+        Dynamically determine if the product is in season based on current month.
+        If no season is specified, it is always considered in season.
+        """
+        if not self.seasonal_start_month or not self.seasonal_end_month:
+            return True
+        current_month = timezone.now().month
+        if self.seasonal_start_month <= self.seasonal_end_month:
+            return self.seasonal_start_month <= current_month <= self.seasonal_end_month
+        else:
+            # Handles cases like Nov to Feb (11 to 2)
+            return current_month >= self.seasonal_start_month or current_month <= self.seasonal_end_month
+
+    @property
+    def seasonal_availability_text(self):
+        """Returns formatted string like 'Jun - Aug'."""
+        if not self.seasonal_start_month or not self.seasonal_end_month:
+            return None
+        months = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 
+                  7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+        return f"{months.get(self.seasonal_start_month)} - {months.get(self.seasonal_end_month)}"
+
+    @property
     def surplus_deal(self):
         """Returns the active surplus deal if one exists."""
         now = timezone.now()

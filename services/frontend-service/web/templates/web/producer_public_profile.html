@@ -46,7 +46,11 @@
                                 </div>
                             {% endif %}
                             
-                            {% if not product.is_available or product.stock_quantity == 0 %}
+                            {% if not product.is_currently_in_season and product.seasonal_availability_text %}
+                                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
+                                    Out of Season
+                                </div>
+                            {% elif not product.is_available or product.stock_quantity == 0 %}
                                 <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">
                                     Out of Stock
                                 </div>
