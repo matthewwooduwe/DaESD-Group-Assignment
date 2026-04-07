@@ -180,6 +180,7 @@ class Command(BaseCommand):
                 customer=customer,
                 customer_order=customer_order,
                 status='PENDING',
+                producer=producer,
                 defaults={
                     'total_amount': Decimal('0.00'),
                     'delivery_date': timezone.now().date() + timezone.timedelta(days=2)

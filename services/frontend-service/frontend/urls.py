@@ -40,6 +40,7 @@ urlpatterns = [
     path('orders/', views.customer_order_history_view, name='customer-orders'),
     path('orders/place/', views.create_order, name='create-order'),
     path('orders/customer/<int:order_id>/', views.customer_order_detail_view, name='customer-order-detail'),
+    path('reviews/create/<int:product_id>/', views.write_review_view, name='write_review'),
 
     # Profile, admin and producer
     path('profile/', views.profile_view, name='profile'),

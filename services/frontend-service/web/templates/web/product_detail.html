@@ -579,7 +579,14 @@
     <!-- REVIEWS -->
     {% if reviews %}
     <section class="reviews-section">
-        <h2 class="reviews-heading">Customer Reviews ({{ reviews|length }})</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <h2 class="reviews-heading" style="margin-bottom: 0;">Customer Reviews ({{ reviews|length }})</h2>
+            <div style="font-weight: 500; font-size: 1.1rem; color: var(--text);">
+                {% if product.average_rating and product.average_rating != "0.00" %}
+                Overall Rating: ⭐ {{ product.average_rating }} / 5
+                {% endif %}
+            </div>
+        </div>
         <div class="reviews-grid">
             {% for review in reviews %}
             <div class="review-card">
@@ -588,16 +595,32 @@
                     {% if forloop.counter <= review.rating %}⭐{% else %}☆{% endif %}
                     {% endfor %}
                     ({{ review.rating }}/5)
+                    <span style="font-size: 0.8rem; color: var(--text-muted); float: right;">{{ review.created_at|slice:":10" }}</span>
                 </div>
+                {% if review.title %}
+                <h4 style="margin: 0.5rem 0; font-size: 1.05rem;">{{ review.title }}</h4>
+                {% endif %}
                 {% if review.comment %}
                 <p class="review-comment">"{{ review.comment }}"</p>
                 {% endif %}
-                <p class="review-author">— {{ review.customer_username|default:"Anonymous" }}</p>
+                <p class="review-author" style="display:flex; align-items: center; gap: 0.5rem;">
+                    — {{ review.customer_username|default:"Anonymous Customer" }}
+                    <span class="badge badge-organic" style="font-size:0.65rem; padding: 0.15rem 0.4rem;">✔ Verified Purchase</span>
+                </p>
+                {% if review.seller_response %}
+                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--section-bg); border-radius: 8px; font-size: 0.9rem; border-left: 3px solid var(--accent);">
+                    <strong>Producer Response:</strong>
+                    <p style="margin-top: 0.25rem; font-style: italic; color: var(--text-muted);">{{ review.seller_response }}</p>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </section>
     {% else %}
+    <section class="reviews-section">
+        <h2 class="reviews-heading">Customer Reviews</h2>
+        <p class="no-reviews" style="color: var(--text-muted); padding: 2rem 0;">No reviews yet. Purchase this product to be the first to review!</p>
     </section>
     {% endif %}
 

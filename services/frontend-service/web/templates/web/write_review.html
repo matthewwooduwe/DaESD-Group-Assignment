@@ -1,0 +1,60 @@
+{% extends "web/base.html" %}
+
+{% block title %}Write Review - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 3rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;">Write a Review</h1>
+    
+    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; padding: 1rem; border: 1px solid var(--border); border-radius: 8px;">
+        {% if product.image %}
+        <img src="{{ media_base_url }}{{ product.image }}" alt="{{ product.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px;">
+        {% endif %}
+        <div>
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">{{ product.name }}</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">From {{ product.producer_username }}</p>
+        </div>
+    </div>
+
+    {% if error %}
+    <div style="background: #ffebee; color: #d32f2f; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+        ⚠ {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'write_review' product_id=product.id %}" style="background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow);">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="rating" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Rate this product *</label>
+            <select name="rating" id="rating" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                <option value="5">⭐⭐⭐⭐⭐ Excellent (5/5)</option>
+                <option value="4">⭐⭐⭐⭐ Good (4/5)</option>
+                <option value="3">⭐⭐⭐ Average (3/5)</option>
+                <option value="2">⭐⭐ Fair (2/5)</option>
+                <option value="1">⭐ Poor (1/5)</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="title" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Title</label>
+            <input type="text" name="title" id="title" placeholder="e.g., Delicious and fresh!" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label for="comment" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Review Details *</label>
+            <textarea name="comment" id="comment" rows="5" required placeholder="What did you like or dislike?" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem;">
+            <input type="checkbox" name="is_anonymous" id="is_anonymous" value="true" style="width: 1.2rem; height: 1.2rem;">
+            <label for="is_anonymous" style="font-weight: 500; cursor: pointer;">Post anonymously</label>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn-primary" style="flex: 1;">Submit Review</button>
+            <a href="{% url 'customer-orders' %}" class="btn-secondary" style="padding: 0.8rem 1.5rem;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
