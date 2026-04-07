@@ -447,7 +447,9 @@
 
                     <!-- Availability badge -->
                     <div class="card-stock-badge">
-                        {% if not item.product.is_available %}
+                        {% if not item.product.is_currently_in_season and item.product.seasonal_availability_text %}
+                        <span class="badge badge-unavailable">Out of Season</span>
+                        {% elif not item.product.is_available %}
                         <span class="badge badge-unavailable">Unavailable</span>
                         {% elif item.product.stock_quantity <= 5 %}
                         <span class="badge badge-low-stock">Low stock</span>

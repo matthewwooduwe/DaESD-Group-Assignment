@@ -298,13 +298,66 @@ display: block;
                 <label for="is_organic">Certified Organic Product</label>
             </div>
 
-            <div class="form-group full-width checkbox-group">
-                {% if product.is_available %}
-                <input type="checkbox" name="is_available" id="is_available" value="true" checked>
-                {% else %}
-                <input type="checkbox" name="is_available" id="is_available" value="true">
-                {% endif %}
-                <label for="is_available">In Season / Available for Purchase</label>
+            <div class="form-group full-width" style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1rem;">
+                <label class="form-label" style="font-size: 1rem; color: var(--green);">Availability Status</label>
+                <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; margin-bottom: 1rem;">
+                    <label class="checkbox-group" style="margin:0;">
+                        <input type="radio" name="availability_status" value="ALWAYS" onchange="toggleSeasonalFields()" 
+                        {% if product.is_available and not product.seasonal_start_month %}checked{% endif %}>
+                        <span>Always Available</span>
+                    </label>
+                    <label class="checkbox-group" style="margin:0;">
+                        <input type="radio" name="availability_status" value="IN_SEASON" onchange="toggleSeasonalFields()"
+                        {% if product.is_available and product.seasonal_start_month %}checked{% endif %}>
+                        <span>In Season</span>
+                    </label>
+                    <label class="checkbox-group" style="margin:0;">
+                        <input type="radio" name="availability_status" value="OUT_OF_STOCK" onchange="toggleSeasonalFields()"
+                        {% if not product.is_available %}checked{% endif %}>
+                        <span>Out of Stock</span>
+                    </label>
+                </div>
+                
+                <div id="seasonal_fields" style="display: none; border-left: 3px solid var(--green); padding-left: 1rem;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Seasonal Start Month <span class="required">*</span></label>
+                            <select name="seasonal_start_month" id="seasonal_start_month" class="form-select">
+                                <option value="">Select Month</option>
+                                <option value="1" {% if product.seasonal_start_month == 1 %}selected{% endif %}>January</option>
+                                <option value="2" {% if product.seasonal_start_month == 2 %}selected{% endif %}>February</option>
+                                <option value="3" {% if product.seasonal_start_month == 3 %}selected{% endif %}>March</option>
+                                <option value="4" {% if product.seasonal_start_month == 4 %}selected{% endif %}>April</option>
+                                <option value="5" {% if product.seasonal_start_month == 5 %}selected{% endif %}>May</option>
+                                <option value="6" {% if product.seasonal_start_month == 6 %}selected{% endif %}>June</option>
+                                <option value="7" {% if product.seasonal_start_month == 7 %}selected{% endif %}>July</option>
+                                <option value="8" {% if product.seasonal_start_month == 8 %}selected{% endif %}>August</option>
+                                <option value="9" {% if product.seasonal_start_month == 9 %}selected{% endif %}>September</option>
+                                <option value="10" {% if product.seasonal_start_month == 10 %}selected{% endif %}>October</option>
+                                <option value="11" {% if product.seasonal_start_month == 11 %}selected{% endif %}>November</option>
+                                <option value="12" {% if product.seasonal_start_month == 12 %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Seasonal End Month <span class="required">*</span></label>
+                            <select name="seasonal_end_month" id="seasonal_end_month" class="form-select">
+                                <option value="">Select Month</option>
+                                <option value="1" {% if product.seasonal_end_month == 1 %}selected{% endif %}>January</option>
+                                <option value="2" {% if product.seasonal_end_month == 2 %}selected{% endif %}>February</option>
+                                <option value="3" {% if product.seasonal_end_month == 3 %}selected{% endif %}>March</option>
+                                <option value="4" {% if product.seasonal_end_month == 4 %}selected{% endif %}>April</option>
+                                <option value="5" {% if product.seasonal_end_month == 5 %}selected{% endif %}>May</option>
+                                <option value="6" {% if product.seasonal_end_month == 6 %}selected{% endif %}>June</option>
+                                <option value="7" {% if product.seasonal_end_month == 7 %}selected{% endif %}>July</option>
+                                <option value="8" {% if product.seasonal_end_month == 8 %}selected{% endif %}>August</option>
+                                <option value="9" {% if product.seasonal_end_month == 9 %}selected{% endif %}>September</option>
+                                <option value="10" {% if product.seasonal_end_month == 10 %}selected{% endif %}>October</option>
+                                <option value="11" {% if product.seasonal_end_month == 11 %}selected{% endif %}>November</option>
+                                <option value="12" {% if product.seasonal_end_month == 12 %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Surplus Deals Section -->
@@ -353,6 +406,25 @@ display: block;
                     }
                 }
                 
+                function toggleSeasonalFields() {
+                    const statusElem = document.querySelector('input[name="availability_status"]:checked');
+                    if (!statusElem) return;
+                    const status = statusElem.value;
+                    const seasonalFields = document.getElementById('seasonal_fields');
+                    const startInput = document.getElementById('seasonal_start_month');
+                    const endInput = document.getElementById('seasonal_end_month');
+                    
+                    if (status === 'IN_SEASON') {
+                        seasonalFields.style.display = 'block';
+                        startInput.required = true;
+                        endInput.required = true;
+                    } else {
+                        seasonalFields.style.display = 'none';
+                        startInput.required = false;
+                        endInput.required = false;
+                    }
+                }
+                
                 // Initialize required state on load
                 document.addEventListener('DOMContentLoaded', () => {
                     const isSurplus = document.getElementById('is_surplus').checked;
@@ -360,6 +432,7 @@ display: block;
                         document.getElementById('discount_percentage').required = true;
                         document.getElementById('surplus_expiry').required = true;
                     }
+                    toggleSeasonalFields();
                 });
             </script>
 
