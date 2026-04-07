@@ -23,6 +23,21 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         product = data.get('product')
         customer = request.user
+        comment = data.get('comment', '')
+        title = data.get('title', '')
+
+        import re
+        # Expletive filter - Top 10 common swear words (using regex for whole-word matching)
+        # Can expand list further or use a more comprehensive profanity filter library if needed
+        banned_words = [
+            'fuck', 'shit', 'asshole', 'bitch', 'cunt', 
+            'dick', 'piss', 'bastard', 'slut', 'whore'
+        ]
+        content_to_check = (title + ' ' + comment).lower()
+        
+        for word in banned_words:
+            if re.search(rf'\b{word}\b', content_to_check):
+                raise serializers.ValidationError("Your review contains inappropriate language. Please keep it professional.")
 
         # Check if the customer has already reviewed this product
         if Review.objects.filter(customer=customer, product=product).exists():
