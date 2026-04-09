@@ -1579,6 +1579,97 @@ def customer_order_history_view(request):
         'error': error,
     })
 
+def write_review_view(request, product_id):
+    """
+    Allow a customer to write a review for a purchased product from a delivered order.
+    """
+    token = request.session.get('token')
+    if not token:
+        # Redirect or show error, but we return a general response
+        return redirect('login')
+
+    headers = {'Authorization': f'Bearer {token}'}
+    platform_api_url = PLATFORM_API_URL
+
+    success = request.GET.get('success')
+    error = request.GET.get('error')
+
+    # GET: Form display with product info
+    if request.method == 'GET':
+        # Fetch the product details to display on the review page
+        prod_resp = requests.get(f"{platform_api_url}/api/products/{product_id}/", headers=headers)
+        
+        if prod_resp.status_code == 200:
+            product = prod_resp.json()
+        else:
+            return redirect(f"/orders/?error=Could not fetch product details.")
+
+        return render(request, 'web/write_review.html', {
+            'product': product,
+            'media_base_url': platform_api_url,
+            'success': success,
+            'error': error
+        })
+        
+    # POST: Submit review data
+    elif request.method == 'POST':
+        # Collect post data
+        rating = request.POST.get('rating')
+        title = request.POST.get('title', '')
+        comment = request.POST.get('comment', '')
+        is_anonymous = request.POST.get('is_anonymous') == 'true'
+
+        payload = {
+            'product': product_id,
+            'rating': rating,
+            'title': title,
+            'comment': comment,
+            'is_anonymous': is_anonymous
+        }
+
+        # Send POST to Platform Service Review endpoint
+        review_resp = requests.post(f"{platform_api_url}/api/reviews/", json=payload, headers=headers)
+        
+        if review_resp.status_code == 201:
+            # Redirect to the product detail page for the given product
+            return redirect(f"/products/{product_id}/?success=Your review has been submitted successfully!")
+        else:
+            try:
+                err_data = review_resp.json()
+                if isinstance(err_data, list) and len(err_data) > 0:
+                    err_msg = err_data[0]
+                elif 'non_field_errors' in err_data:
+                    err_msg = err_data['non_field_errors'][0]
+                else:
+                    # Generic dictionary error handling
+                    if isinstance(err_data, dict):
+                        err_msg = next(iter(err_data.values()))[0] if err_data else "Unknown error"
+                    else:
+                        err_msg = str(err_data)
+            except:
+                err_msg = "Could not submit your review. Please try again."
+
+            return redirect(f"/reviews/create/{product_id}/?error=Review error: {err_msg}")
+
+def delete_review_view(request, review_id):
+    """
+    Allow a customer to delete their previously submitted review.
+    """
+    headers = get_auth_headers(request)
+    if not headers:
+        return redirect('login')
+    
+    product_id = request.POST.get('product_id')
+    
+    resp = requests.delete(f"{PLATFORM_API_URL}/api/reviews/{review_id}/", headers=headers)
+    
+    if resp.status_code == 204:
+        msg = "Your review has been deleted."
+        return redirect(f"/products/{product_id}/?success={msg}") if product_id else redirect('customer-orders')
+    else:
+        err_msg = "Could not delete review."
+        return redirect(f"/products/{product_id}/?error={err_msg}") if product_id else redirect('customer-orders')
+
 def customer_order_detail_view(request, order_id):
     """
     Displays order confirmation and details to the customer after checkout.

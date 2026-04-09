@@ -47,6 +47,9 @@ class Product(models.Model):
     
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     
+    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00, help_text=_("Cached average rating"))
+    review_count = models.PositiveIntegerField(default=0, help_text=_("Number of reviews"))
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

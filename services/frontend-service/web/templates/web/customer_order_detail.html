@@ -231,6 +231,9 @@
                     <div class="order-item-right">
                         <span class="order-item-qty">x{{ item.quantity }}</span>
                         <span class="order-item-price">£{{ item.price_at_sale|floatformat:2 }} each</span>
+                        {% if producer_order.status == 'DELIVERED' %}
+                        <a href="{% url 'write_review' product_id=item.product %}" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Write Review</a>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

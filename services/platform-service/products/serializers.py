@@ -40,9 +40,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_available', 'harvest_date', 'best_before_date', 
             'seasonal_start_month', 'seasonal_end_month', 'is_currently_in_season',
             'seasonal_availability_text', 'image',
+            'average_rating', 'review_count',
             'created_at', 'updated_at'
         )
-        read_only_fields = ('id', 'producer', 'created_at', 'updated_at', 'is_surplus', 'current_price', 'is_currently_in_season', 'seasonal_availability_text')
+        read_only_fields = ('id', 'producer', 'created_at', 'updated_at', 'is_surplus', 'current_price', 'is_currently_in_season', 'seasonal_availability_text', 'average_rating', 'review_count')
 
     def create(self, validated_data):
         surplus_deal_data = validated_data.pop('surplus_deal', None)
