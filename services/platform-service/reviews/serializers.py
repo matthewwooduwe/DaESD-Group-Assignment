@@ -24,7 +24,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         product = data.get('product')
         customer = request.user
         comment = data.get('comment', '')
-        title = data.get('title', '')
+        title = data.get('title', '') or ''
 
         import re
         # Expletive filter - Top 10 common swear words (using regex for whole-word matching)
@@ -35,14 +35,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         ]
         content_to_check = (title + ' ' + comment).lower()
         
-        for word in banned_words:
-            if re.search(rf'\b{word}\b', content_to_check):
-                raise serializers.ValidationError("Your review contains inappropriate language. Please keep it professional.")
-
-        # Check if the customer has already reviewed this product
-        if Review.objects.filter(customer=customer, product=product).exists():
-            raise serializers.ValidationError("You have already reviewed this product.")
-
         # Check if the customer has a DELIVERED order for this product
         delivered_item = OrderItem.objects.filter(
             order__customer=customer,
@@ -52,6 +44,15 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         if not delivered_item:
             raise serializers.ValidationError("You can only review products from orders that have been DELIVERED.")
+
+        # Check if the customer has already reviewed this product
+        if Review.objects.filter(customer=customer, product=product).exists():
+            raise serializers.ValidationError("You have already reviewed this product.")
+
+        import re
+        for word in banned_words:
+            if re.search(rf'\b{word}\b', content_to_check):
+                raise serializers.ValidationError("Your review contains inappropriate language. Please keep it professional.")
 
         # Assign the confirmed delivered order to the review data automatically
         data['order'] = delivered_item.order
