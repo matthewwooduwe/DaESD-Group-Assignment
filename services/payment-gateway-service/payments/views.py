@@ -504,7 +504,7 @@ def _default_cancel_url(request, payment_id):
 
 
 def _frontend_success_redirect_url(*, payment):
-    frontend_base = (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
+    frontend_base = _resolve_frontend_base_url(payment=payment)
     query = {
         'payment': 'success',
         'payment_id': payment.id,
@@ -518,7 +518,7 @@ def _frontend_success_redirect_url(*, payment):
 
 
 def _frontend_cancel_redirect_url(*, payment=None):
-    frontend_base = (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
+    frontend_base = _resolve_frontend_base_url(payment=payment)
     query = {
         'payment': 'cancelled',
         'error': 'Payment was cancelled. Your basket has not been placed.',
@@ -545,6 +545,19 @@ def _coerce_limit(value):
     if parsed < 1:
         return default_limit
     return min(parsed, max_limit)
+
+
+def _resolve_frontend_base_url(*, payment=None):
+    if payment:
+        try:
+            payload = payment.request_payload or {}
+            frontend_from_payload = str(payload.get('frontend_base_url') or '').rstrip('/')
+            if frontend_from_payload:
+                return frontend_from_payload
+        except (TypeError, AttributeError):
+            pass
+
+    return (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
 
 
 def _format_amount(value):

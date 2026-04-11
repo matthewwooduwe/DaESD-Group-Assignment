@@ -605,6 +605,19 @@
 
     <!-- Transactions Tab -->
     <div id="tab-transactions" class="tab-panel">
+        {% if transaction_error %}
+        <div class="error-banner" style="margin-bottom: 1rem;">{{ transaction_error }}</div>
+        {% endif %}
+        {% if transaction_debug %}
+        <div style="margin-bottom: 1rem; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: #f7faf8; color: var(--text-muted); font-size: 0.82rem;">
+            <strong style="color: var(--text);">Transaction debug details:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem;">
+                {% for entry in transaction_debug %}
+                <li>{{ entry }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         <div class="search-bar">
             <input class="search-input" type="text" placeholder="Search transactions by session ID, order ID or email…" oninput="filterTable('transactions-table', this.value)">
         </div>

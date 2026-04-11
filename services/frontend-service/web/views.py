@@ -87,6 +87,23 @@ def _build_payment_checkout_payload(*, basket, pending_order_reference, customer
     return payload
 
 
+def _candidate_payment_gateway_api_bases():
+    """Return candidate base URLs for payment-gateway API calls."""
+    bases = []
+    for base in (
+        PAYMENT_GATEWAY_API_URL,
+        PAYMENT_GATEWAY_URL,
+        'http://payment-gateway:8003',
+        'http://localhost:8003',
+        'http://127.0.0.1:8003',
+    ):
+        normalized = str(base or '').rstrip('/')
+        if normalized and normalized not in bases:
+            bases.append(normalized)
+    return bases
+
+
+
 def _extract_error_from_response(response, default_message):
     try:
         data = response.json()
@@ -584,6 +601,8 @@ def admin_dashboard(request):
     headers = get_auth_headers(request)
     users, products, orders, transactions = [], [], [], []
     error = None
+    transaction_error = None
+    transaction_debug = []
 
     try:
         resp_users = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", headers=headers, timeout=5)
@@ -598,17 +617,42 @@ def admin_dashboard(request):
         if resp_orders.status_code == 200:
             orders = resp_orders.json()
 
-        resp_transactions = requests.get(f"{PAYMENT_GATEWAY_API_URL}/payments/api/transactions/?limit=50", timeout=8)
-        if resp_transactions.status_code == 200:
-            trans_data = resp_transactions.json()
-            transactions = trans_data.get('transactions', [])
-
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
     except requests.exceptions.Timeout:
         error = "A service request timed out while loading the admin dashboard."
     except Exception as e:
         error = f"Unexpected error: {str(e)}"
+
+    for base_url in _candidate_payment_gateway_api_bases():
+        transactions_url = f"{base_url}/payments/api/transactions/?limit=50"
+        try:
+            resp_transactions = requests.get(transactions_url, timeout=8)
+        except requests.exceptions.ConnectionError:
+            transaction_debug.append(f"{transactions_url} -> connection error")
+            continue
+        except requests.exceptions.Timeout:
+            transaction_debug.append(f"{transactions_url} -> timed out")
+            continue
+        except Exception as exc:
+            transaction_debug.append(f"{transactions_url} -> unexpected error: {str(exc)}")
+            continue
+
+        if resp_transactions.status_code == 200:
+            trans_data = resp_transactions.json()
+            transactions = trans_data.get('transactions', [])
+            break
+
+        tx_error = _extract_error_from_response(
+            resp_transactions,
+            'Unknown payment-gateway error.',
+        )
+        transaction_debug.append(
+            f"{transactions_url} -> status {resp_transactions.status_code}: {tx_error}"
+        )
+
+    if not transactions and transaction_debug:
+        transaction_error = "Transactions could not be loaded from payment-gateway."
 
     total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
     total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
@@ -620,6 +664,8 @@ def admin_dashboard(request):
         'products': products,
         'orders': orders,
         'transactions': transactions,
+        'transaction_error': transaction_error,
+        'transaction_debug': transaction_debug,
         'error': error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
@@ -1472,6 +1518,7 @@ def create_order(request):
         pending_order_reference=pending_order_reference,
         customer_email=customer_email,
     )
+    checkout_payload['frontend_base_url'] = request.build_absolute_uri('/').rstrip('/')
 
     try:
         checkout_resp = requests.post(
