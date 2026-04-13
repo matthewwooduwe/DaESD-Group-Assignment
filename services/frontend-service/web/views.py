@@ -1,5 +1,6 @@
 import os
 import json
+import math
 import requests
 from datetime import date, timedelta, datetime
 from urllib.parse import quote
@@ -11,6 +12,41 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
+
+def _get_postcode_coords(postcode):
+    """Fetch lat/lng for a UK postcode from postcodes.io. Returns (lat, lng) or None."""
+    try:
+        resp = requests.get(
+            f"https://api.postcodes.io/postcodes/{postcode.strip().replace(' ', '%20')}",
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            result = data.get('result', {})
+            if result:
+                return result.get('latitude'), result.get('longitude')
+    except Exception:
+        pass
+    return None, None
+
+def _haversine_miles(lat1, lon1, lat2, lon2):
+    """Calculate distance in miles between two lat/lng points."""
+    R = 3958.8  # Earth radius in miles
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    return R * 2 * math.asin(math.sqrt(a))
+
+def _calculate_food_miles(customer_postcode, producer_postcode):
+    """Returns distance in miles as a float, or None if postcodes can't be resolved."""
+    if not customer_postcode or not producer_postcode:
+        return None
+    lat1, lon1 = _get_postcode_coords(customer_postcode)
+    lat2, lon2 = _get_postcode_coords(producer_postcode)
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+    return round(_haversine_miles(lat1, lon1, lat2, lon2), 1)
 
 # UK 14 Major Allergens
 UK_ALLERGENS = [
@@ -243,11 +279,13 @@ def product_detail(request, product_id):
     """
     Individual product detail page.
     Fetches a single product and its reviews from the platform API.
+    Calculates food miles between the customer and producer postcodes.
     """
     product = None
     reviews = []
     recipes = []
     error = None
+    food_miles = None
 
     try:
         resp = requests.get(
@@ -280,6 +318,25 @@ def product_detail(request, product_id):
             if resp_rec.status_code == 200:
                 recipes = resp_rec.json()
 
+            # Calculate food miles if customer is logged in and has a postcode
+            customer_postcode = None
+            if request.session.get('token') and request.session.get('role') == 'CUSTOMER':
+                try:
+                    user_resp = requests.get(
+                        f"{PLATFORM_API_URL}/api/auth/me/",
+                        headers=get_auth_headers(request),
+                        timeout=5
+                    )
+                    if user_resp.status_code == 200:
+                        user_data = user_resp.json()
+                        customer_postcode = (user_data.get('customer_profile') or {}).get('postcode')
+                except Exception:
+                    pass
+
+            producer_postcode = (product.get('producer_profile') or {}).get('postcode')
+            if customer_postcode and producer_postcode:
+                food_miles = _calculate_food_miles(customer_postcode, producer_postcode)
+
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
     except requests.exceptions.Timeout:
@@ -294,6 +351,7 @@ def product_detail(request, product_id):
         'reviews': reviews,
         'recipes': recipes,
         'error': error,
+        'food_miles': food_miles,
         'media_base_url': MEDIA_BASE_URL,
     })
 

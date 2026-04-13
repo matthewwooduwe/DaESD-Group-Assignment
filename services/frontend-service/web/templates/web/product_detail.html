@@ -168,6 +168,14 @@
     color: var(--text);
 }
 
+.food-miles-item {
+    background: var(--green-light) !important;
+    border-color: #b8dfc8 !important;
+}
+.food-miles-value {
+    color: var(--green) !important;
+}
+
 /* ── DESCRIPTION ── */
 .detail-description {
     border-top: 1px solid var(--border);
@@ -551,6 +559,12 @@
                     <div class="meta-item">
                         <div class="meta-label">In Season</div>
                         <div class="meta-value">{{ product.seasonal_availability_text }}</div>
+                    </div>
+                    {% endif %}
+                    {% if food_miles is not None %}
+                    <div class="meta-item food-miles-item">
+                        <div class="meta-label">🌍 Food Miles</div>
+                        <div class="meta-value food-miles-value">{{ food_miles }} miles</div>
                     </div>
                     {% endif %}
                     <div class="meta-item">
