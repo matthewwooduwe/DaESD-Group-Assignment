@@ -14,15 +14,14 @@ MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
 
 def _get_postcode_coords(postcode):
-    """Fetch lat/lng for a UK postcode from postcodes.io. Returns (lat, lng) or None."""
+    """Fetch lat/lng for a UK postcode from postcodes.io. Returns (lat, lng) or (None, None)."""
     try:
         resp = requests.get(
             f"https://api.postcodes.io/postcodes/{postcode.strip().replace(' ', '%20')}",
             timeout=5
         )
         if resp.status_code == 200:
-            data = resp.json()
-            result = data.get('result', {})
+            result = resp.json().get('result', {})
             if result:
                 return result.get('latitude'), result.get('longitude')
     except Exception:
@@ -30,8 +29,8 @@ def _get_postcode_coords(postcode):
     return None, None
 
 def _haversine_miles(lat1, lon1, lat2, lon2):
-    """Calculate distance in miles between two lat/lng points."""
-    R = 3958.8  # Earth radius in miles
+    """Calculate straight-line distance in miles between two lat/lng points."""
+    R = 3958.8
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -279,7 +278,7 @@ def product_detail(request, product_id):
     """
     Individual product detail page.
     Fetches a single product and its reviews from the platform API.
-    Calculates food miles between the customer and producer postcodes.
+    Calculates food miles between customer and producer postcodes.
     """
     product = None
     reviews = []
@@ -318,8 +317,7 @@ def product_detail(request, product_id):
             if resp_rec.status_code == 200:
                 recipes = resp_rec.json()
 
-            # Calculate food miles if customer is logged in and has a postcode
-            customer_postcode = None
+            # Calculate food miles if customer is logged in
             if request.session.get('token') and request.session.get('role') == 'CUSTOMER':
                 try:
                     user_resp = requests.get(
@@ -330,12 +328,11 @@ def product_detail(request, product_id):
                     if user_resp.status_code == 200:
                         user_data = user_resp.json()
                         customer_postcode = (user_data.get('customer_profile') or {}).get('postcode')
+                        producer_postcode = (product.get('producer_profile') or {}).get('postcode')
+                        if customer_postcode and producer_postcode:
+                            food_miles = _calculate_food_miles(customer_postcode, producer_postcode)
                 except Exception:
                     pass
-
-            producer_postcode = (product.get('producer_profile') or {}).get('postcode')
-            if customer_postcode and producer_postcode:
-                food_miles = _calculate_food_miles(customer_postcode, producer_postcode)
 
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
@@ -580,7 +577,24 @@ def profile_view(request):
                     success = "Your details have been updated."
                     user = resp.json()
                 else:
-                    error = f"Could not update details: {resp.text}"
+                    try:
+                        err_data = resp.json()
+                        # Extract nested profile errors e.g. customer_profile.postcode
+                        messages = []
+                        for field, errs in err_data.items():
+                            if isinstance(errs, dict):
+                                for subfield, suberrs in errs.items():
+                                    if isinstance(suberrs, list):
+                                        messages.append(f"{subfield.replace('_', ' ').title()}: {suberrs[0]}")
+                                    else:
+                                        messages.append(str(suberrs))
+                            elif isinstance(errs, list):
+                                messages.append(f"{field.replace('_', ' ').title()}: {errs[0]}")
+                            else:
+                                messages.append(str(errs))
+                        error = " ".join(messages) if messages else "Could not update details."
+                    except Exception:
+                        error = "Could not update details. Please check your inputs and try again."
             except Exception as e:
                 error = f"Unexpected error: {str(e)}"
 
