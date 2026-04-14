@@ -1,7 +1,10 @@
 import json
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from urllib.parse import urlencode
+
+logger = logging.getLogger(__name__)
 
 try:
     import stripe
@@ -85,7 +88,15 @@ def list_transactions(request):
             local_payment = payments_by_session.get(session_id)
             amount_total = session.amount_total
             created_unix = session.created
-            metadata = session.metadata or {}
+
+            # session.metadata is a StripeObject in newer sdk versions – avoid calling
+            # .get() on it directly as StripeObject may not support dict-style .get().
+            metadata_order_id = ''
+            if session.metadata:
+                try:
+                    metadata_order_id = session.metadata['order_id'] or ''
+                except (KeyError, TypeError, AttributeError):
+                    pass
 
             # Try to get email from Stripe session first, then from local payment request payload
             customer_email = session.customer_email or ''
@@ -96,18 +107,23 @@ def list_transactions(request):
                 except (TypeError, AttributeError):
                     pass
 
+            # payment_intent may be an expanded PaymentIntent object in newer SDK versions;
+            # cast to str to keep the response JSON-serializable.
+            payment_intent_val = session.payment_intent
+            payment_intent_str = str(payment_intent_val) if payment_intent_val and not isinstance(payment_intent_val, str) else (payment_intent_val or '')
+
             transactions.append(
                 {
                     'session_id': session_id,
-                    'order_id': (local_payment.order_id if local_payment else '') or metadata.get('order_id') or '',
+                    'order_id': (local_payment.order_id if local_payment else '') or metadata_order_id or '',
                     'customer_email': customer_email,
                     'amount_total': _format_amount(amount_total),
                     'currency': (session.currency or '').upper(),
                     'payment_status': session.payment_status or 'unknown',
                     'status': local_payment.status if local_payment else '',
                     'created_at': _format_unix(created_unix),
-                    'payment_intent': session.payment_intent or '',
-                    'url': session.url or '',
+                    'payment_intent': payment_intent_str,
+                    'url': str(session.url or ''),
                 }
             )
 
@@ -121,7 +137,8 @@ def list_transactions(request):
     except stripe.error.StripeError as exc:
         return JsonResponse({'error': f'Stripe error: {exc}'}, status=400)
     except Exception as exc:
-        return JsonResponse({'error': f'Unexpected error: {exc}'}, status=500)
+        logger.exception('Unexpected error in list_transactions')
+        return JsonResponse({'error': f'Unexpected error: {type(exc).__name__}: {exc}'}, status=500)
 
 
 def payment_status(request):
