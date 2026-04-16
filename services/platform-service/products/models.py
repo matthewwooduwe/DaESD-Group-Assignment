@@ -33,6 +33,7 @@ class Product(models.Model):
     unit = models.CharField(max_length=50, blank=True, null=True, help_text=_("e.g., 'dozen', 'kg'"))
     
     stock_quantity = models.PositiveIntegerField(default=0, help_text=_("Real-time inventory tracking"))
+    low_stock_threshold = models.PositiveIntegerField(default=10, help_text=_("Notify producer when stock falls below this level"))
     allergen_info = models.TextField(blank=True, null=True, help_text=_("Additional allergen information not covered by the 14 major allergens"))
     allergens = models.JSONField(default=list, blank=True, help_text=_("List of major allergens from the UK 14 allergens list"))
     

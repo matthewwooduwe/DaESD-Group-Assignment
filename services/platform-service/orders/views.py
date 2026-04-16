@@ -88,6 +88,23 @@ class OrderCreateView(APIView):
                     product.stock_quantity -= basket_item.quantity
                     product.save()
                     order_subtotal += product.price * basket_item.quantity
+                    
+                    # Notify producer if stock drops below threshold  
+                    if product.stock_quantity <= product.low_stock_threshold:
+                        try:
+                            http_requests.post(
+                                f"{NOTIFICATIONS_API_URL}/api/notifications/",
+                                headers={'X-Service-Secret': os.environ.get('JWT_SECRET_KEY', '')},
+                                json={
+                                    'user': producer.id,
+                                    'message': f"Low Stock Alert: {product.name} — Only {product.stock_quantity} {product.unit or 'units'} remaining.",
+                                    'type': 'LOW_STOCK'
+                                },
+                                timeout=5
+                            )
+                        except Exception:
+                            pass  
+                        
                 except ValueError as e:
                     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
