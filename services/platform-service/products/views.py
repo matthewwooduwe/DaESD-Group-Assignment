@@ -57,6 +57,43 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsProducerOrReadOnly]
+    
+    def perform_update(self, serializer):
+        product_before = self.get_object()
+        from orders.models import SurplusDeal
+        from django.utils import timezone
+        was_surplus_before = SurplusDeal.objects.filter(
+            product=product_before,
+            expiry_date__gt=timezone.now()
+        ).exists()
+        product = serializer.save()
+
+        # Notify customers if product just became a surplus deal (TC-019)
+        if not was_surplus_before and product.is_surplus:
+            import requests as http_requests
+            import os
+            from orders.models import Order
+
+            NOTIFICATIONS_API_URL = os.environ.get('NOTIFICATIONS_API_URL', 'http://notifications-api:8001')
+            # Find all unique customers who have ordered from this producer
+            customer_ids = Order.objects.filter(
+                producer=product.producer
+            ).values_list('customer_id', flat=True).distinct()
+
+            for customer_id in customer_ids:
+                try:
+                    http_requests.post(
+                        f"{NOTIFICATIONS_API_URL}/api/notifications/",
+                        headers={'X-Service-Secret': os.environ.get('JWT_SECRET_KEY', '')},
+                        json={
+                            'user': customer_id,
+                            'message': f"Surplus Deal: {product.name} from {product.producer.username} is now available at a discount!",
+                            'type': 'SURPLUS_DEAL'
+                        },
+                        timeout=5
+                    )
+                except Exception:
+                    pass
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
