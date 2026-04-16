@@ -572,7 +572,7 @@ def profile_view(request):
 
 def admin_dashboard(request):
     """
-    Admin dashboard with tabs for users, products, orders, and site stats.
+    Admin dashboard with tabs for users, products, orders, and commission.
     """
     if not request.session.get('token') or request.session.get('role') != 'ADMIN':
         return redirect('/login/')
@@ -601,16 +601,34 @@ def admin_dashboard(request):
 
     total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
     total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
+    total_producer_payout = total_revenue - total_commission
     customers = [u for u in users if u.get('role') == 'CUSTOMER']
     producers = [u for u in users if u.get('role') == 'PRODUCER']
+
+    # Build producer breakdown from all orders
+    producer_breakdown = {}
+    for o in orders:
+        producer = o.get('producer') or o.get('producer_name') or 'Unknown'
+        if producer not in producer_breakdown:
+            producer_breakdown[producer] = {'producer': producer, 'order_count': 0, 'total_revenue': 0.0, 'total_commission': 0.0, 'total_payout': 0.0}
+        rev = float(o.get('total_amount', 0))
+        com = float(o.get('commission_total') or 0)
+        producer_breakdown[producer]['order_count'] += 1
+        producer_breakdown[producer]['total_revenue'] += rev
+        producer_breakdown[producer]['total_commission'] += com
+        producer_breakdown[producer]['total_payout'] += (rev - com)
+
+    producer_breakdown_list = sorted(producer_breakdown.values(), key=lambda x: x['total_commission'], reverse=True)
 
     return render(request, 'web/admin.html', {
         'users': users,
         'products': products,
-        'orders': orders,
+        'all_orders': orders,
         'error': error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
+        'total_producer_payout': total_producer_payout,
+        'producer_breakdown': producer_breakdown_list,
         'customer_count': len(customers),
         'producer_count': len(producers),
         'media_base_url': MEDIA_BASE_URL,

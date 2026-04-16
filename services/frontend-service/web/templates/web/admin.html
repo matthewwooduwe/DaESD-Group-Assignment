@@ -53,6 +53,89 @@
     border-bottom: 2px solid var(--border);
     margin-bottom: 2rem;
 }
+
+/* ── DATE FILTER BAR ── */
+.date-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--green-light);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #b8dfc8;
+}
+.date-filter-presets {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.date-preset-btn {
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    background: transparent;
+    transition: all 0.2s;
+}
+.date-preset-btn:hover,
+.date-preset-btn.active { background: var(--green); color: #fff; }
+.date-filter-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.date-filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.date-filter-input {
+    padding: 0.35rem 0.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: #fff;
+}
+.date-filter-submit {
+    padding: 0.35rem 1rem;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.date-filter-submit:hover { background: var(--green-mid); }
+
+/* ── COMMISSION SUMMARY ── */
+.commission-summary {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+}
+.commission-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+.commission-summary-row:last-child { border-bottom: none; }
+.commission-highlight { color: var(--green); font-weight: 700; }
+
+.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.sort-icon { font-size: 0.7rem; opacity: 0.5; margin-left: 3px; }
 .tab-btn {
     background: none;
     border: none;
@@ -439,23 +522,29 @@
         </div>
         <div class="stat-card">
             <div class="stat-label">Orders</div>
-            <div class="stat-value">{{ orders|length }}</div>
+            <div class="stat-value">{{ all_orders|length }}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value">£{{ total_revenue|floatformat:2 }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Commission</div>
+            <div class="stat-label">Commission (5%)</div>
             <div class="stat-value">£{{ total_commission|floatformat:2 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Producer Payouts</div>
+            <div class="stat-value">£{{ total_producer_payout|floatformat:2 }}</div>
         </div>
     </div>
 
+    <!-- Date Range Filter -->
     <!-- Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+        <button class="tab-btn" onclick="switchTab('commission', this)">Commission</button>
     </div>
 
     <!-- Users Tab -->
@@ -548,36 +637,85 @@
 
     <!-- Orders Tab -->
     <div id="tab-orders" class="tab-panel">
-        <div class="search-bar">
-            <input class="search-input" type="text" placeholder="Search orders by ID or status…" oninput="filterTable('orders-table', this.value)">
+        <div class="search-bar" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <input class="search-input" style="flex:1;min-width:200px;" type="text" id="orders-search" placeholder="Search orders by ID, customer or status…" oninput="filterOrders()">
+            <input type="date" class="date-filter-input" id="orders-date-from" onchange="filterOrders()" placeholder="From">
+            <input type="date" class="date-filter-input" id="orders-date-to" onchange="filterOrders()" placeholder="To">
+            <div class="date-filter-presets" style="display:flex;gap:0.4rem;">
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('all')">All</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('today')">Today</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('week')">7 Days</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('month')">30 Days</button>
+            </div>
         </div>
         <table class="data-table" id="orders-table">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Commission</th>
-                    <th>Status</th>
-                    <th>Delivery Date</th>
-                    <th>Placed</th>
+                    <th onclick="sortTable('orders-table', 0)" class="sortable">Order ID <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 1)" class="sortable">Customer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 2)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 3)" class="sortable">Total <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 4)" class="sortable">Commission <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 5)" class="sortable">Status <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 6)" class="sortable">Placed <span class="sort-icon">↕</span></th>
                 </tr>
             </thead>
             <tbody>
-                {% for order in orders %}
-                <tr>
+                {% for order in all_orders %}
+                <tr data-date="{{ order.created_at|slice:':10' }}">
                     <td><strong>#{{ order.id }}</strong></td>
-                    <td>{{ order.customer }}</td>
+                    <td>{{ order.customer_username|default:order.customer }}</td>
+                    <td>{{ order.producer_name|default:"—" }}</td>
                     <td>£{{ order.total_amount }}</td>
                     <td>£{{ order.commission_total|default:"0.00" }}</td>
                     <td>
                         <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
                     </td>
-                    <td>{{ order.delivery_date|default:"—" }}</td>
                     <td>{{ order.created_at|slice:":10" }}</td>
                 </tr>
                 {% empty %}
                 <tr class="empty-row"><td colspan="7">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Commission Tab -->
+    <div id="tab-commission" class="tab-panel">
+        <div class="search-bar" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <input class="search-input" style="flex:1;min-width:200px;" type="text" id="commission-search" placeholder="Search by producer…" oninput="filterCommissionTable()">
+            <input type="date" class="date-filter-input" id="commission-date-from" onchange="filterCommission()">
+            <input type="date" class="date-filter-input" id="commission-date-to" onchange="filterCommission()">
+            <div class="date-filter-presets" style="display:flex;gap:0.4rem;">
+                <button type="button" class="date-preset-btn active" onclick="setCommissionPreset('all')">All</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('today')">Today</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('week')">7 Days</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('month')">30 Days</button>
+            </div>
+        </div>
+
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin:1.5rem 0 0.75rem;">Per-Producer Breakdown</h3>
+        <table class="data-table" id="commission-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('commission-table', 0)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 1)" class="sortable">Orders <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 2)" class="sortable">Total Revenue <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 3)" class="sortable">Commission (5%) <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 4)" class="sortable">Producer Payout <span class="sort-icon">↕</span></th>
+                </tr>
+            </thead>
+            <tbody id="commission-tbody">
+                {% for row in producer_breakdown %}
+                <tr>
+                    <td><strong>{{ row.producer }}</strong></td>
+                    <td>{{ row.order_count }}</td>
+                    <td>£{{ row.total_revenue|floatformat:2 }}</td>
+                    <td>£{{ row.total_commission|floatformat:2 }}</td>
+                    <td>£{{ row.total_payout|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="5">No commission data found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -673,6 +811,7 @@ function switchTab(name, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
+    if (name === 'commission') filterCommission();
 }
 
 function filterTable(tableId, query) {
@@ -680,6 +819,154 @@ function filterTable(tableId, query) {
     const rows = document.querySelectorAll('#' + tableId + ' tbody tr:not(.empty-row)');
     rows.forEach(row => {
         row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+// ── ORDERS FILTERING ──
+function filterOrders() {
+    const query = (document.getElementById('orders-search').value || '').toLowerCase();
+    const dateFrom = document.getElementById('orders-date-from').value;
+    const dateTo = document.getElementById('orders-date-to').value;
+    const rows = document.querySelectorAll('#orders-table tbody tr:not(.empty-row)');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowDate = row.getAttribute('data-date') || '';
+        const textMatch = !query || text.includes(query);
+        const fromMatch = !dateFrom || rowDate >= dateFrom;
+        const toMatch = !dateTo || rowDate <= dateTo;
+        row.style.display = (textMatch && fromMatch && toMatch) ? '' : 'none';
+    });
+}
+
+function setOrdersPreset(preset) {
+    const today = new Date().toISOString().slice(0, 10);
+    const fromInput = document.getElementById('orders-date-from');
+    const toInput = document.getElementById('orders-date-to');
+    document.querySelectorAll('#tab-orders .date-preset-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    if (preset === 'all') {
+        fromInput.value = '';
+        toInput.value = '';
+    } else if (preset === 'today') {
+        fromInput.value = today;
+        toInput.value = today;
+    } else if (preset === 'week') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    } else if (preset === 'month') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    }
+    filterOrders();
+}
+
+// ── COMMISSION FILTERING ──
+function filterCommissionTable() {
+    const q = (document.getElementById('commission-search').value || '').toLowerCase();
+    const rows = document.querySelectorAll('#commission-table tbody tr:not(.empty-row)');
+    rows.forEach(row => {
+        row.style.display = !q || row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterCommission() {
+    const dateFrom = document.getElementById('commission-date-from').value;
+    const dateTo = document.getElementById('commission-date-to').value;
+
+    // Filter orders table rows to calculate totals
+    const allRows = document.querySelectorAll('#orders-table tbody tr:not(.empty-row)');
+    let revenue = 0, commission = 0;
+    const producerTotals = {};
+
+    allRows.forEach(row => {
+        const rowDate = row.getAttribute('data-date') || '';
+        const fromMatch = !dateFrom || rowDate >= dateFrom;
+        const toMatch = !dateTo || rowDate <= dateTo;
+        if (fromMatch && toMatch) {
+            const cells = row.querySelectorAll('td');
+            const r = parseFloat((cells[3].textContent || '0').replace('£', '')) || 0;
+            const c = parseFloat((cells[4].textContent || '0').replace('£', '')) || 0;
+            const producer = cells[2].textContent.trim();
+            revenue += r;
+            commission += c;
+            if (!producerTotals[producer]) producerTotals[producer] = { orders: 0, revenue: 0, commission: 0 };
+            producerTotals[producer].orders++;
+            producerTotals[producer].revenue += r;
+            producerTotals[producer].commission += c;
+        }
+    });
+
+    // Update summary stats in the stat cards
+    document.getElementById('summary-revenue') && (document.getElementById('summary-revenue').textContent = '£' + revenue.toFixed(2));
+    document.getElementById('summary-commission') && (document.getElementById('summary-commission').textContent = '£' + commission.toFixed(2));
+    document.getElementById('summary-payout') && (document.getElementById('summary-payout').textContent = '£' + (revenue - commission).toFixed(2));
+
+    // Rebuild producer breakdown table
+    const tbody = document.getElementById('commission-tbody');
+    tbody.innerHTML = '';
+    const sorted = Object.entries(producerTotals).sort((a, b) => b[1].commission - a[1].commission);
+    if (sorted.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No commission data for this period.</td></tr>';
+    } else {
+        sorted.forEach(([producer, data]) => {
+            const payout = data.revenue - data.commission;
+            tbody.innerHTML += `<tr>
+                <td><strong>${producer}</strong></td>
+                <td>${data.orders}</td>
+                <td>£${data.revenue.toFixed(2)}</td>
+                <td>£${data.commission.toFixed(2)}</td>
+                <td>£${payout.toFixed(2)}</td>
+            </tr>`;
+        });
+    }
+}
+
+function setCommissionPreset(preset) {
+    const today = new Date().toISOString().slice(0, 10);
+    const fromInput = document.getElementById('commission-date-from');
+    const toInput = document.getElementById('commission-date-to');
+    document.querySelectorAll('#tab-commission .date-preset-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    if (preset === 'all') {
+        fromInput.value = '';
+        toInput.value = '';
+    } else if (preset === 'today') {
+        fromInput.value = today;
+        toInput.value = today;
+    } else if (preset === 'week') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    } else if (preset === 'month') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    }
+    filterCommission();
+}
+
+// ── SORTING ──
+const sortState = {};
+function sortTable(tableId, colIndex) {
+    const key = tableId + '_' + colIndex;
+    sortState[key] = !sortState[key];
+    const asc = sortState[key];
+    const tbody = document.querySelector('#' + tableId + ' tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+    rows.sort((a, b) => {
+        const aText = a.querySelectorAll('td')[colIndex]?.textContent.trim() || '';
+        const bText = b.querySelectorAll('td')[colIndex]?.textContent.trim() || '';
+        const aNum = parseFloat(aText.replace(/[£,]/g, ''));
+        const bNum = parseFloat(bText.replace(/[£,]/g, ''));
+        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+        return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+    // Update sort icons
+    document.querySelectorAll('#' + tableId + ' .sort-icon').forEach((icon, i) => {
+        icon.textContent = i === colIndex ? (asc ? '↑' : '↓') : '↕';
     });
 }
 
