@@ -38,3 +38,5 @@ DaESD-Group-Assignment.code-workspace
 .DS_Store
 Thumbs.db
 
+#Stripe payments key file (it's in teams chat)
+/services/payment-gateway-service/env.secure
