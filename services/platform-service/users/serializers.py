@@ -12,15 +12,23 @@ UK_POSTCODE_RE = re.compile(
 
 def validate_uk_postcode(value):
     if not value or not value.strip():
-        raise serializers.ValidationError("Postcode is required.")
-    if not UK_POSTCODE_RE.match(value.strip()):
+        return value
+    # Remove all spaces and uppercase
+    cleaned = value.strip().replace(' ', '').upper()
+    # UK postcode format: insert space before last 3 chars
+    if len(cleaned) >= 5:
+        formatted = cleaned[:-3] + ' ' + cleaned[-3:]
+    else:
+        formatted = cleaned
+    # Validate format
+    if not UK_POSTCODE_RE.match(formatted):
         raise serializers.ValidationError("Enter a valid UK postcode (e.g. BS1 1AA).")
-    return value.strip().upper()
+    return formatted
 
 class ProducerProfileSerializer(serializers.ModelSerializer):
     business_name = serializers.CharField(required=False, allow_blank=True, default='')
     business_address = serializers.CharField(required=False, allow_blank=True, default='')
-    postcode = serializers.CharField(required=True)
+    postcode = serializers.CharField(required=False, allow_blank=True, default='')
     bio = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
@@ -28,20 +36,24 @@ class ProducerProfileSerializer(serializers.ModelSerializer):
         fields = ('business_name', 'business_address', 'postcode', 'bio')
 
     def validate_postcode(self, value):
-        return validate_uk_postcode(value)
+        if value and value.strip():
+            return validate_uk_postcode(value)
+        return value
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=False, allow_blank=True, default='')
     last_name = serializers.CharField(required=False, allow_blank=True, default='')
     delivery_address = serializers.CharField(required=False, allow_blank=True, default='')
-    postcode = serializers.CharField(required=True)
+    postcode = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = CustomerProfile
         fields = ('first_name', 'last_name', 'delivery_address', 'postcode')
 
     def validate_postcode(self, value):
-        return validate_uk_postcode(value)
+        if value and value.strip():
+            return validate_uk_postcode(value)
+        return value
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)

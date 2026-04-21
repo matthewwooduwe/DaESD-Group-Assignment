@@ -722,13 +722,13 @@ def admin_edit_user(request, user_id):
                 'first_name': request.POST.get('first_name', '').strip(),
                 'last_name': request.POST.get('last_name', '').strip(),
                 'delivery_address': request.POST.get('delivery_address', '').strip(),
-                'postcode': request.POST.get('postcode', '').strip(),
+                'postcode': request.POST.get('customer_postcode', '').strip(),
             }
         elif role == 'PRODUCER':
             payload['producer_profile'] = {
                 'business_name': request.POST.get('business_name', '').strip(),
                 'business_address': request.POST.get('business_address', '').strip(),
-                'postcode': request.POST.get('postcode', '').strip(),
+                'postcode': request.POST.get('producer_postcode', '').strip(),
                 'bio': request.POST.get('bio', '').strip(),
             }
         try:
@@ -1431,17 +1431,17 @@ def clear_basket(request):
 def checkout_view(request):
     """
     Display the customer's basket with all items.
+    Calculates food miles per producer group.
     """
     basket = None
     error = request.GET.get('error')
     items_by_producer = None
+    food_miles_by_producer = {}
     minimum_delivery_date = (date.today() + timedelta(days=2)).isoformat()
 
     if not request.session.get('token'):
         error = "Please log in to checkout."
-        return render(request, 'web/login.html', {
-            'error': error,
-        })
+        return render(request, 'web/login.html', {'error': error})
 
     try:
         resp = requests.get(
@@ -1452,13 +1452,29 @@ def checkout_view(request):
         if resp.status_code == 200:
             basket = resp.json()
             items_by_producer = basket.get('items_by_producer')
-        
+
+            # Calculate food miles per producer
+            if items_by_producer:
+                try:
+                    user_resp = requests.get(
+                        f"{PLATFORM_API_URL}/api/auth/me/",
+                        headers=get_auth_headers(request),
+                        timeout=5
+                    )
+                    if user_resp.status_code == 200:
+                        customer_postcode = (user_resp.json().get('customer_profile') or {}).get('postcode')
+                        if customer_postcode:
+                            for group in items_by_producer:
+                                producer_postcode = (group.get('producer_profile') or {}).get('postcode')
+                                miles = _calculate_food_miles(customer_postcode, producer_postcode) if producer_postcode else None
+                                food_miles_by_producer[str(group.get('producer_id'))] = miles
+                except Exception:
+                    pass
+
         elif resp.status_code == 401:
             error = "Your session has expired. Please log in again."
             request.session.flush()
-            return render(request, 'web/login.html', {
-                'error': error,
-            })
+            return render(request, 'web/login.html', {'error': error})
         else:
             error = f"Unexpected error: could not load checkout page (status {resp.status_code})."
 
@@ -1473,6 +1489,7 @@ def checkout_view(request):
         'basket': basket,
         'items_by_producer': items_by_producer,
         'minimum_delivery_date': minimum_delivery_date,
+        'food_miles_by_producer': json.dumps(food_miles_by_producer),
         'error': error,
         'media_base_url': MEDIA_BASE_URL,
     })
