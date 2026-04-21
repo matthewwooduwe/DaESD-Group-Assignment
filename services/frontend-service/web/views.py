@@ -1,9 +1,12 @@
 import os
 import json
+import csv
+import math
 import requests
 from datetime import date, timedelta, datetime
 from urllib.parse import quote
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 
 # Base URL of the platform API service — no trailing slash, no /api suffix
 PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002')
@@ -11,6 +14,38 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
+
+def _get_postcode_coords(postcode):
+    """Fetch lat/lng for a UK postcode from postcodes.io."""
+    try:
+        resp = requests.get(
+            f"https://api.postcodes.io/postcodes/{postcode.strip().replace(' ', '%20')}",
+            timeout=5
+        )
+        if resp.status_code == 200:
+            result = resp.json().get('result', {})
+            if result:
+                return result.get('latitude'), result.get('longitude')
+    except Exception:
+        pass
+    return None, None
+
+def _haversine_miles(lat1, lon1, lat2, lon2):
+    R = 3958.8
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    return R * 2 * math.asin(math.sqrt(a))
+
+def _calculate_food_miles(customer_postcode, producer_postcode):
+    if not customer_postcode or not producer_postcode:
+        return None
+    lat1, lon1 = _get_postcode_coords(customer_postcode)
+    lat2, lon2 = _get_postcode_coords(producer_postcode)
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+    return round(_haversine_miles(lat1, lon1, lat2, lon2), 1)
 
 # UK 14 Major Allergens
 UK_ALLERGENS = [
@@ -572,7 +607,7 @@ def profile_view(request):
 
 def admin_dashboard(request):
     """
-    Admin dashboard with tabs for users, products, orders, and site stats.
+    Admin dashboard with tabs for users, products, orders, and commission.
     """
     if not request.session.get('token') or request.session.get('role') != 'ADMIN':
         return redirect('/login/')
@@ -601,20 +636,89 @@ def admin_dashboard(request):
 
     total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
     total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
+    total_producer_payout = total_revenue - total_commission
     customers = [u for u in users if u.get('role') == 'CUSTOMER']
     producers = [u for u in users if u.get('role') == 'PRODUCER']
+
+    # Build producer breakdown from all orders
+    producer_breakdown = {}
+    for o in orders:
+        producer = o.get('producer') or o.get('producer_name') or 'Unknown'
+        if producer not in producer_breakdown:
+            producer_breakdown[producer] = {'producer': producer, 'order_count': 0, 'total_revenue': 0.0, 'total_commission': 0.0, 'total_payout': 0.0}
+        rev = float(o.get('total_amount', 0))
+        com = float(o.get('commission_total') or 0)
+        producer_breakdown[producer]['order_count'] += 1
+        producer_breakdown[producer]['total_revenue'] += rev
+        producer_breakdown[producer]['total_commission'] += com
+        producer_breakdown[producer]['total_payout'] += (rev - com)
+
+    producer_breakdown_list = sorted(producer_breakdown.values(), key=lambda x: x['total_commission'], reverse=True)
 
     return render(request, 'web/admin.html', {
         'users': users,
         'products': products,
-        'orders': orders,
+        'all_orders': orders,
         'error': error,
         'total_revenue': total_revenue,
         'total_commission': total_commission,
+        'total_producer_payout': total_producer_payout,
+        'producer_breakdown': producer_breakdown_list,
         'customer_count': len(customers),
         'producer_count': len(producers),
         'media_base_url': MEDIA_BASE_URL,
     })
+
+
+def admin_commission_export(request):
+    """Export commission data as CSV for accounting software."""
+    if not request.session.get('token') or request.session.get('role') != 'ADMIN':
+        return redirect('/login/')
+
+    headers = get_auth_headers(request)
+    orders = []
+
+    try:
+        resp_orders = requests.get(f"{PLATFORM_API_URL}/api/orders/", headers=headers, timeout=5)
+        if resp_orders.status_code == 200:
+            orders = resp_orders.json()
+    except Exception:
+        pass
+
+    # Apply date filters from query params
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+    if date_from:
+        orders = [o for o in orders if (o.get('created_at') or '')[:10] >= date_from]
+    if date_to:
+        orders = [o for o in orders if (o.get('created_at') or '')[:10] <= date_to]
+
+    response = HttpResponse(content_type='text/csv')
+    filename = f"brfn_commission_{date.today()}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Order ID', 'Date', 'Customer', 'Producer', 'Status',
+        'Order Total (£)', 'Commission 5% (£)', 'Producer Payout 95% (£)'
+    ])
+
+    for o in orders:
+        total = float(o.get('total_amount', 0))
+        commission = float(o.get('commission_total') or 0)
+        payout = total - commission
+        writer.writerow([
+            f"#{o.get('id', '')}",
+            (o.get('created_at') or '')[:10],
+            o.get('customer_username') or o.get('customer', ''),
+            o.get('producer_name') or '—',
+            o.get('status', ''),
+            f"{total:.2f}",
+            f"{commission:.2f}",
+            f"{payout:.2f}",
+        ])
+
+    return response
 
 
 def admin_delete_user(request, user_id):
