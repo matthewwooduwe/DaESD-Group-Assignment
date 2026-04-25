@@ -405,10 +405,9 @@ color: var(--green);
             </script>
 
             <div class="form-group full-width">
-                <label class="form-label" style="color: var(--text-muted)">Product Image (Coming Soon)</label>
-                <input type="file" name="image" class="file-input" accept="image/*" disabled
-                    style="opacity: 0.5; cursor: not-allowed;">
-                <span class="form-help">Image uploading is temporarily disabled.</span>
+                <label class="form-label" for="image">Product Image</label>
+                <input type="file" id="image" name="image" class="file-input" accept="image/*">
+                <span class="form-help">Upload a high-quality image of your product.</span>
             </div>
 
             <button type="submit" class="btn-primary">List Product</button>
