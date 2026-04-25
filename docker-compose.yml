@@ -82,7 +82,7 @@ services:
       - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL}
     volumes:
       - ./services/platform-service:/code
-      - platform_media:/code/media
+      - ./services/platform-service/media:/code/media
     depends_on:
       db:
         condition: service_healthy
@@ -114,7 +114,6 @@ services:
 
 volumes:
   mysql_data:
-  platform_media:
 
 
 networks:

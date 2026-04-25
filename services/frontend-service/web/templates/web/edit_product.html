@@ -132,18 +132,24 @@ margin-top: 0.2rem;
 .allergen-checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
 .allergen-checkbox-item input[type="checkbox"]:checked + span { color: var(--green); font-weight: 600; }
 
-.file-input {
-background: #fff;
-border: 2px dashed var(--border);
-padding: 1.5rem;
-text-align: center;
-border-radius: 8px;
-cursor: pointer;
-transition: border-color 0.2s;
+.file-input-wrapper {
+    background: #fff;
+    border: 2px dashed var(--border);
+    padding: 1.5rem;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: block;
 }
 
-.file-input:hover {
-border-color: var(--green);
+.file-input-wrapper:hover {
+    border-color: var(--green);
+}
+
+.file-input-wrapper input[type="file"] {
+    display: block;
+    margin: 0 auto;
 }
 
 .btn-primary {
@@ -437,15 +443,18 @@ display: block;
             </script>
 
             <div class="form-group full-width">
-                <label class="form-label" style="color: var(--text-muted)">Product Image (Coming Soon)</label>
+                <label class="form-label" for="image">Product Image</label>
                 {% if product.image %}
-                <img src="{{ media_base_url }}/media/{{ product.image }}" alt="Current Image" class="current-image"
-                    style="opacity: 0.7;">
+                <div style="margin-bottom: 1rem;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Current Image:</p>
+                    <img src="{{ media_base_url }}/media/{{ product.image }}" alt="Current Image" 
+                        style="max-width: 300px; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block;">
+                </div>
                 {% endif %}
-                <input type="file" name="image" class="file-input" accept="image/*" disabled
-                    style="opacity: 0.5; cursor: not-allowed;">
-                <span class="form-help">Image uploading is temporarily disabled. Your current image (if any) is
-                    preserved.</span>
+                <div class="file-input-wrapper">
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                <span class="form-help">Upload a new image to replace the current one.</span>
             </div>
 
             <button type="submit" class="btn-primary">Save Changes</button>

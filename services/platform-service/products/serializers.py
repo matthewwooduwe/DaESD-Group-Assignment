@@ -31,6 +31,7 @@ class ProductSerializer(serializers.ModelSerializer):
     surplus_deal = SurplusDealSerializer(required=False, allow_null=True)
     is_currently_in_season = serializers.ReadOnlyField()
     seasonal_availability_text = serializers.ReadOnlyField()
+    image = serializers.ImageField(use_url=False, required=False, allow_null=True)
 
     class Meta:
         model = Product
