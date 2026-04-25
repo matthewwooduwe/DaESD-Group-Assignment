@@ -645,14 +645,12 @@ min-height: 100px;
 </div>
 
 <script>
-// Food miles data from server
-var foodMilesData = {{ food_miles_by_producer|default:"{}" }};
+var foodMilesData = {{ food_miles_by_producer|default:"{}"|safe }};
 
 function updateFoodMiles(producerId, collectionType) {
     var el = document.getElementById('food-miles-' + producerId);
     var valueEl = el ? el.querySelector('.checkout-food-miles-value') : null;
     if (!el || !valueEl) return;
-
     if (!collectionType) {
         el.style.display = 'none';
     } else if (collectionType === 'Collection') {
@@ -679,9 +677,7 @@ function updateTotalMiles() {
         var val = sel.value;
         if (!val) return;
         hasAny = true;
-        if (val === 'Collection') {
-            // 0 miles
-        } else {
+        if (val !== 'Collection') {
             var miles = foodMilesData[producerId];
             if (miles) total += miles;
         }
