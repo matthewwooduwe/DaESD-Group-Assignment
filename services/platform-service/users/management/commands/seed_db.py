@@ -122,7 +122,8 @@ class Command(BaseCommand):
                 'unit': 'kg',
                 'stock': 100,
                 'organic': True,
-                'allergens': []
+                'allergens': [],
+                'image': 'products/carrot.jpg'
             },
             {
                 'name': 'Milk',
@@ -131,7 +132,8 @@ class Command(BaseCommand):
                 'unit': 'L',
                 'stock': 50,
                 'organic': False,
-                'allergens': ['Milk']
+                'allergens': ['Milk'],
+                'image': 'products/milk.jpg'
             },
             {
                 'name': 'Bread',
@@ -140,7 +142,8 @@ class Command(BaseCommand):
                 'unit': 'loaf',
                 'stock': 20,
                 'organic': True,
-                'allergens': ['Cereals containing gluten']
+                'allergens': ['Cereals containing gluten'],
+                'image': 'products/bread.jpg'
             }
         ]
 
@@ -159,7 +162,8 @@ class Command(BaseCommand):
                         'stock_quantity': p_data['stock'],
                         'is_organic': p_data['organic'],
                         'is_available': True,
-                        'allergens': p_data.get('allergens', [])
+                        'allergens': p_data.get('allergens', []),
+                        'image': p_data.get('image', '')
                     }
                 )
                 if created:
