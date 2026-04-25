@@ -68,8 +68,6 @@ services:
     build: ./services/platform-service
     container_name: brfn_platform_api
     command: python manage.py runserver 0.0.0.0:8002
-    volumes:
-      - ./services/platform-service:/code
     ports:
       - "8002:8002"
     environment:
@@ -82,6 +80,9 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - NOTIFICATIONS_API_URL=${NOTIFICATIONS_API_URL}
       - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL}
+    volumes:
+      - ./services/platform-service:/code
+      - ./services/platform-service/media:/code/media
     depends_on:
       db:
         condition: service_healthy

@@ -3,7 +3,23 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from decimal import Decimal
-from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+
+def validate_product_image(image):
+    # Max file size: 2MB
+    filesize = image.size
+    if filesize > 2 * 1024 * 1024:
+        raise ValidationError(_("Maximum file size is 2MB"))
+
+    # Reasonable dimensions (Max 2000x2000)
+    width = image.width
+    height = image.height
+    if width > 2000 or height > 2000:
+        raise ValidationError(_("Image dimensions should not exceed 2000x2000 pixels"))
+    
+    # Optional: Minimum dimensions for quality
+    if width < 100 or height < 100:
+        raise ValidationError(_("Image dimensions should be at least 100x100 pixels"))
 
 class Category(models.Model):
     """
@@ -45,7 +61,12 @@ class Product(models.Model):
     seasonal_start_month = models.PositiveSmallIntegerField(blank=True, null=True, help_text=_("Automation for seasonal visibility (1-12)"))
     seasonal_end_month = models.PositiveSmallIntegerField(blank=True, null=True, help_text=_("Automation for seasonal visibility (1-12)"))
     
-    image = models.ImageField(upload_to="products/", blank=True, null=True)
+    image = models.ImageField(
+        upload_to="products/", 
+        blank=True, 
+        null=True,
+        validators=[validate_product_image]
+    )
     
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00, help_text=_("Cached average rating"))
     review_count = models.PositiveIntegerField(default=0, help_text=_("Number of reviews"))
