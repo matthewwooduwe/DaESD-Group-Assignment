@@ -567,15 +567,19 @@
             <div class="stat-label">Producer Payouts</div>
             <div class="stat-value">£{{ total_producer_payout|floatformat:2 }}</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Food Miles</div>
+            <div class="stat-value">{{ total_food_miles }} mi</div>
+        </div>
     </div>
 
-    <!-- Date Range Filter -->
     <!-- Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
         <button class="tab-btn" onclick="switchTab('commission', this)">Commission</button>
+        <button class="tab-btn" onclick="switchTab('foodmiles', this)">Food Miles</button>
     </div>
 
     <!-- Users Tab -->
@@ -687,8 +691,9 @@
                     <th onclick="sortTable('orders-table', 2)" class="sortable">Producer <span class="sort-icon">↕</span></th>
                     <th onclick="sortTable('orders-table', 3)" class="sortable">Total <span class="sort-icon">↕</span></th>
                     <th onclick="sortTable('orders-table', 4)" class="sortable">Commission <span class="sort-icon">↕</span></th>
-                    <th onclick="sortTable('orders-table', 5)" class="sortable">Status <span class="sort-icon">↕</span></th>
-                    <th onclick="sortTable('orders-table', 6)" class="sortable">Placed <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 5)" class="sortable">Food Miles <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 6)" class="sortable">Status <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 7)" class="sortable">Placed <span class="sort-icon">↕</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -700,12 +705,19 @@
                     <td>£{{ order.total_amount }}</td>
                     <td>£{{ order.commission_total|default:"0.00" }}</td>
                     <td>
+                        {% if order.food_miles %}
+                        <span style="color:var(--green);font-weight:600;font-size:0.85rem;">🌍 {{ order.food_miles }} mi</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);font-size:0.8rem;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
                         <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
                     </td>
                     <td>{{ order.created_at|slice:":10" }}</td>
                 </tr>
                 {% empty %}
-                <tr class="empty-row"><td colspan="7">No orders found.</td></tr>
+                <tr class="empty-row"><td colspan="8">No orders found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -798,6 +810,40 @@
         </table>
     </div>
 
+    <!-- Food Miles Tab -->
+    <div id="tab-foodmiles" class="tab-panel">
+        <div class="commission-period-summary" style="margin-bottom:1.5rem;">
+            <div class="period-stat commission-highlight">
+                <div class="period-stat-label">Platform Total Food Miles</div>
+                <div class="period-stat-value">{{ total_food_miles }} mi</div>
+            </div>
+            <div class="period-stat">
+                <div class="period-stat-label">Delivered Orders Only</div>
+                <div class="period-stat-value">{{ producer_food_miles|length }} producer{{ producer_food_miles|length|pluralize }}</div>
+            </div>
+        </div>
+
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin:0 0 0.75rem;">Food Miles by Producer</h3>
+        <table class="data-table" id="foodmiles-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('foodmiles-table', 0)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('foodmiles-table', 1)" class="sortable">Total Miles <span class="sort-icon">↕</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in producer_food_miles %}
+                <tr>
+                    <td><strong>{{ row.producer }}</strong></td>
+                    <td>{{ row.miles }} mi</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="2">No delivered delivery orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </div>
 <br><br>
 
@@ -849,7 +895,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Postcode</label>
-                    <input class="form-input" type="text" id="edit-customer-postcode" name="postcode">
+                    <input class="form-input" type="text" id="edit-customer-postcode" name="customer_postcode">
                 </div>
             </div>
 
@@ -866,7 +912,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Postcode</label>
-                    <input class="form-input" type="text" id="edit-producer-postcode" name="postcode">
+                    <input class="form-input" type="text" id="edit-producer-postcode" name="producer_postcode">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Bio</label>
@@ -961,7 +1007,7 @@ function filterCommission() {
     allRows.forEach(row => {
         const rowDate = row.getAttribute('data-date') || '';
         const cells = row.querySelectorAll('td');
-        const rowStatus = cells[5].textContent.trim().toUpperCase();
+        const rowStatus = cells[6].textContent.trim().toUpperCase();
         const fromMatch = !dateFrom || rowDate >= dateFrom;
         const toMatch = !dateTo || rowDate <= dateTo;
         const statusMatch = !statusFilter || rowStatus.includes(statusFilter);
