@@ -708,7 +708,7 @@
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.25rem; line-height: 1.6;">{{ recipe.description|truncatewords:20 }}</p>
                 
                 {% if recipe.image %}
-                <img src="{{ media_base_url }}{{ recipe.image }}" alt="{{ recipe.title }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 1.25rem; border: 1px solid var(--border);">
+                <img src="{{ media_base_url }}/media/{{ recipe.image }}" alt="{{ recipe.title }}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 1.25rem; border: 1px solid var(--border);">
                 {% endif %}
 
                 <a href="/producers/{{ product.producer }}/" class="btn-secondary" style="width: 100%; text-align: center; padding: 0.65rem; font-size: 0.9rem;">View Full Recipe</a>

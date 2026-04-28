@@ -459,7 +459,7 @@
                     <!-- Card body -->
                     <div class="card-body">
                         <h2 class="card-name">{{ item.product.name }}</h2>
-                        <p class="card-producer">{{ item.product.producer_username }}</p>
+                        <p class="card-producer">{{ item.product.producer_profile.business_name|default:item.product.producer_username }}</p>
                         <div class="card-price">
                             {% if item.product.is_surplus %}
                             <span class="card-original-price">£{{ item.product.price }}</span>
