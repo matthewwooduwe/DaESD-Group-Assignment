@@ -47,11 +47,11 @@
     
     <div style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 2.5rem; padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);">
         {% if product.image %}
-        <img src="{{ media_base_url }}{{ product.image }}" alt="{{ product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+        <img src="{{ media_base_url }}/media/{{ product.image }}" alt="{{ product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
         {% endif %}
         <div>
             <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">{{ product.name }}</h2>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">From <strong>{{ product.producer_username }}</strong></p>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">From <strong>{{ product.producer_profile.business_name|default:product.producer_username }}</strong></p>
         </div>
     </div>
 
