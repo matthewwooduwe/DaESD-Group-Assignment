@@ -15,8 +15,15 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
 
+_postcode_cache = {}
+
 def _get_postcode_coords(postcode):
     """Fetch lat/lng for a UK postcode from postcodes.io. Returns (lat, lng) or (None, None)."""
+    if not postcode:
+        return None, None
+    key = postcode.strip().upper().replace(' ', '')
+    if key in _postcode_cache:
+        return _postcode_cache[key]
     try:
         resp = requests.get(
             f"https://api.postcodes.io/postcodes/{postcode.strip().replace(' ', '%20')}",
@@ -25,9 +32,12 @@ def _get_postcode_coords(postcode):
         if resp.status_code == 200:
             result = resp.json().get('result', {})
             if result:
-                return result.get('latitude'), result.get('longitude')
+                coords = result.get('latitude'), result.get('longitude')
+                _postcode_cache[key] = coords
+                return coords
     except Exception:
         pass
+    _postcode_cache[key] = (None, None)
     return None, None
 
 def _haversine_miles(lat1, lon1, lat2, lon2):
@@ -611,18 +621,8 @@ def admin_dashboard(request):
                 collection_type = (o.get('collection_type') or '').lower()
                 if status == 'DELIVERED' and 'collect' not in collection_type:
                     try:
-                        items = o.get('items', [])
-                        customer_postcode = o.get('customer_postcode') or (o.get('customer_profile') or {}).get('postcode')
-                        producer_postcode = None
-                        if items:
-                            product_id = items[0].get('product')
-                            if product_id:
-                                prod_resp = requests.get(
-                                    f"{PLATFORM_API_URL}/api/products/{product_id}/",
-                                    timeout=5
-                                )
-                                if prod_resp.status_code == 200:
-                                    producer_postcode = (prod_resp.json().get('producer_profile') or {}).get('postcode')
+                        customer_postcode = o.get('customer_postcode', '')
+                        producer_postcode = o.get('producer_postcode', '')
                         if customer_postcode and producer_postcode:
                             miles = _calculate_food_miles(customer_postcode, producer_postcode)
                             if miles:
@@ -1468,19 +1468,11 @@ def customer_order_history_view(request):
                                 status = (producer_order.get('status') or '').upper()
                                 collection_type = (producer_order.get('collection_type') or '').lower()
                                 if status == 'DELIVERED' and 'collect' not in collection_type:
-                                    items = producer_order.get('items', [])
-                                    if items:
-                                        product_id = items[0].get('product')
-                                        if product_id:
-                                            prod_resp = requests.get(
-                                                f"{PLATFORM_API_URL}/api/products/{product_id}/",
-                                                timeout=5
-                                            )
-                                            if prod_resp.status_code == 200:
-                                                producer_postcode = (prod_resp.json().get('producer_profile') or {}).get('postcode')
-                                                miles = _calculate_food_miles(customer_postcode, producer_postcode)
-                                                if miles:
-                                                    order_miles += miles
+                                    producer_postcode = producer_order.get('producer_postcode', '')
+                                    if producer_postcode:
+                                        miles = _calculate_food_miles(customer_postcode, producer_postcode)
+                                        if miles:
+                                            order_miles += miles
                             if order_miles:
                                 order['food_miles'] = round(order_miles, 1)
                                 total_food_miles += order_miles
@@ -1654,22 +1646,8 @@ def producer_orders_view(request):
                     status = (order.get('status') or '').upper()
                     collection_type = (order.get('collection_type') or '').lower()
                     if status == 'DELIVERED' and 'collect' not in collection_type:
-                        items = order.get('items', [])
-                        customer_postcode = order.get('customer_postcode')
-                        if not customer_postcode and items:
-                            # Try to get customer postcode from order data
-                            customer_postcode = (order.get('customer_profile') or {}).get('postcode')
-                        producer_postcode = None
-                        if items:
-                            product_id = items[0].get('product')
-                            if product_id:
-                                prod_resp = requests.get(
-                                    f"{PLATFORM_API_URL}/api/products/{product_id}/",
-                                    headers=get_auth_headers(request),
-                                    timeout=5
-                                )
-                                if prod_resp.status_code == 200:
-                                    producer_postcode = (prod_resp.json().get('producer_profile') or {}).get('postcode')
+                        customer_postcode = order.get('customer_postcode', '')
+                        producer_postcode = order.get('producer_postcode', '')
                         if customer_postcode and producer_postcode:
                             miles = _calculate_food_miles(customer_postcode, producer_postcode)
                             if miles:
