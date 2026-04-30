@@ -1,4 +1,6 @@
 from rest_framework import generics, permissions, filters
+from django.db.models import Q, F
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Category, Recipe, FarmStory
 from .serializers import ProductSerializer, CategorySerializer, RecipeSerializer, FarmStorySerializer
@@ -39,6 +41,13 @@ class ProductListCreateView(generics.ListCreateAPIView):
             for allergen in exclude_allergens:
                 # Exclude products whose allergens JSON list contains this allergen
                 queryset = queryset.exclude(allergens__contains=allergen)
+                
+        user = self.request.user
+        
+        # We no longer filter out-of-season products at the database level.
+        # They should be visible on the frontend but marked as 'Out of Season'
+        # and unpurchasable.
+            
         return queryset
 
     def perform_create(self, serializer):

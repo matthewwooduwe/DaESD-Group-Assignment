@@ -53,6 +53,120 @@
     border-bottom: 2px solid var(--border);
     margin-bottom: 2rem;
 }
+
+/* ── DATE FILTER BAR ── */
+.date-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--green-light);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #b8dfc8;
+}
+.date-filter-presets {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.date-preset-btn {
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    background: transparent;
+    transition: all 0.2s;
+}
+.date-preset-btn:hover,
+.date-preset-btn.active { background: var(--green); color: #fff; }
+.date-filter-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.date-filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+.date-filter-input {
+    padding: 0.35rem 0.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: #fff;
+}
+.date-filter-submit {
+    padding: 0.35rem 1rem;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.date-filter-submit:hover { background: var(--green-mid); }
+
+/* ── COMMISSION SUMMARY ── */
+.commission-summary {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+}
+.commission-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+.commission-summary-row:last-child { border-bottom: none; }
+.commission-highlight { color: var(--green); font-weight: 700; }
+
+.commission-period-summary {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 1rem 0 1.5rem;
+}
+.period-stat {
+    flex: 1;
+    min-width: 140px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+}
+.period-stat-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+}
+.period-stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.commission-period-summary .commission-highlight .period-stat-value {
+    color: var(--green);
+}
+
+.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.sort-icon { font-size: 0.7rem; opacity: 0.5; margin-left: 3px; }
 .tab-btn {
     background: none;
     border: none;
@@ -458,15 +572,23 @@
         </div>
         <div class="stat-card">
             <div class="stat-label">Orders</div>
-            <div class="stat-value">{{ orders|length }}</div>
+            <div class="stat-value">{{ all_orders|length }}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value">£{{ total_revenue|floatformat:2 }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Commission</div>
+            <div class="stat-label">Commission (5%)</div>
             <div class="stat-value">£{{ total_commission|floatformat:2 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Producer Payouts</div>
+            <div class="stat-value">£{{ total_producer_payout|floatformat:2 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Food Miles</div>
+            <div class="stat-value">{{ total_food_miles }} mi</div>
         </div>
     </div>
 
@@ -476,6 +598,8 @@
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
         <button class="tab-btn" onclick="switchTab('transactions', this)">Transactions</button>
+        <button class="tab-btn" onclick="switchTab('commission', this)">Commission</button>
+        <button class="tab-btn" onclick="switchTab('foodmiles', this)">Food Miles</button>
     </div>
 
     <!-- Users Tab -->
@@ -568,36 +692,173 @@
 
     <!-- Orders Tab -->
     <div id="tab-orders" class="tab-panel">
-        <div class="search-bar">
-            <input class="search-input" type="text" placeholder="Search orders by ID or status…" oninput="filterTable('orders-table', this.value)">
+        <div class="search-bar" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <input class="search-input" style="flex:1;min-width:200px;" type="text" id="orders-search" placeholder="Search orders by ID, customer or status…" oninput="filterOrders()">
+            <input type="date" class="date-filter-input" id="orders-date-from" onchange="filterOrders()" placeholder="From">
+            <input type="date" class="date-filter-input" id="orders-date-to" onchange="filterOrders()" placeholder="To">
+            <div class="date-filter-presets" style="display:flex;gap:0.4rem;">
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('all')">All</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('today')">Today</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('week')">7 Days</button>
+                <button type="button" class="date-preset-btn" onclick="setOrdersPreset('month')">30 Days</button>
+            </div>
         </div>
         <table class="data-table" id="orders-table">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Commission</th>
-                    <th>Status</th>
-                    <th>Delivery Date</th>
-                    <th>Placed</th>
+                    <th onclick="sortTable('orders-table', 0)" class="sortable">Order ID <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 1)" class="sortable">Customer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 2)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 3)" class="sortable">Total <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 4)" class="sortable">Commission <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 5)" class="sortable">Food Miles <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 6)" class="sortable">Status <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('orders-table', 7)" class="sortable">Placed <span class="sort-icon">↕</span></th>
                 </tr>
             </thead>
             <tbody>
-                {% for order in orders %}
-                <tr>
+                {% for order in all_orders %}
+                <tr data-date="{{ order.created_at|slice:':10' }}">
                     <td><strong>#{{ order.id }}</strong></td>
-                    <td>{{ order.customer }}</td>
+                    <td>{{ order.customer_username|default:order.customer }}</td>
+                    <td>{{ order.producer_name|default:"—" }}</td>
                     <td>£{{ order.total_amount }}</td>
                     <td>£{{ order.commission_total|default:"0.00" }}</td>
                     <td>
+                        {% if order.food_miles %}
+                        <span style="color:var(--green);font-weight:600;font-size:0.85rem;">🌍 {{ order.food_miles }} mi</span>
+                        {% else %}
+                        <span style="color:var(--text-muted);font-size:0.8rem;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
                         <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
                     </td>
-                    <td>{{ order.delivery_date|default:"—" }}</td>
                     <td>{{ order.created_at|slice:":10" }}</td>
                 </tr>
                 {% empty %}
-                <tr class="empty-row"><td colspan="7">No orders found.</td></tr>
+                <tr class="empty-row"><td colspan="8">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Commission Tab -->
+    <div id="tab-commission" class="tab-panel">
+        <div class="search-bar" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+            <input class="search-input" style="flex:1;min-width:200px;" type="text" id="commission-search" placeholder="Search by producer…" oninput="filterCommissionTable()">
+            <select class="date-filter-input" id="commission-status" onchange="filterCommission()" style="padding:0.35rem 0.6rem;">
+                <option value="">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="READY">Ready</option>
+                <option value="DELIVERED">Delivered</option>
+            </select>
+            <input type="date" class="date-filter-input" id="commission-date-from" onchange="filterCommission()">
+            <input type="date" class="date-filter-input" id="commission-date-to" onchange="filterCommission()">
+            <div class="date-filter-presets" style="display:flex;gap:0.4rem;">
+                <button type="button" class="date-preset-btn active" onclick="setCommissionPreset('all')">All</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('ytd')">YTD</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('month')">This Month</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('week')">7 Days</button>
+                <button type="button" class="date-preset-btn" onclick="setCommissionPreset('today')">Today</button>
+            </div>
+            <button type="button" class="date-filter-submit" onclick="exportCommissionCSV()" style="white-space:nowrap;">⬇ Export CSV</button>
+        </div>
+
+        <!-- Period Summary -->
+        <div class="commission-period-summary" id="commission-period-summary">
+            <div class="period-stat">
+                <div class="period-stat-label">Orders in Period</div>
+                <div class="period-stat-value" id="period-orders">—</div>
+            </div>
+            <div class="period-stat">
+                <div class="period-stat-label">Total Revenue</div>
+                <div class="period-stat-value" id="period-revenue">—</div>
+            </div>
+            <div class="period-stat commission-highlight">
+                <div class="period-stat-label">Commission (5%)</div>
+                <div class="period-stat-value" id="period-commission">—</div>
+            </div>
+            <div class="period-stat">
+                <div class="period-stat-label">Producer Payouts (95%)</div>
+                <div class="period-stat-value" id="period-payout">—</div>
+            </div>
+        </div>
+
+        <!-- Monthly Summary -->
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin:1.5rem 0 0.75rem;">Monthly Summary</h3>
+        <table class="data-table" id="monthly-table" style="margin-bottom:2rem;">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Orders</th>
+                    <th>Total Revenue</th>
+                    <th>Commission (5%)</th>
+                    <th>Producer Payouts</th>
+                </tr>
+            </thead>
+            <tbody id="monthly-tbody">
+                <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+            </tbody>
+        </table>
+
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin:1.5rem 0 0.75rem;">Per-Producer Breakdown</h3>
+        <table class="data-table" id="commission-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('commission-table', 0)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 1)" class="sortable">Orders <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 2)" class="sortable">Total Revenue <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 3)" class="sortable">Commission (5%) <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('commission-table', 4)" class="sortable">Producer Payout <span class="sort-icon">↕</span></th>
+                </tr>
+            </thead>
+            <tbody id="commission-tbody">
+                {% for row in producer_breakdown %}
+                <tr>
+                    <td><strong>{{ row.producer }}</strong></td>
+                    <td>{{ row.order_count }}</td>
+                    <td>£{{ row.total_revenue|floatformat:2 }}</td>
+                    <td>£{{ row.total_commission|floatformat:2 }}</td>
+                    <td>£{{ row.total_payout|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="5">No commission data found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Food Miles Tab -->
+    <div id="tab-foodmiles" class="tab-panel">
+        <div class="commission-period-summary" style="margin-bottom:1.5rem;">
+            <div class="period-stat commission-highlight">
+                <div class="period-stat-label">Platform Total Food Miles</div>
+                <div class="period-stat-value">{{ total_food_miles }} mi</div>
+            </div>
+            <div class="period-stat">
+                <div class="period-stat-label">Delivered Orders Only</div>
+                <div class="period-stat-value">{{ producer_food_miles|length }} producer{{ producer_food_miles|length|pluralize }}</div>
+            </div>
+        </div>
+
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin:0 0 0.75rem;">Food Miles by Producer</h3>
+        <table class="data-table" id="foodmiles-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('foodmiles-table', 0)" class="sortable">Producer <span class="sort-icon">↕</span></th>
+                    <th onclick="sortTable('foodmiles-table', 1)" class="sortable">Total Miles <span class="sort-icon">↕</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in producer_food_miles %}
+                <tr>
+                    <td><strong>{{ row.producer }}</strong></td>
+                    <td>{{ row.miles }} mi</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="2">No delivered delivery orders yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -702,7 +963,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Postcode</label>
-                    <input class="form-input" type="text" id="edit-customer-postcode" name="postcode">
+                    <input class="form-input" type="text" id="edit-customer-postcode" name="customer_postcode">
                 </div>
             </div>
 
@@ -719,7 +980,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Postcode</label>
-                    <input class="form-input" type="text" id="edit-producer-postcode" name="postcode">
+                    <input class="form-input" type="text" id="edit-producer-postcode" name="producer_postcode">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Bio</label>
@@ -741,6 +1002,7 @@ function switchTab(name, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     btn.classList.add('active');
+    if (name === 'commission') filterCommission();
 }
 
 function filterTable(tableId, query) {
@@ -748,6 +1010,203 @@ function filterTable(tableId, query) {
     const rows = document.querySelectorAll('#' + tableId + ' tbody tr:not(.empty-row)');
     rows.forEach(row => {
         row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+// ── ORDERS FILTERING ──
+function filterOrders() {
+    const query = (document.getElementById('orders-search').value || '').toLowerCase();
+    const dateFrom = document.getElementById('orders-date-from').value;
+    const dateTo = document.getElementById('orders-date-to').value;
+    const rows = document.querySelectorAll('#orders-table tbody tr:not(.empty-row)');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowDate = row.getAttribute('data-date') || '';
+        const textMatch = !query || text.includes(query);
+        const fromMatch = !dateFrom || rowDate >= dateFrom;
+        const toMatch = !dateTo || rowDate <= dateTo;
+        row.style.display = (textMatch && fromMatch && toMatch) ? '' : 'none';
+    });
+}
+
+function setOrdersPreset(preset) {
+    const today = new Date().toISOString().slice(0, 10);
+    const fromInput = document.getElementById('orders-date-from');
+    const toInput = document.getElementById('orders-date-to');
+    document.querySelectorAll('#tab-orders .date-preset-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    if (preset === 'all') {
+        fromInput.value = '';
+        toInput.value = '';
+    } else if (preset === 'today') {
+        fromInput.value = today;
+        toInput.value = today;
+    } else if (preset === 'week') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    } else if (preset === 'month') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = today;
+    }
+    filterOrders();
+}
+
+// ── COMMISSION FILTERING ──
+function filterCommissionTable() {
+    const q = (document.getElementById('commission-search').value || '').toLowerCase();
+    const rows = document.querySelectorAll('#commission-table tbody tr:not(.empty-row)');
+    rows.forEach(row => {
+        row.style.display = !q || row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function filterCommission() {
+    const dateFrom = document.getElementById('commission-date-from').value;
+    const dateTo = document.getElementById('commission-date-to').value;
+    const statusFilter = (document.getElementById('commission-status').value || '').toUpperCase();
+
+    const allRows = document.querySelectorAll('#orders-table tbody tr:not(.empty-row)');
+    let revenue = 0, commission = 0, orderCount = 0;
+    const producerTotals = {};
+    const monthlyTotals = {};
+
+    allRows.forEach(row => {
+        const rowDate = row.getAttribute('data-date') || '';
+        const cells = row.querySelectorAll('td');
+        const rowStatus = cells[6].textContent.trim().toUpperCase();
+        const fromMatch = !dateFrom || rowDate >= dateFrom;
+        const toMatch = !dateTo || rowDate <= dateTo;
+        const statusMatch = !statusFilter || rowStatus.includes(statusFilter);
+
+        if (fromMatch && toMatch && statusMatch) {
+            const r = parseFloat((cells[3].textContent || '0').replace('£', '')) || 0;
+            const c = parseFloat((cells[4].textContent || '0').replace('£', '')) || 0;
+            const producer = cells[2].textContent.trim();
+            const month = rowDate.slice(0, 7); // YYYY-MM
+            revenue += r;
+            commission += c;
+            orderCount++;
+
+            // Producer totals
+            if (!producerTotals[producer]) producerTotals[producer] = { orders: 0, revenue: 0, commission: 0 };
+            producerTotals[producer].orders++;
+            producerTotals[producer].revenue += r;
+            producerTotals[producer].commission += c;
+
+            // Monthly totals
+            if (!monthlyTotals[month]) monthlyTotals[month] = { orders: 0, revenue: 0, commission: 0 };
+            monthlyTotals[month].orders++;
+            monthlyTotals[month].revenue += r;
+            monthlyTotals[month].commission += c;
+        }
+    });
+
+    // Update period summary cards
+    document.getElementById('period-orders').textContent = orderCount;
+    document.getElementById('period-revenue').textContent = '£' + revenue.toFixed(2);
+    document.getElementById('period-commission').textContent = '£' + commission.toFixed(2);
+    document.getElementById('period-payout').textContent = '£' + (revenue - commission).toFixed(2);
+
+    // Rebuild monthly summary table
+    const monthlyTbody = document.getElementById('monthly-tbody');
+    monthlyTbody.innerHTML = '';
+    const months = Object.keys(monthlyTotals).sort().reverse();
+    if (months.length === 0) {
+        monthlyTbody.innerHTML = '<tr class="empty-row"><td colspan="5">No data for this period.</td></tr>';
+    } else {
+        months.forEach(month => {
+            const d = monthlyTotals[month];
+            const label = new Date(month + '-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+            monthlyTbody.innerHTML += `<tr>
+                <td><strong>${label}</strong></td>
+                <td>${d.orders}</td>
+                <td>£${d.revenue.toFixed(2)}</td>
+                <td>£${d.commission.toFixed(2)}</td>
+                <td>£${(d.revenue - d.commission).toFixed(2)}</td>
+            </tr>`;
+        });
+    }
+
+    // Rebuild producer breakdown table
+    const tbody = document.getElementById('commission-tbody');
+    tbody.innerHTML = '';
+    const sorted = Object.entries(producerTotals).sort((a, b) => b[1].commission - a[1].commission);
+    if (sorted.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No commission data for this period.</td></tr>';
+    } else {
+        sorted.forEach(([producer, data]) => {
+            const payout = data.revenue - data.commission;
+            tbody.innerHTML += `<tr>
+                <td><strong>${producer}</strong></td>
+                <td>${data.orders}</td>
+                <td>£${data.revenue.toFixed(2)}</td>
+                <td>£${data.commission.toFixed(2)}</td>
+                <td>£${payout.toFixed(2)}</td>
+            </tr>`;
+        });
+    }
+}
+
+function setCommissionPreset(preset) {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const fromInput = document.getElementById('commission-date-from');
+    const toInput = document.getElementById('commission-date-to');
+    document.querySelectorAll('#tab-commission .date-preset-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    if (preset === 'all') {
+        fromInput.value = '';
+        toInput.value = '';
+    } else if (preset === 'today') {
+        fromInput.value = todayStr;
+        toInput.value = todayStr;
+    } else if (preset === 'week') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        fromInput.value = d.toISOString().slice(0, 10);
+        toInput.value = todayStr;
+    } else if (preset === 'month') {
+        fromInput.value = todayStr.slice(0, 7) + '-01';
+        toInput.value = todayStr;
+    } else if (preset === 'ytd') {
+        fromInput.value = todayStr.slice(0, 4) + '-01-01';
+        toInput.value = todayStr;
+    }
+    filterCommission();
+}
+
+function exportCommissionCSV() {
+    const dateFrom = document.getElementById('commission-date-from').value;
+    const dateTo = document.getElementById('commission-date-to').value;
+    let url = '/admin-dashboard/commission/export/';
+    const params = [];
+    if (dateFrom) params.push('date_from=' + dateFrom);
+    if (dateTo) params.push('date_to=' + dateTo);
+    if (params.length) url += '?' + params.join('&');
+    window.location.href = url;
+}
+
+// ── SORTING ──
+const sortState = {};
+function sortTable(tableId, colIndex) {
+    const key = tableId + '_' + colIndex;
+    sortState[key] = !sortState[key];
+    const asc = sortState[key];
+    const tbody = document.querySelector('#' + tableId + ' tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-row)'));
+    rows.sort((a, b) => {
+        const aText = a.querySelectorAll('td')[colIndex]?.textContent.trim() || '';
+        const bText = b.querySelectorAll('td')[colIndex]?.textContent.trim() || '';
+        const aNum = parseFloat(aText.replace(/[£,]/g, ''));
+        const bNum = parseFloat(bText.replace(/[£,]/g, ''));
+        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+        return asc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+    // Update sort icons
+    document.querySelectorAll('#' + tableId + ' .sort-icon').forEach((icon, i) => {
+        icon.textContent = i === colIndex ? (asc ? '↑' : '↓') : '↕';
     });
 }
 

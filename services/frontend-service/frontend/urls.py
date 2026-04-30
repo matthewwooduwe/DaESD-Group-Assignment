@@ -40,10 +40,13 @@ urlpatterns = [
     path('orders/', views.customer_order_history_view, name='customer-orders'),
     path('orders/place/', views.create_order, name='create-order'),
     path('orders/customer/<int:order_id>/', views.customer_order_detail_view, name='customer-order-detail'),
+    path('reviews/create/<int:product_id>/', views.write_review_view, name='write_review'),
+    path('reviews/<int:review_id>/delete/', views.delete_review_view, name='delete_review'),
 
     # Profile, admin and producer
     path('profile/', views.profile_view, name='profile'),
     path('admin-dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    path('admin-dashboard/commission/export/', views.admin_commission_export, name='admin-commission-export'),
     path('admin-dashboard/users/<int:user_id>/delete/', views.admin_delete_user, name='admin-delete-user'),
     path('admin-dashboard/users/<int:user_id>/edit/', views.admin_edit_user, name='admin-edit-user'),
     path('admin-dashboard/products/<int:product_id>/delete/', views.admin_delete_product, name='admin-delete-product'),

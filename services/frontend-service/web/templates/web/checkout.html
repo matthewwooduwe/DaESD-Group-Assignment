@@ -474,6 +474,34 @@ resize: vertical;
 min-height: 100px;
 }
 
+.checkout-food-miles {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--green-light);
+    border: 1px solid #b8dfc8;
+    border-radius: 6px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.875rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.checkout-total-miles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--green-light);
+    border: 1px solid #b8dfc8;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--green);
+    font-weight: 600;
+}
+
 {% endblock %}
 
 {% block content %}
@@ -516,6 +544,10 @@ min-height: 100px;
                     <span>Postcode: {{ producer_group.producer_profile.postcode }}</span>
                 </div>
 
+                <div id="food-miles-{{ producer_group.producer_id }}" class="checkout-food-miles" style="display:none;">
+                    🌍 <span class="checkout-food-miles-value"></span>
+                </div>
+
                 {% if error %}
                 <div class="error-banner">{{ error }}</div>
                 {% endif %}
@@ -527,7 +559,7 @@ min-height: 100px;
 
                 <div class="form-group">
                     <label class="form-label">Collection Type <span class="required">*</span></label>
-                    <select name="collection_type_{{ producer_group.producer_id }}" class="form-select" required>
+                    <select name="collection_type_{{ producer_group.producer_id }}" class="form-select" required onchange="updateFoodMiles('{{ producer_group.producer_id }}', this.value)">
                         <option value="">Select delivery or collect from producer</option>
                         <option value="Delivery">Deliver to my address</option>
                         <option value="Collection">Collect from producer</option>
@@ -597,6 +629,12 @@ min-height: 100px;
                             <strong>£{{ basket.total_price }}</strong>
                         </div>
                     </div>
+
+                    <div class="checkout-total-miles" id="checkout-total-miles" style="display:none;">
+                        <span>🌍 Total food miles</span>
+                        <span>—</span>
+                    </div>
+
                     <button type="submit" class="btn-checkout">
                         Proceed to payment →
                     </button>
@@ -605,5 +643,51 @@ min-height: 100px;
         </div>
     </form>
 </div>
+
+<script>
+var foodMilesData = {{ food_miles_by_producer|default:"{}"|safe }};
+
+function updateFoodMiles(producerId, collectionType) {
+    var el = document.getElementById('food-miles-' + producerId);
+    var valueEl = el ? el.querySelector('.checkout-food-miles-value') : null;
+    if (!el || !valueEl) return;
+    if (!collectionType) {
+        el.style.display = 'none';
+    } else if (collectionType === 'Collection') {
+        el.style.display = 'inline-flex';
+        valueEl.textContent = '0 food miles (you\'re collecting)';
+    } else {
+        var miles = foodMilesData[producerId];
+        if (miles !== undefined && miles !== null) {
+            el.style.display = 'inline-flex';
+            valueEl.textContent = miles + ' food miles';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+    updateTotalMiles();
+}
+
+function updateTotalMiles() {
+    var selects = document.querySelectorAll('select[name^="collection_type_"]');
+    var total = 0;
+    var hasAny = false;
+    selects.forEach(function(sel) {
+        var producerId = sel.name.replace('collection_type_', '');
+        var val = sel.value;
+        if (!val) return;
+        hasAny = true;
+        if (val !== 'Collection') {
+            var miles = foodMilesData[producerId];
+            if (miles) total += miles;
+        }
+    });
+    var totalEl = document.getElementById('checkout-total-miles');
+    if (totalEl) {
+        totalEl.style.display = hasAny ? 'flex' : 'none';
+        totalEl.querySelector('span:last-child').textContent = total.toFixed(1) + ' miles';
+    }
+}
+</script>
 
 {% endblock %}

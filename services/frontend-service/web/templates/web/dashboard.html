@@ -312,15 +312,18 @@ margin-bottom: 0.5rem;
                     <span class="badge badge-category">{{ product.category }}</span>
                     {% endif %}
                     {% if product.is_organic %}
-                    <span class="badge badge-organic">Organic</span>
+                    <span class="badge badge-organic">🌿 Organic</span>
                     {% endif %}
                 </div>
 
                 <div class="card-stock-badge">
-                    {% if not product.is_available %}
+                    {% if not product.is_currently_in_season and product.seasonal_availability_text %}
+                    <span class="badge badge-unavailable">Out of Season</span>
+                    {% elif not product.is_available %}
                     <span class="badge badge-unavailable">Unavailable</span>
-                    {% elif product.stock_quantity <= 5 %} <span class="badge badge-low-stock">Low stock</span>
-                        {% endif %}
+                    {% elif product.stock_quantity <= 5 %}
+                    <span class="badge badge-low-stock">Low stock</span>
+                    {% endif %}
                 </div>
             </div>
 

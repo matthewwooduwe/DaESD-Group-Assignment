@@ -25,6 +25,7 @@ class OrderSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
     status_logs = OrderStatusLogSerializer(many=True, read_only=True)
     customer_username = serializers.ReadOnlyField(source='customer.username')
+    customer_postcode = serializers.CharField(source='customer.customer_profile.postcode', read_only=True, default='')
     
     # Customer Details for Producers
     customer_first_name = serializers.CharField(source='customer.customer_profile.first_name', read_only=True)
@@ -42,7 +43,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'customer', 'customer_username', 'customer_first_name', 'customer_last_name',
+            'id', 'customer', 'customer_username', 'customer_postcode', 'customer_first_name', 'customer_last_name',
             'customer_phone', 'customer_email', 'delivery_address', 'collection_type',
             'total_amount', 'commission_total', 'producer_name', 'producer_total',
             'status', 'status_logs', 'delivery_date', 'created_at', 'items'

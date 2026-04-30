@@ -447,7 +447,9 @@
 
                     <!-- Availability badge -->
                     <div class="card-stock-badge">
-                        {% if not item.product.is_available %}
+                        {% if not item.product.is_currently_in_season and item.product.seasonal_availability_text %}
+                        <span class="badge badge-unavailable">Out of Season</span>
+                        {% elif not item.product.is_available %}
                         <span class="badge badge-unavailable">Unavailable</span>
                         {% elif item.product.stock_quantity <= 5 %}
                         <span class="badge badge-low-stock">Low stock</span>
@@ -457,7 +459,7 @@
                     <!-- Card body -->
                     <div class="card-body">
                         <h2 class="card-name">{{ item.product.name }}</h2>
-                        <p class="card-producer">{{ item.product.producer_username }}</p>
+                        <p class="card-producer">{{ item.product.producer_profile.business_name|default:item.product.producer_username }}</p>
                         <div class="card-price">
                             {% if item.product.is_surplus %}
                             <span class="card-original-price">£{{ item.product.price }}</span>
