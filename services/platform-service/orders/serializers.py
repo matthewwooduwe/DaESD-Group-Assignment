@@ -25,7 +25,8 @@ class OrderSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
     status_logs = OrderStatusLogSerializer(many=True, read_only=True)
     customer_username = serializers.ReadOnlyField(source='customer.username')
-    customer_postcode = serializers.CharField(source='customer.customer_profile.postcode', read_only=True, default='')
+    customer_postcode = serializers.SerializerMethodField()
+    producer_postcode = serializers.SerializerMethodField()
     
     # Customer Details for Producers
     customer_first_name = serializers.CharField(source='customer.customer_profile.first_name', read_only=True)
@@ -40,13 +41,25 @@ class OrderSerializer(serializers.ModelSerializer):
     # Producer specific total
     producer_total = serializers.SerializerMethodField()
 
+    def get_customer_postcode(self, obj):
+        try:
+            return obj.customer.customer_profile.postcode or ''
+        except Exception:
+            return ''
+
+    def get_producer_postcode(self, obj):
+        try:
+            return obj.producer.producer_profile.postcode or ''
+        except Exception:
+            return ''
+
     class Meta:
         model = Order
         fields = (
-            'id', 'customer', 'customer_username', 'customer_postcode', 'customer_first_name', 'customer_last_name',
+            'id', 'customer', 'customer_username', 'customer_postcode', 'producer_postcode', 'customer_first_name', 'customer_last_name',
             'customer_phone', 'customer_email', 'delivery_address', 'collection_type',
             'total_amount', 'commission_total', 'producer_name', 'producer_total',
-            'status', 'status_logs', 'delivery_date', 'created_at', 'items'
+            'status', 'status_logs', 'delivery_date', 'food_miles', 'created_at', 'items'
         )
         read_only_fields = ('id', 'customer', 'total_amount', 'commission_total', 'created_at', 'items', 'producer_total', 'status_logs')
 
