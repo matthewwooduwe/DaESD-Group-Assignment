@@ -1,5 +1,7 @@
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, permissions, filters, status
+from rest_framework.response import Response
 from django.db.models import Q, F
+from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Category, Recipe, FarmStory
@@ -8,16 +10,22 @@ from .serializers import ProductSerializer, CategorySerializer, RecipeSerializer
 class IsProducerOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow Producers to edit or create products.
+    Admins can delete any product.
     """
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.is_authenticated and request.user.role == 'PRODUCER'
+        if not request.user.is_authenticated:
+            return False
+        return request.user.role in ('PRODUCER', 'ADMIN')
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        # Only the producer who created the product can edit/delete it
+        # Admins can edit or delete any product
+        if request.user.role == 'ADMIN':
+            return True
+        # Producers can only edit/delete their own products
         return obj.producer == request.user
 
 class CategoryList(generics.ListCreateAPIView):
@@ -57,6 +65,20 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsProducerOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ProtectedError:
+            # Product has order history — mark as unavailable instead of deleting
+            instance.is_available = False
+            instance.save()
+            return Response(
+                {'detail': 'Product has existing orders and cannot be deleted. It has been marked as unavailable instead.'},
+                status=status.HTTP_200_OK
+            )
 
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
