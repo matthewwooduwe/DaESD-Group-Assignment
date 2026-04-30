@@ -92,11 +92,27 @@ def list_transactions(request):
             # session.metadata is a StripeObject in newer sdk versions – avoid calling
             # .get() on it directly as StripeObject may not support dict-style .get().
             metadata_order_id = ''
+            metadata_user_id = ''
             if session.metadata:
                 try:
                     metadata_order_id = session.metadata['order_id'] or ''
                 except (KeyError, TypeError, AttributeError):
                     pass
+                try:
+                    metadata_user_id = session.metadata['user_id'] or ''
+                except (KeyError, TypeError, AttributeError):
+                    pass
+
+            # Try to get user_id from local payment request_payload first, then metadata
+            user_id = ''
+            if local_payment:
+                try:
+                    payload = local_payment.request_payload or {}
+                    user_id = str(payload.get('user_id') or '')
+                except (TypeError, AttributeError):
+                    pass
+            if not user_id:
+                user_id = metadata_user_id
 
             # Try to get email from Stripe session first, then from local payment request payload
             customer_email = session.customer_email or ''
@@ -116,6 +132,7 @@ def list_transactions(request):
                 {
                     'session_id': session_id,
                     'order_id': (local_payment.order_id if local_payment else '') or metadata_order_id or '',
+                    'user_id': user_id,
                     'customer_email': customer_email,
                     'amount_total': _format_amount(amount_total),
                     'currency': (session.currency or '').upper(),
@@ -357,11 +374,13 @@ def _create_checkout_session(*, request, payload):
         'metadata': {
             'payment_id': str(payment.id),
             'order_id': checkout_data['order_id'],
+            'user_id': checkout_data.get('user_id', ''),
         },
         'payment_intent_data': {
             'metadata': {
                 'payment_id': str(payment.id),
                 'order_id': checkout_data['order_id'],
+                'user_id': checkout_data.get('user_id', ''),
             }
         },
         'success_url': checkout_data['success_url'] or _default_success_url(request, payment.id),
@@ -385,6 +404,7 @@ def _build_checkout_data(payload):
     order_id = str(payload.get('order_id') or order.get('order_id') or order.get('id') or '')
     currency = str(payload.get('currency') or order.get('currency') or settings.STRIPE_CURRENCY).lower()
     customer_email = payload.get('customer_email') or order.get('customer_email') or order.get('email')
+    user_id = str(payload.get('user_id') or order.get('user_id') or '')
 
     if items:
         line_items, amount = _build_line_items(items=items, currency=currency, order_id=order_id)
@@ -411,6 +431,7 @@ def _build_checkout_data(payload):
         'amount': amount,
         'currency': currency,
         'customer_email': customer_email,
+        'user_id': user_id,
         'line_items': line_items,
         'order_id': order_id,
         'success_url': payload.get('success_url'),

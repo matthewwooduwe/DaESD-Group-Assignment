@@ -80,12 +80,11 @@ def _api_error_message(status_code):
 AUTH_EXPIRED_ERROR = '__AUTH_EXPIRED__'
 
 
-def _build_payment_checkout_payload(*, basket, pending_order_reference, customer_email=''):
+def _build_payment_checkout_payload(*, basket, pending_order_reference, customer_email='', customer_id=''):
     """
     Build the JSON payload expected by payment-gateway /payments/api/checkout/
     from the current basket snapshot.
     """
-def _build_payment_checkout_payload(*, basket, pending_order_reference):
     items = []
     basket_items = basket.get('items') or []
     total_amount = basket.get('total_price')
@@ -114,6 +113,9 @@ def _build_payment_checkout_payload(*, basket, pending_order_reference):
 
     if customer_email:
         payload['customer_email'] = customer_email
+
+    if customer_id:
+        payload['user_id'] = str(customer_id)
 
     return payload
 
@@ -1453,8 +1455,9 @@ def create_order(request):
     request.session.pop('finalized_order_id', None)
     request.session.modified = True
 
-    # Fetch current user to get their email
+    # Fetch current user to get their email and ID
     customer_email = ''
+    customer_id = ''
     try:
         user_resp = requests.get(
             f"{PLATFORM_API_URL}/api/auth/me/",
@@ -1462,7 +1465,11 @@ def create_order(request):
             timeout=5
         )
         if user_resp.status_code == 200:
-            customer_email = user_resp.json().get('email', '')
+            user_data = user_resp.json()
+            customer_email = user_data.get('email', '')
+            customer_id = str(
+                user_data.get('id') or user_data.get('user_id') or user_data.get('pk') or ''
+            )
     except:
         pass
 
@@ -1470,9 +1477,9 @@ def create_order(request):
         basket=basket,
         pending_order_reference=pending_order_reference,
         customer_email=customer_email,
+        customer_id=customer_id,
     )
     checkout_payload['frontend_base_url'] = request.build_absolute_uri('/').rstrip('/')
-    checkout_payload = _build_payment_checkout_payload(basket=basket, pending_order_reference=pending_order_reference)
 
     try:
         checkout_resp = requests.post(f"{PAYMENT_GATEWAY_URL}/payments/api/checkout/", json=checkout_payload, timeout=10)
@@ -1736,7 +1743,7 @@ def producer_orders_view(request):
             orders = resp.json()
             # Calculate food miles for DELIVERED delivery orders only
             try:
-                for order in orders:
+                for orders in orders:
                     status = (order.get('status') or '').upper()
                     collection_type = (order.get('collection_type') or '').lower()
                     if status == 'DELIVERED' and 'collect' not in collection_type:

@@ -263,6 +263,48 @@
 .copy-btn:hover { background: var(--green); color: #fff; }
 .copy-btn.copied { background: var(--green); color: #fff; }
 
+.session-id-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.session-id-chip {
+    display: inline-block;
+    max-width: 420px;
+    padding: 0.26rem 0.5rem;
+    border: 1px solid #c9d9ce;
+    border-radius: 6px;
+    background: #f6faf7;
+    color: var(--text);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-id-chip:hover {
+    border-color: #9fbba9;
+    background: #eef7f1;
+}
+
+@media (max-width: 1100px) {
+    .session-id-chip { max-width: 260px; }
+}
+
+@media (max-width: 720px) {
+    .session-id-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+
+    .session-id-chip { max-width: 220px; }
+}
+
 .btn-sm-danger {
     background: transparent;
     color: #a0422a;
@@ -880,25 +922,30 @@
         </div>
         {% endif %}
         <div class="search-bar">
-            <input class="search-input" type="text" placeholder="Search transactions by session ID, order ID or email…" oninput="filterTable('transactions-table', this.value)">
+            <input class="search-input" type="text" placeholder="Search transactions by session ID, order ID or user ID..." oninput="filterTable('transactions-table', this.value)">
         </div>
         <table class="data-table" id="transactions-table">
             <thead>
                 <tr>
-                    <th>Session ID</th>
+                    <th style="cursor:pointer;" onclick="sortTableByCol('transactions-table', 0)">Session ID ↕</th>
                     <th>Order ID</th>
-                    <th>Customer Email</th>
+                    <th>User ID</th>
                     <th>Amount</th>
                     <th>Payment Status</th>
-                    <th>Created</th>
+                    <th style="cursor:pointer;" onclick="sortTableByCol('transactions-table', 5)">Created ↕</th>
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions %}
                 <tr>
-                    <td><button class="copy-btn" onclick="copySessionId('{{ transaction.session_id }}', this)">Copy</button></td>
+                    <td>
+                        <div class="session-id-cell">
+                            <span class="session-id-chip" title="{{ transaction.session_id }}">{{ transaction.session_id }}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('{{ transaction.session_id }}', this)">Copy</button>
+                        </div>
+                    </td>
                     <td>{{ transaction.order_id|default:"—" }}</td>
-                    <td>{{ transaction.customer_email|default:"—" }}</td>
+                    <td>{{ transaction.user_id|default:"—" }}</td>
                     <td>{{ transaction.amount_total }} {{ transaction.currency }}</td>
                     <td>
                         <span class="status-badge status-payment-{{ transaction.payment_status|lower }}">{{ transaction.payment_status }}</span>
@@ -1224,6 +1271,14 @@ function copySessionId(sessionId, btn) {
             btn.textContent = 'Copy';
         }, 1500);
     });
+}
+
+function copyToClipboard(text, btn) {
+    copySessionId(text, btn);
+}
+
+function sortTableByCol(tableId, colIndex) {
+    sortTable(tableId, colIndex);
 }
 
 function openEditModalFromBtn(userId) {
