@@ -18,7 +18,6 @@ services:
       retries: 10
     networks:
       - brfn-network
-
   # Frontend Service (Web UI)
   frontend:
     build: ./services/frontend-service
@@ -33,12 +32,13 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - PLATFORM_API_URL=${PLATFORM_API_URL}
       - NOTIFICATIONS_API_URL=${NOTIFICATIONS_API_URL}
+      - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL}
+      - MEDIA_BASE_URL=${MEDIA_BASE_URL}
     depends_on:
       db:
         condition: service_healthy
     networks:
       - brfn-network
-
   # Notifications Service API
   notifications-api:
     build: ./services/notifications-service
@@ -62,7 +62,6 @@ services:
         condition: service_healthy
     networks:
       - brfn-network
-
   # Platform Service API (Catalog, Orders, Payments, Baskets, Reviews...)
   platform-api:
     build: ./services/platform-service
@@ -88,7 +87,6 @@ services:
         condition: service_healthy
     networks:
       - brfn-network
-
   # Payment Gateway Service (External Mock)
   payment-gateway:
     build: ./services/payment-gateway-service
@@ -111,11 +109,8 @@ services:
         condition: service_healthy
     networks:
       - brfn-network
-
 volumes:
   mysql_data:
-
-
 networks:
   brfn-network:
     driver: bridge
