@@ -3,6 +3,40 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 import datetime
+import math
+import requests as http_requests
+
+def _seed_get_coords(postcode, cache={}):
+    key = postcode.strip().upper().replace(' ', '')
+    if key in cache:
+        return cache[key]
+    try:
+        resp = http_requests.get(
+            f"https://api.postcodes.io/postcodes/{postcode.strip().replace(' ', '%20')}",
+            timeout=5
+        )
+        if resp.status_code == 200:
+            r = resp.json().get('result') or {}
+            coords = r.get('latitude'), r.get('longitude')
+            cache[key] = coords
+            return coords
+    except Exception:
+        pass
+    cache[key] = (None, None)
+    return None, None
+
+def _seed_food_miles(customer_postcode, producer_postcode):
+    if not customer_postcode or not producer_postcode:
+        return None
+    lat1, lon1 = _seed_get_coords(customer_postcode)
+    lat2, lon2 = _seed_get_coords(producer_postcode)
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+    R = 3958.8
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlon/2)**2
+    return round(R * 2 * math.asin(math.sqrt(a)), 1)
 
 from users.models import ProducerProfile, CustomerProfile
 from products.models import Category, Product, Recipe, FarmStory
@@ -505,6 +539,16 @@ class Command(BaseCommand):
                     else today - datetime.timedelta(days=max(days_ago - 2, 1))
                 )
 
+                # Calculate food miles for delivery orders only
+                food_miles = None
+                if 'collect' not in collection_type.lower():
+                    try:
+                        customer_postcode = customer.customer_profile.postcode
+                        producer_postcode = producer.producer_profile.postcode
+                        food_miles = _seed_food_miles(customer_postcode, producer_postcode)
+                    except Exception:
+                        pass
+
                 order = Order.objects.create(
                     customer=customer,
                     customer_order=customer_order,
@@ -512,6 +556,7 @@ class Command(BaseCommand):
                     status=status,
                     delivery_date=order_delivery_date,
                     collection_type=collection_type,
+                    food_miles=food_miles,
                     total_amount=Decimal('0.00'),
                     commission_total=Decimal('0.00'),
                 )
