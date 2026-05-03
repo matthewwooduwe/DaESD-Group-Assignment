@@ -12,8 +12,10 @@ from decimal import Decimal
 from django.db import transaction
 from collections import defaultdict
 
-import requests
+import requests as http_requests
 import os
+
+NOTIFICATIONS_API_URL = os.environ.get('NOTIFICATIONS_API_URL', 'http://notifications-api:8001')
 
 
 class OrderCreateView(APIView):
@@ -86,6 +88,23 @@ class OrderCreateView(APIView):
                     product.stock_quantity -= basket_item.quantity
                     product.save()
                     order_subtotal += product.price * basket_item.quantity
+                    
+                    # Notify producer if stock drops below threshold  
+                    if product.stock_quantity <= product.low_stock_threshold:
+                        try:
+                            http_requests.post(
+                                f"{NOTIFICATIONS_API_URL}/api/notifications/",
+                                headers={'X-Service-Secret': os.environ.get('JWT_SECRET_KEY', '')},
+                                json={
+                                    'user': producer.id,
+                                    'message': f"Low Stock Alert: {product.name} — Only {product.stock_quantity} {product.unit or 'units'} remaining.",
+                                    'type': 'LOW_STOCK'
+                                },
+                                timeout=5
+                            )
+                        except Exception:
+                            pass  
+                        
                 except ValueError as e:
                     return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -103,7 +122,22 @@ class OrderCreateView(APIView):
         
         # Clear customer's basket once order is successfully placed
         basket.items.all().delete()
-        
+
+        # Notify each producer of their new incoming order
+        for producer, producer_basket_items in items_by_producer.items():
+            try:
+                http_requests.post(
+                    f"{NOTIFICATIONS_API_URL}/api/notifications/",
+                    headers={'X-Service-Secret': os.environ.get('JWT_SECRET_KEY', '')},
+                    json={
+                        'user': producer.id,
+                        'message': f"You have a new order from {request.user.username}. Total items: {len(producer_basket_items)}.",
+                        'type': 'ORDER_PLACED'
+                    },
+                    timeout=5
+                )
+            except Exception as e:
+                pass # Non-critical if notification fails
         # Return the created order
         serializer = CustomerOrderSerializer(customer_order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -164,8 +198,6 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Order.objects.filter(producer=user).distinct()
         return Order.objects.filter(customer=user)
 
-NOTIFICATIONS_API_URL = os.environ.get('NOTIFICATIONS_API_URL', 'http://notifications-api:8001')
-
 class OrderStatusUpdateView(APIView):
     """
     Allows a producer to update the status of an order and log it.
@@ -216,18 +248,27 @@ class OrderStatusUpdateView(APIView):
             note=note
         )
 
-        # Trigger notification to customer
+        # Trigger notification to customer with specific type per status
+        status_type_map = {
+            'CONFIRMED': 'ORDER_CONFIRMED',
+            'READY': 'ORDER_READY',
+            'DELIVERED': 'ORDER_DELIVERED',
+            'CANCELLED': 'ORDER_CANCELLED',
+        }
+        notification_type = status_type_map.get(new_status, 'ORDER_UPDATE')
+
         try:
-            requests.post(
-                f"{NOTIFICATIONS_API_URL}/api/notifications/",
-                json={
+            http_requests.post(
+                    f"{NOTIFICATIONS_API_URL}/api/notifications/",
+                    headers={'X-Service-Secret': os.environ.get('JWT_SECRET_KEY', '')},
+                    json={
                     'user': order.customer.id,
-                    'message': f"Order #{order.id} status updated to {new_status}" + (f" - Note: {note}" if note else ""),
-                    'type': 'ORDER_UPDATE'
+                    'message': f"Order #{order.id} is now {new_status}." + (f" Note: {note}" if note else ""),
+                    'type': notification_type
                 },
                 timeout=5
             )
         except Exception:
-            pass # Non-critical if notification fails
+            pass  # Non-critical if notification fails
 
         return Response({'success': True, 'status': new_status})
