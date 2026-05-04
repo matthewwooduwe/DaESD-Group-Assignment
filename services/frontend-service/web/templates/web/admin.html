@@ -244,6 +244,67 @@
 .status-ready     { background: #e3f2fd; color: #1565c0; }
 .status-delivered { background: #f3e5f5; color: #6a1b9a; }
 
+.status-payment-paid              { background: #e8f5ee; color: #00622e; }
+.status-payment-unpaid            { background: #fdf3dc; color: #9a6b10; }
+.status-payment-no_payment_required { background: #e3f2fd; color: #1565c0; }
+
+.copy-btn {
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.75rem;
+    color: var(--green);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--green);
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+}
+.copy-btn:hover { background: var(--green); color: #fff; }
+.copy-btn.copied { background: var(--green); color: #fff; }
+
+.session-id-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.session-id-chip {
+    display: inline-block;
+    max-width: 420px;
+    padding: 0.26rem 0.5rem;
+    border: 1px solid #c9d9ce;
+    border-radius: 6px;
+    background: #f6faf7;
+    color: var(--text);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-id-chip:hover {
+    border-color: #9fbba9;
+    background: #eef7f1;
+}
+
+@media (max-width: 1100px) {
+    .session-id-chip { max-width: 260px; }
+}
+
+@media (max-width: 720px) {
+    .session-id-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+
+    .session-id-chip { max-width: 220px; }
+}
+
 .btn-sm-danger {
     background: transparent;
     color: #a0422a;
@@ -578,6 +639,7 @@
         <button class="tab-btn active" onclick="switchTab('users', this)">Users</button>
         <button class="tab-btn" onclick="switchTab('products', this)">Products</button>
         <button class="tab-btn" onclick="switchTab('orders', this)">Orders</button>
+        <button class="tab-btn" onclick="switchTab('transactions', this)">Transactions</button>
         <button class="tab-btn" onclick="switchTab('commission', this)">Commission</button>
         <button class="tab-btn" onclick="switchTab('foodmiles', this)">Food Miles</button>
     </div>
@@ -839,6 +901,59 @@
                 </tr>
                 {% empty %}
                 <tr class="empty-row"><td colspan="2">No delivered delivery orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Transactions Tab -->
+    <div id="tab-transactions" class="tab-panel">
+        {% if transaction_error %}
+        <div class="error-banner" style="margin-bottom: 1rem;">{{ transaction_error }}</div>
+        {% endif %}
+        {% if transaction_debug %}
+        <div style="margin-bottom: 1rem; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: #f7faf8; color: var(--text-muted); font-size: 0.82rem;">
+            <strong style="color: var(--text);">Transaction debug details:</strong>
+            <ul style="margin: 0.5rem 0 0 1rem;">
+                {% for entry in transaction_debug %}
+                <li>{{ entry }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <div class="search-bar">
+            <input class="search-input" type="text" placeholder="Search transactions by session ID, order ID or user ID..." oninput="filterTable('transactions-table', this.value)">
+        </div>
+        <table class="data-table" id="transactions-table">
+            <thead>
+                <tr>
+                    <th style="cursor:pointer;" onclick="sortTableByCol('transactions-table', 0)">Session ID ↕</th>
+                    <th>Order ID</th>
+                    <th>User ID</th>
+                    <th>Amount</th>
+                    <th>Payment Status</th>
+                    <th style="cursor:pointer;" onclick="sortTableByCol('transactions-table', 5)">Created ↕</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>
+                        <div class="session-id-cell">
+                            <span class="session-id-chip" title="{{ transaction.session_id }}">{{ transaction.session_id }}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('{{ transaction.session_id }}', this)">Copy</button>
+                        </div>
+                    </td>
+                    <td>{{ transaction.order_id|default:"—" }}</td>
+                    <td>{{ transaction.user_id|default:"—" }}</td>
+                    <td>{{ transaction.amount_total }} {{ transaction.currency }}</td>
+                    <td>
+                        <span class="status-badge status-payment-{{ transaction.payment_status|lower }}">{{ transaction.payment_status }}</span>
+                    </td>
+                    <td>{{ transaction.created_at }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="6">No transactions found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -1145,6 +1260,25 @@ function sortTable(tableId, colIndex) {
 function toggleModalProfileFields(role) {
     document.getElementById('modal-customer-fields').style.display = role === 'CUSTOMER' ? '' : 'none';
     document.getElementById('modal-producer-fields').style.display = role === 'PRODUCER' ? '' : 'none';
+}
+
+function copySessionId(sessionId, btn) {
+    navigator.clipboard.writeText(sessionId).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.textContent = 'Copy';
+        }, 1500);
+    });
+}
+
+function copyToClipboard(text, btn) {
+    copySessionId(text, btn);
+}
+
+function sortTableByCol(tableId, colIndex) {
+    sortTable(tableId, colIndex);
 }
 
 function openEditModalFromBtn(userId) {

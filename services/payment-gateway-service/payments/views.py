@@ -1,7 +1,10 @@
 import json
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from urllib.parse import urlencode
+
+logger = logging.getLogger(__name__)
 
 try:
     import stripe
@@ -85,20 +88,59 @@ def list_transactions(request):
             local_payment = payments_by_session.get(session_id)
             amount_total = session.amount_total
             created_unix = session.created
-            metadata = session.metadata or {}
+
+            # session.metadata is a StripeObject in newer sdk versions – avoid calling
+            # .get() on it directly as StripeObject may not support dict-style .get().
+            metadata_order_id = ''
+            metadata_user_id = ''
+            if session.metadata:
+                try:
+                    metadata_order_id = session.metadata['order_id'] or ''
+                except (KeyError, TypeError, AttributeError):
+                    pass
+                try:
+                    metadata_user_id = session.metadata['user_id'] or ''
+                except (KeyError, TypeError, AttributeError):
+                    pass
+
+            # Try to get user_id from local payment request_payload first, then metadata
+            user_id = ''
+            if local_payment:
+                try:
+                    payload = local_payment.request_payload or {}
+                    user_id = str(payload.get('user_id') or '')
+                except (TypeError, AttributeError):
+                    pass
+            if not user_id:
+                user_id = metadata_user_id
+
+            # Try to get email from Stripe session first, then from local payment request payload
+            customer_email = session.customer_email or ''
+            if not customer_email and local_payment:
+                try:
+                    payload = local_payment.request_payload or {}
+                    customer_email = payload.get('customer_email') or ''
+                except (TypeError, AttributeError):
+                    pass
+
+            # payment_intent may be an expanded PaymentIntent object in newer SDK versions;
+            # cast to str to keep the response JSON-serializable.
+            payment_intent_val = session.payment_intent
+            payment_intent_str = str(payment_intent_val) if payment_intent_val and not isinstance(payment_intent_val, str) else (payment_intent_val or '')
 
             transactions.append(
                 {
                     'session_id': session_id,
-                    'order_id': (local_payment.order_id if local_payment else '') or metadata.get('order_id') or '',
-                    'customer_email': session.customer_email or '',
+                    'order_id': (local_payment.order_id if local_payment else '') or metadata_order_id or '',
+                    'user_id': user_id,
+                    'customer_email': customer_email,
                     'amount_total': _format_amount(amount_total),
                     'currency': (session.currency or '').upper(),
                     'payment_status': session.payment_status or 'unknown',
                     'status': local_payment.status if local_payment else '',
                     'created_at': _format_unix(created_unix),
-                    'payment_intent': session.payment_intent or '',
-                    'url': session.url or '',
+                    'payment_intent': payment_intent_str,
+                    'url': str(session.url or ''),
                 }
             )
 
@@ -112,7 +154,8 @@ def list_transactions(request):
     except stripe.error.StripeError as exc:
         return JsonResponse({'error': f'Stripe error: {exc}'}, status=400)
     except Exception as exc:
-        return JsonResponse({'error': f'Unexpected error: {exc}'}, status=500)
+        logger.exception('Unexpected error in list_transactions')
+        return JsonResponse({'error': f'Unexpected error: {type(exc).__name__}: {exc}'}, status=500)
 
 
 def payment_status(request):
@@ -331,11 +374,13 @@ def _create_checkout_session(*, request, payload):
         'metadata': {
             'payment_id': str(payment.id),
             'order_id': checkout_data['order_id'],
+            'user_id': checkout_data.get('user_id', ''),
         },
         'payment_intent_data': {
             'metadata': {
                 'payment_id': str(payment.id),
                 'order_id': checkout_data['order_id'],
+                'user_id': checkout_data.get('user_id', ''),
             }
         },
         'success_url': checkout_data['success_url'] or _default_success_url(request, payment.id),
@@ -359,6 +404,7 @@ def _build_checkout_data(payload):
     order_id = str(payload.get('order_id') or order.get('order_id') or order.get('id') or '')
     currency = str(payload.get('currency') or order.get('currency') or settings.STRIPE_CURRENCY).lower()
     customer_email = payload.get('customer_email') or order.get('customer_email') or order.get('email')
+    user_id = str(payload.get('user_id') or order.get('user_id') or '')
 
     if items:
         line_items, amount = _build_line_items(items=items, currency=currency, order_id=order_id)
@@ -385,6 +431,7 @@ def _build_checkout_data(payload):
         'amount': amount,
         'currency': currency,
         'customer_email': customer_email,
+        'user_id': user_id,
         'line_items': line_items,
         'order_id': order_id,
         'success_url': payload.get('success_url'),
@@ -495,7 +542,7 @@ def _default_cancel_url(request, payment_id):
 
 
 def _frontend_success_redirect_url(*, payment):
-    frontend_base = (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
+    frontend_base = _resolve_frontend_base_url(payment=payment)
     query = {
         'payment': 'success',
         'payment_id': payment.id,
@@ -509,7 +556,7 @@ def _frontend_success_redirect_url(*, payment):
 
 
 def _frontend_cancel_redirect_url(*, payment=None):
-    frontend_base = (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
+    frontend_base = _resolve_frontend_base_url(payment=payment)
     query = {
         'payment': 'cancelled',
         'error': 'Payment was cancelled. Your basket has not been placed.',
@@ -536,6 +583,19 @@ def _coerce_limit(value):
     if parsed < 1:
         return default_limit
     return min(parsed, max_limit)
+
+
+def _resolve_frontend_base_url(*, payment=None):
+    if payment:
+        try:
+            payload = payment.request_payload or {}
+            frontend_from_payload = str(payload.get('frontend_base_url') or '').rstrip('/')
+            if frontend_from_payload:
+                return frontend_from_payload
+        except (TypeError, AttributeError):
+            pass
+
+    return (settings.FRONTEND_URL or 'http://localhost:8000').rstrip('/')
 
 
 def _format_amount(value):

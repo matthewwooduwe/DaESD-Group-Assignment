@@ -14,6 +14,7 @@ PLATFORM_API_URL = os.environ.get('PLATFORM_API_URL', 'http://platform-api:8002'
 # Used by the browser to load product images served by the platform service.
 MEDIA_BASE_URL = os.environ.get('MEDIA_BASE_URL', 'http://localhost:8002')
 PAYMENT_GATEWAY_URL = os.environ.get('PAYMENT_GATEWAY_URL', 'http://payment-gateway:8003')
+PAYMENT_GATEWAY_API_URL = os.environ.get('PAYMENT_GATEWAY_API_URL', PAYMENT_GATEWAY_URL).rstrip('/')
 
 def _get_postcode_coords(postcode):
     """Fetch lat/lng for a UK postcode from postcodes.io. Returns (lat, lng) or (None, None)."""
@@ -79,7 +80,11 @@ def _api_error_message(status_code):
 AUTH_EXPIRED_ERROR = '__AUTH_EXPIRED__'
 
 
-def _build_payment_checkout_payload(*, basket, pending_order_reference):
+def _build_payment_checkout_payload(*, basket, pending_order_reference, customer_email='', customer_id=''):
+    """
+    Build the JSON payload expected by payment-gateway /payments/api/checkout/
+    from the current basket snapshot.
+    """
     items = []
     basket_items = basket.get('items') or []
     total_amount = basket.get('total_price')
@@ -106,7 +111,30 @@ def _build_payment_checkout_payload(*, basket, pending_order_reference):
         payload['total_amount'] = str(total_amount)
         payload['title'] = f'Order {pending_order_reference}'
 
+    if customer_email:
+        payload['customer_email'] = customer_email
+
+    if customer_id:
+        payload['user_id'] = str(customer_id)
+
     return payload
+
+
+def _candidate_payment_gateway_api_bases():
+    """Return candidate base URLs for payment-gateway API calls."""
+    bases = []
+    for base in (
+        PAYMENT_GATEWAY_API_URL,
+        PAYMENT_GATEWAY_URL,
+        'http://payment-gateway:8003',
+        'http://localhost:8003',
+        'http://127.0.0.1:8003',
+    ):
+        normalized = str(base or '').rstrip('/')
+        if normalized and normalized not in bases:
+            bases.append(normalized)
+    return bases
+
 
 
 def _extract_error_from_response(response, default_message):
@@ -585,13 +613,18 @@ def profile_view(request):
 
 
 def admin_dashboard(request):
+    """
+    Admin dashboard with tabs for users, products, orders, transactions, and site stats.
+    """
     """Admin dashboard with commission monitoring."""
     if not request.session.get('token') or request.session.get('role') != 'ADMIN':
         return redirect('/login/')
 
     headers = get_auth_headers(request)
-    users, products, orders = [], [], []
+    users, products, orders, transactions = [], [], [], []
     error = None
+    transaction_error = None
+    transaction_debug = []
 
     try:
         resp_users = requests.get(f"{PLATFORM_API_URL}/api/auth/users/", headers=headers, timeout=5)
@@ -632,8 +665,40 @@ def admin_dashboard(request):
 
     except requests.exceptions.ConnectionError:
         error = "Cannot reach the platform API. Please check the service is running."
+    except requests.exceptions.Timeout:
+        error = "A service request timed out while loading the admin dashboard."
     except Exception as e:
         error = f"Unexpected error: {str(e)}"
+
+    for base_url in _candidate_payment_gateway_api_bases():
+        transactions_url = f"{base_url}/payments/api/transactions/?limit=50"
+        try:
+            resp_transactions = requests.get(transactions_url, timeout=8)
+        except requests.exceptions.ConnectionError:
+            transaction_debug.append(f"{transactions_url} -> connection error")
+            continue
+        except requests.exceptions.Timeout:
+            transaction_debug.append(f"{transactions_url} -> timed out")
+            continue
+        except Exception as exc:
+            transaction_debug.append(f"{transactions_url} -> unexpected error: {str(exc)}")
+            continue
+
+        if resp_transactions.status_code == 200:
+            trans_data = resp_transactions.json()
+            transactions = trans_data.get('transactions', [])
+            break
+
+        tx_error = _extract_error_from_response(
+            resp_transactions,
+            'Unknown payment-gateway error.',
+        )
+        transaction_debug.append(
+            f"{transactions_url} -> status {resp_transactions.status_code}: {tx_error}"
+        )
+
+    if not transactions and transaction_debug:
+        transaction_error = "Transactions could not be loaded from payment-gateway."
 
     total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
     total_commission = sum(float(o.get('commission_total') or 0) for o in orders)
@@ -676,6 +741,10 @@ def admin_dashboard(request):
     return render(request, 'web/admin.html', {
         'users': users,
         'products': products,
+        'orders': orders,
+        'transactions': transactions,
+        'transaction_error': transaction_error,
+        'transaction_debug': transaction_debug,
         'all_orders': orders,
         'error': error,
         'total_revenue': total_revenue,
@@ -1386,7 +1455,31 @@ def create_order(request):
     request.session.pop('finalized_order_id', None)
     request.session.modified = True
 
-    checkout_payload = _build_payment_checkout_payload(basket=basket, pending_order_reference=pending_order_reference)
+    # Fetch current user to get their email and ID
+    customer_email = ''
+    customer_id = ''
+    try:
+        user_resp = requests.get(
+            f"{PLATFORM_API_URL}/api/auth/me/",
+            headers=get_auth_headers(request),
+            timeout=5
+        )
+        if user_resp.status_code == 200:
+            user_data = user_resp.json()
+            customer_email = user_data.get('email', '')
+            customer_id = str(
+                user_data.get('id') or user_data.get('user_id') or user_data.get('pk') or ''
+            )
+    except:
+        pass
+
+    checkout_payload = _build_payment_checkout_payload(
+        basket=basket,
+        pending_order_reference=pending_order_reference,
+        customer_email=customer_email,
+        customer_id=customer_id,
+    )
+    checkout_payload['frontend_base_url'] = request.build_absolute_uri('/').rstrip('/')
 
     try:
         checkout_resp = requests.post(f"{PAYMENT_GATEWAY_URL}/payments/api/checkout/", json=checkout_payload, timeout=10)
@@ -1650,7 +1743,7 @@ def producer_orders_view(request):
             orders = resp.json()
             # Calculate food miles for DELIVERED delivery orders only
             try:
-                for order in orders:
+                for orders in orders:
                     status = (order.get('status') or '').upper()
                     collection_type = (order.get('collection_type') or '').lower()
                     if status == 'DELIVERED' and 'collect' not in collection_type:
